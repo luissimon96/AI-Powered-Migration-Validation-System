@@ -1,0 +1,27 @@
+# Minimal Working Dependencies - AI-Powered Migration Validation System
+
+# Core Web Framework
+fastapi>=0.100.0
+uvicorn[standard]>=0.20.0
+
+# Data Validation
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Configuration
+python-dotenv>=1.0.0
+
+# Logging
+structlog>=23.0.0
+
+# HTTP Client
+httpx>=0.24.0
+
+# File Processing  
+python-multipart>=0.0.6
+
+# CLI Support
+click>=8.0.0
+
+# Basic Image Processing (optional)
+Pillow>=9.0.0

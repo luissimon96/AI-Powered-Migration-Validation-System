@@ -1,0 +1,4 @@
+project_name: AI-Powered-Migration-Validation-System
+language: python
+description: Sistema de Validação de Migração por IA - QA automatizado para processos de migração de código
+version: "0.1.0"

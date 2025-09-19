@@ -1,0 +1,52 @@
+# Production Dependencies - AI-Powered Migration Validation System
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Data Validation and Models
+pydantic==2.5.0
+
+# Image Processing
+Pillow==10.1.0
+
+# AI and LLM Integration
+openai==1.3.8
+anthropic==0.7.8
+google-generativeai==0.3.2
+
+# Multi-Agent AI Framework
+crewai==0.1.26
+
+# Browser Automation
+playwright==1.40.0
+browser-use==0.1.4
+
+# HTTP Client for API calls
+httpx==0.25.2
+aiohttp==3.9.1
+
+# Configuration Management
+python-dotenv==1.0.0
+pydantic-settings==2.1.0
+
+# File Processing
+python-multipart==0.0.6
+
+# Async Support
+asyncio-throttle==1.0.2
+
+# Logging and Monitoring
+structlog==23.2.0
+
+# Database (optional for session persistence)
+sqlalchemy==2.0.23
+alembic==1.13.1
+asyncpg==0.29.0
+
+# Caching
+redis==5.0.1
+
+# Security
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
