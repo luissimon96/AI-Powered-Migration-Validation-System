@@ -15,154 +15,39 @@ import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
+from enum import Enum
 
-from ..behavioral.crews import (
-    BehavioralValidationRequest,
-    create_behavioral_validation_crew,
-)
-from ..core.input_processor import InputProcessor
-from ..core.migration_validator import MigrationValidator
-from ..core.models import (
-    SeverityLevel,
-    ValidationDiscrepancy,
-    ValidationResult,
-    ValidationSession,
-)
+
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    VALIDATOR = "validator"
+    VIEWER = "viewer"
 
 
 # Pydantic models for API requests/responses
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
 class TechnologyOption(BaseModel):
     value: str
     label: str
 
 
-class ValidationScopeOption(BaseModel):
-    value: str
-    label: str
-
-
-class InputTypeOption(BaseModel):
-    value: str
-    label: str
-
-
-class TechnologyOptionsResponse(BaseModel):
-    source_technologies: List[TechnologyOption]
-    target_technologies: List[TechnologyOption]
-    validation_scopes: List[ValidationScopeOption]
-    input_types: List[InputTypeOption]
-
-
-class ValidationRequest(BaseModel):
-    source_technology: str = Field(..., description="Source technology type")
-    target_technology: str = Field(..., description="Target technology type")
-    validation_scope: str = Field(..., description="Validation scope")
-    source_tech_version: Optional[str] = Field(
-        None, description="Source technology version"
-    )
-    target_tech_version: Optional[str] = Field(
-        None, description="Target technology version"
-    )
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
-
-
-class ValidationStatusResponse(BaseModel):
-    request_id: str
-    status: str  # pending, processing, completed, error
-    progress: Optional[str] = None
-    message: Optional[str] = None
-    result_available: bool = False
-
-
-class ValidationResultResponse(BaseModel):
-    request_id: str
-    overall_status: str
-    fidelity_score: float
-    fidelity_percentage: str
-    summary: str
-    discrepancy_counts: Dict[str, int]
-    execution_time: Optional[float]
-    timestamp: str
-
-
-class CompatibilityCheckRequest(BaseModel):
-    source_technology: str
-    target_technology: str
-    validation_scope: str
-
-
-class CompatibilityCheckResponse(BaseModel):
-    compatible: bool
-    issues: List[str]
-    warnings: List[str]
-
-
-class BehavioralValidationRequestModel(BaseModel):
-    source_url: str = Field(..., description="URL of the source system")
-    target_url: str = Field(..., description="URL of the target system")
-    validation_scenarios: List[str] = Field(
-        ..., description="List of validation scenarios to execute"
-    )
-    credentials: Optional[Dict[str, str]] = Field(
-        None, description="Authentication credentials"
-    )
-    timeout: int = Field(300, description="Timeout in seconds")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
-
-
-class BehavioralValidationStatusResponse(BaseModel):
-    request_id: str
-    status: str  # pending, processing, completed, error
-    progress: Optional[str] = None
-    message: Optional[str] = None
-    result_available: bool = False
-
-
-class BehavioralValidationResultResponse(BaseModel):
-    request_id: str
-    overall_status: str
-    fidelity_score: float
-    fidelity_percentage: str
-    discrepancies: List[Dict[str, Any]]
-    execution_time: Optional[float]
-    timestamp: str
-
-
-class HybridValidationRequest(BaseModel):
-    # Static validation parameters
-    source_technology: str = Field(..., description="Source technology type")
-    target_technology: str = Field(..., description="Target technology type")
-    validation_scope: str = Field(..., description="Validation scope")
-    source_tech_version: Optional[str] = Field(
-        None, description="Source technology version"
-    )
-    target_tech_version: Optional[str] = Field(
-        None, description="Target technology version"
-    )
-
-    # Behavioral validation parameters
-    source_url: Optional[str] = Field(None, description="URL of the source system")
-    target_url: Optional[str] = Field(None, description="URL of the target system")
-    validation_scenarios: List[str] = Field(
-        default=[], description="Behavioral validation scenarios"
-    )
-    credentials: Optional[Dict[str, str]] = Field(
-        None, description="Authentication credentials"
-    )
-    behavioral_timeout: int = Field(300, description="Behavioral validation timeout")
-
-    # Common metadata
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
-
-
 # Global storage for validation sessions (in production, use Redis or database)
 validation_sessions: Dict[str, ValidationSession] = {}
 behavioral_validation_sessions: Dict[str, Dict[str, Any]] = {}
-
 
 def create_app() -> FastAPI:
     """Create and configure FastAPI application."""
@@ -187,6 +72,48 @@ def create_app() -> FastAPI:
     # Initialize components
     validator = MigrationValidator()
     input_processor = InputProcessor()
+
+    # Hardcoded user for demonstration (replace with database lookup in production)
+    HARDCODED_USER = {
+        "username": "admin",
+        "password": "password", # In production, store hashed passwords
+        "role": UserRole.ADMIN,
+    }
+
+    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+    async def get_current_user(token: str = Depends(oauth2_scheme)):
+        payload = decode_access_token(token)
+        if payload is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        username = payload.get("sub")
+        user_role = payload.get("role")
+        if username is None or user_role is None:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        return {"username": username, "role": user_role}
+
+    def has_role(required_role: UserRole):
+        def role_checker(current_user: Dict[str, Any] = Depends(get_current_user)):
+            if current_user["role"] != required_role:
+                raise HTTPException(status_code=403, detail="Operation not permitted")
+            return current_user
+        return role_checker
+
+    @app.post("/token", response_model=Token, tags=["Authentication"])
+    async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+        user = HARDCODED_USER # In production, fetch user from DB
+        if not user or not verify_password(form_data.password, user["password"]):
+            raise HTTPException(
+                status_code=401,
+                detail="Incorrect username or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        access_token = create_access_token(data={"sub": user["username"], "role": user["role"]})
+        return {"access_token": access_token, "token_type": "bearer"}
+
+    @app.get("/users/me", tags=["Authentication"])
+    async def read_users_me(current_user: Dict[str, Any] = Depends(get_current_user)):
+        return current_user
 
     @app.get("/", tags=["Health"])
     async def root():
@@ -240,7 +167,7 @@ def create_app() -> FastAPI:
                 status_code=500, detail=f"Compatibility check failed: {str(e)}"
             )
 
-    @app.get("/api/capabilities", tags=["Configuration"])
+    @app.get("/api/capabilities", tags=["Configuration"], dependencies=[Depends(has_role(UserRole.ADMIN))])
     async def get_system_capabilities():
         """Get system capabilities and supported features."""
         try:
