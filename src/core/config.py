@@ -5,6 +5,7 @@ Handles environment variables, LLM provider settings, and system configuration.
 """
 
 import os
+import tempfile
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
@@ -53,7 +54,7 @@ class SystemSettings(BaseSettings):
     debug: bool = False
 
     # API Settings
-    api_host: str = "0.0.0.0"
+    api_host: str = "127.0.0.1"
     api_port: int = 8000
     api_workers: int = 1
     cors_origins: list = field(default_factory=lambda: ["*"])
@@ -61,7 +62,7 @@ class SystemSettings(BaseSettings):
     # File Upload Settings
     max_file_size: int = 10 * 1024 * 1024  # 10MB
     max_files_per_request: int = 20
-    upload_dir: str = "/tmp/migration_validator_uploads"
+    upload_dir: str = os.path.join(tempfile.gettempdir(), "migration_validator_uploads")
 
     # LLM Settings
     default_llm_provider: str = "openai"

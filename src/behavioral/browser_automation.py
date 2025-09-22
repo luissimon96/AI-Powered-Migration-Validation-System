@@ -538,8 +538,8 @@ class BrowserAutomationEngine:
                 await self.current_page.wait_for_load_state(
                     "networkidle", timeout=10000
                 )
-            except:
-                pass  # Continue even if network idle timeout
+            except Exception as e:
+                logger.warning(f"Network idle timeout: {e}")  # Continue even if network idle timeout
 
             # Check for common success indicators
             current_url = self.current_page.url

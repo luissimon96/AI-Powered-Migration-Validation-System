@@ -323,8 +323,8 @@ class BrowserTool(BaseModel):
                     loop.create_task(self.cleanup())
                 else:
                     loop.run_until_complete(self.cleanup())
-            except:
-                pass  # Ignore cleanup errors during destruction
+            except Exception as e:
+                logger.debug(f"Cleanup error during destruction: {e}")  # Ignore cleanup errors during destruction
 
 
 class ValidationScenarioResult(BaseModel):

@@ -20,12 +20,12 @@ def read_readme():
 
 # Core dependencies (always installed)
 CORE_DEPS = [
-    "fastapi>=0.104.0,<0.105.0",
+    "fastapi>=0.115.0,<0.116.0",
     "uvicorn[standard]>=0.24.0,<0.25.0",
     "pydantic>=2.5.0,<3.0.0",
     "pydantic-settings>=2.1.0,<3.0.0",
     "python-dotenv>=1.0.0,<2.0.0",
-    "httpx>=0.25.0,<0.26.0",
+    "httpx>=0.27.0,<0.28.0",
     "aiohttp>=3.9.0,<4.0.0",
     "python-multipart>=0.0.6,<1.0.0",
     "Pillow>=10.1.0,<11.0.0",
@@ -83,7 +83,7 @@ EXTRAS = {
     # Security Scanning
     "security-scan": [
         "bandit>=1.7.5,<2.0.0",
-        "safety>=2.3.0,<3.0.0",
+        "safety>=3.0.0,<4.0.0",
     ],
     # Performance Testing
     "performance": [
