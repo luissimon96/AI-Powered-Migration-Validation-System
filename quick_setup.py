@@ -9,11 +9,14 @@ import sys
 import os
 from pathlib import Path
 
+
 def run_command(cmd, check=True):
     """Run a shell command."""
     print(f"🔧 Running: {cmd}")
     try:
-        result = subprocess.run(cmd, shell=True, check=check, capture_output=True, text=True)
+        result = subprocess.run(
+            cmd, shell=True, check=check, capture_output=True, text=True
+        )
         if result.stdout:
             print(result.stdout)
         return True
@@ -23,26 +26,28 @@ def run_command(cmd, check=True):
             print(e.stderr)
         return False
 
+
 def install_minimal_deps():
     """Install minimal dependencies."""
     print("📦 Installing minimal dependencies...")
-    
+
     deps = [
         "fastapi>=0.100.0",
-        "uvicorn[standard]>=0.20.0", 
+        "uvicorn[standard]>=0.20.0",
         "pydantic>=2.0.0",
         "structlog>=23.0.0",
         "python-dotenv>=1.0.0",
         "httpx>=0.24.0",
         "python-multipart>=0.0.6",
-        "click>=8.0.0"
+        "click>=8.0.0",
     ]
-    
+
     for dep in deps:
         if not run_command(f"pip install '{dep}'", check=False):
             print(f"⚠️  Failed to install {dep}, continuing...")
-    
+
     print("✅ Basic dependencies installed!")
+
 
 def install_pydantic_settings():
     """Install pydantic-settings separately."""
@@ -50,11 +55,12 @@ def install_pydantic_settings():
     if not run_command("pip install 'pydantic-settings>=2.0.0'", check=False):
         print("⚠️  pydantic-settings failed, will use fallback")
 
+
 def setup_env():
     """Setup environment file."""
     env_example = Path(".env.example")
     env_file = Path(".env")
-    
+
     if env_example.exists() and not env_file.exists():
         print("📄 Creating .env file from template...")
         env_content = env_example.read_text()
@@ -65,34 +71,39 @@ def setup_env():
     else:
         print("⚠️  No .env.example found")
 
+
 def test_basic_import():
     """Test if basic imports work."""
     print("🧪 Testing basic imports...")
-    
+
     try:
         # Test core imports
         import fastapi
         import uvicorn
         import pydantic
+
         print("✅ Core web framework imports work")
-        
+
         try:
             import structlog
+
             print("✅ Logging imports work")
         except ImportError:
             print("⚠️  structlog not available, will use fallbacks")
-        
+
         try:
             from pydantic_settings import BaseSettings
+
             print("✅ pydantic-settings available")
         except ImportError:
             print("⚠️  pydantic-settings not available, using pydantic BaseSettings")
-        
+
         return True
-        
+
     except ImportError as e:
         print(f"❌ Import error: {e}")
         return False
+
 
 def create_simple_test():
     """Create a simple test file."""
@@ -136,37 +147,40 @@ if __name__ == "__main__":
         print("2/2 ❌ API test failed")
         exit(1)
 '''
-    
+
     Path("test_basic.py").write_text(test_content)
     print("✅ Created test_basic.py")
+
 
 def main():
     """Main setup function."""
     print("🚀 AI-Powered Migration Validation System - Quick Setup")
     print("=" * 60)
-    
+
     # Check if we're in a virtual environment
-    if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+    if hasattr(sys, "real_prefix") or (
+        hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix
+    ):
         print("✅ Virtual environment detected")
     else:
         print("⚠️  No virtual environment detected. Consider using one.")
-    
+
     # Install dependencies
     install_minimal_deps()
     install_pydantic_settings()
-    
+
     # Setup environment
     setup_env()
-    
+
     # Test imports
     if test_basic_import():
         print("✅ All basic imports successful!")
     else:
         print("❌ Some imports failed, but continuing...")
-    
+
     # Create test file
     create_simple_test()
-    
+
     print("\n" + "=" * 60)
     print("🎉 Setup completed!")
     print("\n📋 Next steps:")
@@ -174,7 +188,8 @@ def main():
     print("2. Run: python test_basic.py")
     print("3. Run: python run.py")
     print("4. Visit: http://localhost:8000/docs")
-    print("\n🔧 For full setup: pip install -e \".[dev,ai,browser]\"")
+    print('\n🔧 For full setup: pip install -e ".[dev,ai,browser]"')
+
 
 if __name__ == "__main__":
     main()

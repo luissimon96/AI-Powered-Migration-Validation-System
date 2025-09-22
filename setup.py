@@ -8,6 +8,7 @@ Supports optional dependencies via extras_require.
 from setuptools import setup, find_packages
 import os
 
+
 # Read README for long description
 def read_readme():
     try:
@@ -15,6 +16,7 @@ def read_readme():
             return f.read()
     except FileNotFoundError:
         return "AI-Powered Migration Validation System"
+
 
 # Core dependencies (always installed)
 CORE_DEPS = [
@@ -39,36 +41,30 @@ EXTRAS = {
         "anthropic>=0.7.0,<1.0.0",
         "google-generativeai>=0.3.0,<1.0.0",
     ],
-
     # Multi-Agent AI Framework
     "crewai": [
         "crewai>=0.1.26,<1.0.0",
     ],
-
     # Browser Automation
     "browser": [
         "playwright>=1.40.0,<2.0.0",
         "browser-use>=0.1.4,<1.0.0",
     ],
-
     # Database & Persistence
     "database": [
         "sqlalchemy>=2.0.23,<3.0.0",
         "alembic>=1.13.0,<2.0.0",
         "asyncpg>=0.29.0,<1.0.0",
     ],
-
     # Caching & Performance
     "cache": [
         "redis>=5.0.0,<6.0.0",
     ],
-
     # Security & Authentication
     "security": [
         "passlib[bcrypt]>=1.7.4,<2.0.0",
         "python-jose[cryptography]>=3.3.0,<4.0.0",
     ],
-
     # Development & Testing
     "dev": [
         "pytest>=7.4.0,<8.0.0",
@@ -77,7 +73,6 @@ EXTRAS = {
         "pytest-mock>=3.12.0,<4.0.0",
         "pytest-xdist>=3.5.0,<4.0.0",
     ],
-
     # Code Quality & Formatting
     "quality": [
         "black>=23.11.0,<24.0.0",
@@ -85,19 +80,16 @@ EXTRAS = {
         "isort>=5.12.0,<6.0.0",
         "mypy>=1.7.0,<2.0.0",
     ],
-
     # Security Scanning
     "security-scan": [
         "bandit>=1.7.5,<2.0.0",
         "safety>=2.3.0,<3.0.0",
     ],
-
     # Performance Testing
     "performance": [
         "locust>=2.17.0,<3.0.0",
         "memory-profiler>=0.61.0,<1.0.0",
     ],
-
     # Development Tools
     "tools": [
         "pre-commit>=3.6.0,<4.0.0",
@@ -106,13 +98,11 @@ EXTRAS = {
         "debugpy>=1.8.0,<2.0.0",
         "watchdog>=3.0.0,<4.0.0",
     ],
-
     # Documentation
     "docs": [
         "mkdocs>=1.5.0,<2.0.0",
         "mkdocs-material>=9.4.0,<10.0.0",
     ],
-
     # Type Stubs
     "types": [
         "types-requests>=2.31.0,<3.0.0",
@@ -122,8 +112,12 @@ EXTRAS = {
 
 # Convenience groups
 EXTRAS["all"] = sum(EXTRAS.values(), [])
-EXTRAS["full-dev"] = EXTRAS["dev"] + EXTRAS["quality"] + EXTRAS["tools"] + EXTRAS["types"]
-EXTRAS["production"] = EXTRAS["ai"] + EXTRAS["database"] + EXTRAS["cache"] + EXTRAS["security"]
+EXTRAS["full-dev"] = (
+    EXTRAS["dev"] + EXTRAS["quality"] + EXTRAS["tools"] + EXTRAS["types"]
+)
+EXTRAS["production"] = (
+    EXTRAS["ai"] + EXTRAS["database"] + EXTRAS["cache"] + EXTRAS["security"]
+)
 
 setup(
     name="ai-migration-validator",

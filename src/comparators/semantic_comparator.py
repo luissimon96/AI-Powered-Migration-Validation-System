@@ -9,11 +9,16 @@ import json
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..core.models import (AbstractRepresentation, BackendFunction, DataField,
-                           SeverityLevel, UIElement, ValidationDiscrepancy,
-                           ValidationScope)
-from ..services.llm_service import (LLMService, LLMServiceError,
-                                    create_llm_service)
+from ..core.models import (
+    AbstractRepresentation,
+    BackendFunction,
+    DataField,
+    SeverityLevel,
+    UIElement,
+    ValidationDiscrepancy,
+    ValidationScope,
+)
+from ..services.llm_service import LLMService, LLMServiceError, create_llm_service
 
 
 class SemanticComparator:

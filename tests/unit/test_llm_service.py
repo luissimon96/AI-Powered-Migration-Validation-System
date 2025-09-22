@@ -6,10 +6,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.services.llm_service import (LLMConfig, LLMProvider,
-                                      LLMProviderNotAvailable, LLMResponse,
-                                      LLMService, LLMServiceError,
-                                      create_llm_service)
+from src.services.llm_service import (
+    LLMConfig,
+    LLMProvider,
+    LLMProviderNotAvailable,
+    LLMResponse,
+    LLMService,
+    LLMServiceError,
+    create_llm_service,
+)
 
 
 class TestLLMConfig:
