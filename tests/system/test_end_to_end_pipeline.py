@@ -201,7 +201,6 @@ public class UserManager {
         with open(sample_code_files["source_file"], "rb") as source_f, open(
             sample_code_files["target_file"], "rb"
         ) as target_f:
-
             files = [
                 ("source_files", ("source.py", source_f, "text/plain")),
                 ("target_files", ("target.java", target_f, "text/plain")),
@@ -365,7 +364,6 @@ public class UserManager {
         with open(sample_code_files["source_file"], "rb") as source_f, open(
             sample_code_files["target_file"], "rb"
         ) as target_f:
-
             files = [
                 ("source_files", ("source.py", source_f, "text/plain")),
                 ("target_files", ("target.java", target_f, "text/plain")),
