@@ -1,0 +1,347 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-migration-validator"
+version = "1.0.0"
+description = "AI-Powered system for validating software migration fidelity using LLMs and multi-agent frameworks"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "AI Migration Validation Team", email = "contact@ai-migration-validator.com"}
+]
+maintainers = [
+    {name = "AI Migration Validation Team", email = "contact@ai-migration-validator.com"}
+]
+keywords = ["ai", "migration", "validation", "llm", "testing", "quality-assurance"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Framework :: FastAPI",
+    "Framework :: Pytest",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "fastapi>=0.115.0,<0.116.0",
+    "uvicorn[standard]>=0.24.0,<0.25.0",
+    "pydantic>=2.5.0,<3.0.0",
+    "pydantic-settings>=2.1.0,<3.0.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+    "httpx>=0.27.0,<0.28.0",
+    "aiohttp>=3.9.0,<4.0.0",
+    "python-multipart>=0.0.6,<1.0.0",
+    "Pillow>=10.1.0,<11.0.0",
+    "structlog>=23.2.0,<24.0.0",
+    "asyncio-throttle>=1.0.0,<2.0.0",
+]
+
+[project.optional-dependencies]
+# AI & LLM Integration
+ai = [
+    "openai>=1.3.0,<2.0.0",
+    "anthropic>=0.7.0,<1.0.0",
+    "google-generativeai>=0.3.0,<1.0.0",
+]
+# Multi-Agent AI Framework
+crewai = [
+    "crewai>=0.1.26,<1.0.0",
+]
+# Browser Automation
+browser = [
+    "playwright>=1.40.0,<2.0.0",
+    "browser-use>=0.1.4,<1.0.0",
+]
+# Database & Persistence
+database = [
+    "sqlalchemy>=2.0.23,<3.0.0",
+    "alembic>=1.13.0,<2.0.0",
+    "asyncpg>=0.29.0,<1.0.0",
+]
+# Caching & Performance
+cache = [
+    "redis>=5.0.0,<6.0.0",
+]
+# Security & Authentication
+security = [
+    "passlib[bcrypt]>=1.7.4,<2.0.0",
+    "python-jose[cryptography]>=3.3.0,<4.0.0",
+]
+# Development & Testing
+dev = [
+    "pytest>=7.4.0,<8.0.0",
+    "pytest-asyncio>=0.21.0,<1.0.0",
+    "pytest-cov>=4.1.0,<5.0.0",
+    "pytest-mock>=3.12.0,<4.0.0",
+    "pytest-xdist>=3.5.0,<4.0.0",
+]
+# Code Quality & Formatting
+quality = [
+    "black>=23.11.0,<24.0.0",
+    "flake8>=6.1.0,<7.0.0",
+    "isort>=5.12.0,<6.0.0",
+    "mypy>=1.7.0,<2.0.0",
+]
+# Security Scanning
+security-scan = [
+    "bandit>=1.7.5,<2.0.0",
+    "safety>=3.0.0,<4.0.0",
+]
+# Performance Testing
+performance = [
+    "locust>=2.17.0,<3.0.0",
+    "memory-profiler>=0.61.0,<1.0.0",
+]
+# Development Tools
+tools = [
+    "pre-commit>=3.6.0,<4.0.0",
+    "jupyter>=1.0.0,<2.0.0",
+    "ipython>=8.17.0,<9.0.0",
+    "debugpy>=1.8.0,<2.0.0",
+    "watchdog>=3.0.0,<4.0.0",
+]
+# Documentation
+docs = [
+    "mkdocs>=1.5.0,<2.0.0",
+    "mkdocs-material>=9.4.0,<10.0.0",
+]
+# Type Stubs
+types = [
+    "types-requests>=2.31.0,<3.0.0",
+    "types-redis>=4.6.0,<5.0.0",
+]
+# Convenience groups
+all = [
+    "ai-migration-validator[ai,crewai,browser,database,cache,security,dev,quality,security-scan,performance,tools,docs,types]"
+]
+full-dev = [
+    "ai-migration-validator[dev,quality,tools,types]"
+]
+production = [
+    "ai-migration-validator[ai,database,cache,security]"
+]
+
+[project.scripts]
+migration-validator = "src.main:main"
+mv-cli = "src.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/ai-migration-validator/ai-migration-validator"
+Repository = "https://github.com/ai-migration-validator/ai-migration-validator"
+Documentation = "https://ai-migration-validator.readthedocs.io/"
+"Bug Reports" = "https://github.com/ai-migration-validator/ai-migration-validator/issues"
+Source = "https://github.com/ai-migration-validator/ai-migration-validator"
+
+# ═══════════════════════════════════════════════════════════════
+# TOOL CONFIGURATIONS
+# ═══════════════════════════════════════════════════════════════
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.setuptools.package-data]
+src = ["templates/*", "static/*"]
+
+# Black Formatting
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.pytest_cache
+  | \.tox
+  | \.venv
+  | venv
+  | env
+  | build
+  | dist
+  | htmlcov
+)/
+'''
+
+# isort Import Sorting
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+known_first_party = ["src"]
+known_third_party = [
+    "fastapi", "uvicorn", "pydantic", "httpx", "aiohttp",
+    "structlog", "pytest", "openai", "anthropic", "crewai",
+    "playwright", "sqlalchemy", "redis"
+]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+skip_glob = [
+    "*.egg-info/*",
+    "build/*",
+    "dist/*",
+    "venv/*",
+    "env/*",
+    ".venv/*"
+]
+
+# MyPy Type Checking
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+show_error_context = true
+pretty = true
+
+# Module-specific settings
+[[tool.mypy.overrides]]
+module = [
+    "crewai.*",
+    "browser_use.*",
+    "playwright.*",
+    "anthropic.*",
+    "openai.*",
+    "google.generativeai.*"
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+# Pytest Configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--verbose",
+    "--tb=short",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-report=xml",
+    "--cov-fail-under=80"
+]
+markers = [
+    "unit: Unit tests for individual components",
+    "integration: Integration tests for component interactions",
+    "behavioral: Behavioral validation tests using CrewAI",
+    "performance: Performance and load tests",
+    "security: Security and vulnerability tests",
+    "slow: Slow running tests (>10 seconds)",
+    "external: Tests requiring external services",
+    "llm: Tests requiring LLM API access"
+]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore:.*unclosed.*:ResourceWarning"
+]
+minversion = "6.0"
+
+# Coverage Configuration
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/env/*",
+    "setup.py"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod"
+]
+precision = 2
+show_missing = true
+
+# Bandit Security Analysis
+[tool.bandit]
+exclude_dirs = ["tests", "venv", "env", ".venv", "build", "dist"]
+skips = ["B101", "B601"]  # Skip assert_used and shell=True (when needed)
+
+[tool.bandit.any_other_function_with_shell_equals_true]
+no_shell = [
+    "os.execl",
+    "os.execle",
+    "os.execlp",
+    "os.execlpe",
+    "os.execv",
+    "os.execve",
+    "os.execvp",
+    "os.execvpe",
+    "os.spawnl",
+    "os.spawnle",
+    "os.spawnlp",
+    "os.spawnlpe",
+    "os.spawnv",
+    "os.spawnve",
+    "os.spawnvp",
+    "os.spawnvpe",
+    "os.startfile"
+]
+shell = [
+    "os.system",
+    "os.popen",
+    "os.popen2",
+    "os.popen3",
+    "os.popen4",
+    "popen2.popen2",
+    "popen2.popen3",
+    "popen2.popen4",
+    "popen2.Popen3",
+    "popen2.Popen4",
+    "commands.getoutput",
+    "commands.getstatusoutput"
+]
+subprocess = [
+    "subprocess.Popen",
+    "subprocess.call",
+    "subprocess.check_call",
+    "subprocess.check_output"
+]

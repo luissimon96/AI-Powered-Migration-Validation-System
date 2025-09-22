@@ -6,6 +6,7 @@ with async support, error handling, and token management.
 """
 
 import asyncio
+import base64
 import os
 from dataclasses import dataclass
 from enum import Enum
@@ -78,62 +79,77 @@ class LLMProviderNotAvailable(LLMServiceError):
 
 class LLMService:
     """
-    Unified LLM service supporting multiple providers.
+    Unified LLM service supporting multiple providers with failover.
 
-    Provides async interface for semantic analysis, code comparison,
+    Provides a resilient async interface for semantic analysis, code comparison,
     and natural language processing tasks in the migration validation pipeline.
     """
 
-    def __init__(self, config: LLMConfig):
-        """Initialize LLM service with configuration."""
-        self.config = config
-        self.logger = logger.bind(provider=config.provider.value, model=config.model)
+    def __init__(self, configs: List[LLMConfig]):
+        """Initialize LLM service with a list of configurations for failover."""
+        if not configs:
+            raise LLMServiceError("At least one LLM configuration is required.")
+        self.configs = configs
+        self.logger = logger.bind(
+            providers=[c.provider.value for c in configs],
+            models=[c.model for c in configs],
+        )
 
         # Initialize provider-specific clients
-        self._openai_client: Optional[AsyncOpenAI] = None
-        self._anthropic_client: Optional[AsyncAnthropic] = None
-        self._google_client: Optional[Any] = None
+        self._clients: Dict[LLMProvider, Any] = {}
+        self._initialize_clients()
 
-        self._initialize_client()
+    def _initialize_clients(self):
+        """Initialize all clients based on the provided configurations."""
+        for config in self.configs:
+            if config.provider in self._clients:
+                continue  # Skip if a client for this provider is already initialized
 
-    def _initialize_client(self):
-        """Initialize the appropriate client based on provider."""
-        if self.config.provider == LLMProvider.OPENAI:
-            if openai is None:
-                raise LLMProviderNotAvailable("OpenAI package not installed")
+            try:
+                if config.provider == LLMProvider.OPENAI:
+                    if openai is None:
+                        raise LLMProviderNotAvailable("OpenAI package not installed")
+                    api_key = config.api_key or os.getenv("OPENAI_API_KEY")
+                    if not api_key:
+                        raise LLMProviderNotAvailable("OpenAI API key not found")
+                    self._clients[config.provider] = AsyncOpenAI(
+                        api_key=api_key, timeout=config.timeout
+                    )
 
-            api_key = self.config.api_key or os.getenv("OPENAI_API_KEY")
-            if not api_key:
-                raise LLMProviderNotAvailable("OpenAI API key not found")
+                elif config.provider == LLMProvider.ANTHROPIC:
+                    if anthropic is None:
+                        raise LLMProviderNotAvailable("Anthropic package not installed")
+                    api_key = config.api_key or os.getenv("ANTHROPIC_API_KEY")
+                    if not api_key:
+                        raise LLMProviderNotAvailable("Anthropic API key not found")
+                    self._clients[config.provider] = AsyncAnthropic(
+                        api_key=api_key, timeout=config.timeout
+                    )
 
-            self._openai_client = AsyncOpenAI(
-                api_key=api_key, timeout=self.config.timeout
-            )
+                elif config.provider == LLMProvider.GOOGLE:
+                    if genai is None:
+                        raise LLMProviderNotAvailable(
+                            "Google GenAI package not installed"
+                        )
+                    api_key = config.api_key or os.getenv("GOOGLE_API_KEY")
+                    if not api_key:
+                        raise LLMProviderNotAvailable("Google API key not found")
+                    genai.configure(api_key=api_key)
+                    # Note: Google's client is model-specific, so we store the model object
+                    self._clients[config.provider] = genai.GenerativeModel(
+                        config.model
+                    )
 
-        elif self.config.provider == LLMProvider.ANTHROPIC:
-            if anthropic is None:
-                raise LLMProviderNotAvailable("Anthropic package not installed")
-
-            api_key = self.config.api_key or os.getenv("ANTHROPIC_API_KEY")
-            if not api_key:
-                raise LLMProviderNotAvailable("Anthropic API key not found")
-
-            self._anthropic_client = AsyncAnthropic(
-                api_key=api_key, timeout=self.config.timeout
-            )
-
-        elif self.config.provider == LLMProvider.GOOGLE:
-            if genai is None:
-                raise LLMProviderNotAvailable("Google GenAI package not installed")
-
-            api_key = self.config.api_key or os.getenv("GOOGLE_API_KEY")
-            if not api_key:
-                raise LLMProviderNotAvailable("Google API key not found")
-
-            genai.configure(api_key=api_key)
-            self._google_client = genai.GenerativeModel(self.config.model)
-
-        self.logger.info("LLM client initialized successfully")
+                self.logger.info(
+                    "LLM client initialized successfully",
+                    provider=config.provider.value,
+                )
+            except LLMProviderNotAvailable as e:
+                self.logger.warning(
+                    "Failed to initialize LLM client",
+                    provider=config.provider.value,
+                    error=str(e),
+                )
 
     async def generate_response(
         self,
@@ -142,7 +158,10 @@ class LLMService:
         **kwargs,
     ) -> LLMResponse:
         """
-        Generate response from LLM.
+        Generate response from LLM with failover support.
+
+        It attempts to generate a response from the configured providers in order.
+        If one provider fails, it logs the error and tries the next one.
 
         Args:
             messages: List of message dicts with 'role' and 'content'
@@ -151,39 +170,73 @@ class LLMService:
 
         Returns:
             Standardized LLM response
-        """
-        try:
-            if self.config.provider == LLMProvider.OPENAI:
-                return await self._openai_generate(messages, system_prompt, **kwargs)
-            elif self.config.provider == LLMProvider.ANTHROPIC:
-                return await self._anthropic_generate(messages, system_prompt, **kwargs)
-            elif self.config.provider == LLMProvider.GOOGLE:
-                return await self._google_generate(messages, system_prompt, **kwargs)
-            else:
-                raise LLMServiceError(f"Unsupported provider: {self.config.provider}")
 
-        except Exception as e:
-            self.logger.error("LLM generation failed", error=str(e))
-            raise LLMServiceError(f"LLM generation failed: {str(e)}")
+        Raises:
+            LLMServiceError: If all configured providers fail.
+        """
+        last_error: Optional[Exception] = None
+        for config in self.configs:
+            if config.provider not in self._clients:
+                self.logger.warning(
+                    "Skipping uninitialized provider", provider=config.provider.value
+                )
+                continue
+
+            try:
+                self.logger.info(
+                    "Attempting generation",
+                    provider=config.provider.value,
+                    model=config.model,
+                )
+                if config.provider == LLMProvider.OPENAI:
+                    return await self._openai_generate(
+                        config, messages, system_prompt, **kwargs
+                    )
+                elif config.provider == LLMProvider.ANTHROPIC:
+                    return await self._anthropic_generate(
+                        config, messages, system_prompt, **kwargs
+                    )
+                elif config.provider == LLMProvider.GOOGLE:
+                    return await self._google_generate(
+                        config, messages, system_prompt, **kwargs
+                    )
+                else:
+                    self.logger.warning(
+                        f"Unsupported provider configured: {config.provider}"
+                    )
+                    continue
+
+            except Exception as e:
+                last_error = e
+                self.logger.error(
+                    "LLM generation failed for provider",
+                    provider=config.provider.value,
+                    error=str(e),
+                )
+
+        raise LLMServiceError(
+            f"All LLM providers failed. Last error: {last_error}"
+        ) from last_error
 
     async def _openai_generate(
-        self, messages: List[Dict[str, str]], system_prompt: Optional[str], **kwargs
+        self,
+        config: LLMConfig,
+        messages: List[Dict[str, str]],
+        system_prompt: Optional[str],
+        **kwargs,
     ) -> LLMResponse:
         """Generate response using OpenAI."""
-        # Prepare messages
+        client = self._clients[LLMProvider.OPENAI]
         openai_messages = []
-
         if system_prompt:
             openai_messages.append({"role": "system", "content": system_prompt})
-
         openai_messages.extend(messages)
 
-        # Make API call
-        response = await self._openai_client.chat.completions.create(
-            model=self.config.model,
+        response = await client.chat.completions.create(
+            model=config.model,
             messages=openai_messages,
-            max_tokens=kwargs.get("max_tokens", self.config.max_tokens),
-            temperature=kwargs.get("temperature", self.config.temperature),
+            max_tokens=kwargs.get("max_tokens", config.max_tokens),
+            temperature=kwargs.get("temperature", config.temperature),
             **{
                 k: v
                 for k, v in kwargs.items()
@@ -200,21 +253,24 @@ class LLMService:
         )
 
     async def _anthropic_generate(
-        self, messages: List[Dict[str, str]], system_prompt: Optional[str], **kwargs
+        self,
+        config: LLMConfig,
+        messages: List[Dict[str, str]],
+        system_prompt: Optional[str],
+        **kwargs,
     ) -> LLMResponse:
         """Generate response using Anthropic Claude."""
-        # Prepare messages
-        anthropic_messages = []
-        for msg in messages:
-            anthropic_messages.append({"role": msg["role"], "content": msg["content"]})
+        client = self._clients[LLMProvider.ANTHROPIC]
+        anthropic_messages = [
+            {"role": msg["role"], "content": msg["content"]} for msg in messages
+        ]
 
-        # Make API call
-        response = await self._anthropic_client.messages.create(
-            model=self.config.model,
+        response = await client.messages.create(
+            model=config.model,
             system=system_prompt,
             messages=anthropic_messages,
-            max_tokens=kwargs.get("max_tokens", self.config.max_tokens),
-            temperature=kwargs.get("temperature", self.config.temperature),
+            max_tokens=kwargs.get("max_tokens", config.max_tokens),
+            temperature=kwargs.get("temperature", config.temperature),
         )
 
         return LLMResponse(
@@ -226,36 +282,36 @@ class LLMService:
         )
 
     async def _google_generate(
-        self, messages: List[Dict[str, str]], system_prompt: Optional[str], **kwargs
+        self,
+        config: LLMConfig,
+        messages: List[Dict[str, str]],
+        system_prompt: Optional[str],
+        **kwargs,
     ) -> LLMResponse:
         """Generate response using Google Gemini."""
-        # Combine system prompt and messages for Google
+        client = self._clients[LLMProvider.GOOGLE]
         prompt_parts = []
-
         if system_prompt:
             prompt_parts.append(f"System: {system_prompt}")
-
         for msg in messages:
             role = "Human" if msg["role"] == "user" else "Assistant"
             prompt_parts.append(f"{role}: {msg['content']}")
-
         full_prompt = "\n\n".join(prompt_parts)
 
-        # Make API call
         response = await asyncio.to_thread(
-            self._google_client.generate_content,
+            client.generate_content,
             full_prompt,
             generation_config=genai.types.GenerationConfig(
-                max_output_tokens=kwargs.get("max_tokens", self.config.max_tokens),
-                temperature=kwargs.get("temperature", self.config.temperature),
+                max_output_tokens=kwargs.get("max_tokens", config.max_tokens),
+                temperature=kwargs.get("temperature", config.temperature),
             ),
         )
 
         return LLMResponse(
             content=response.text,
-            model=self.config.model,
+            model=config.model,
             provider="google",
-            usage=None,  # Google doesn't provide detailed usage in this format
+            usage=None,
             metadata={"finish_reason": "stop"},
         )
 
@@ -451,44 +507,180 @@ Analyze business logic preservation and identify critical discrepancies.""",
                 ],
             }
 
-    def get_provider_info(self) -> Dict[str, Any]:
-        """Get information about the current LLM provider and configuration."""
-        return {
-            "provider": self.config.provider.value,
-            "model": self.config.model,
-            "max_tokens": self.config.max_tokens,
-            "temperature": self.config.temperature,
-            "timeout": self.config.timeout,
-        }
+    async def analyze_ui_screenshot(
+        self, image_base64: str, prompt: str, detail: str = "auto"
+    ) -> Dict[str, Any]:
+        """
+        Analyze a UI screenshot using a multimodal LLM.
+
+        Args:
+            image_base64: Base64 encoded image string.
+            prompt: The text prompt to guide the analysis.
+            detail: The level of detail for the image analysis (OpenAI specific).
+
+        Returns:
+            A dictionary containing the analysis from the LLM.
+
+        Raises:
+            LLMServiceError: If all configured vision providers fail.
+        """
+        last_error: Optional[Exception] = None
+        # Prioritize providers known for strong vision capabilities
+        vision_providers = [
+            LLMProvider.OPENAI,
+            LLMProvider.GOOGLE,
+            LLMProvider.ANTHROPIC,
+        ]
+
+        for provider in vision_providers:
+            config = next((c for c in self.configs if c.provider == provider), None)
+            if not config or provider not in self._clients:
+                continue
+
+            try:
+                self.logger.info(
+                    "Attempting screenshot analysis",
+                    provider=provider.value,
+                    model=config.model,
+                )
+                client = self._clients[provider]
+                content = ""
+
+                if provider == LLMProvider.OPENAI:
+                    vision_model = "gpt-4-vision-preview"
+                    messages = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/png;base64,{image_base64}",
+                                        "detail": detail,
+                                    },
+                                },
+                            ],
+                        }
+                    ]
+                    response = await client.chat.completions.create(
+                        model=vision_model,
+                        messages=messages,
+                        max_tokens=config.max_tokens,
+                    )
+                    content = response.choices[0].message.content or ""
+
+                elif provider == LLMProvider.GOOGLE:
+                    vision_model = "gemini-pro-vision"
+                    vision_client = genai.GenerativeModel(vision_model)
+                    img_blob = {"mime_type": "image/png", "data": base64.b64decode(image_base64)}
+                    response = await asyncio.to_thread(
+                        vision_client.generate_content, [prompt, img_blob]
+                    )
+                    content = response.text
+
+                elif provider == LLMProvider.ANTHROPIC:
+                    messages = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "image",
+                                    "source": {
+                                        "type": "base64",
+                                        "media_type": "image/png",
+                                        "data": image_base64,
+                                    },
+                                },
+                                {"type": "text", "text": prompt},
+                            ],
+                        }
+                    ]
+                    response = await client.messages.create(
+                        model=config.model,  # Assumes model supports vision
+                        messages=messages,
+                        max_tokens=config.max_tokens,
+                    )
+                    content = response.content[0].text
+
+                else:
+                    continue
+
+                if not content:
+                    raise LLMServiceError("Received empty content from provider")
+
+                import json
+                return json.loads(content)
+
+            except json.JSONDecodeError:
+                self.logger.warning(
+                    "Failed to parse JSON from vision model, returning raw content",
+                    provider=provider.value,
+                )
+                return {"raw_content": content}
+            except Exception as e:
+                last_error = e
+                self.logger.error(
+                    "Screenshot analysis failed for provider",
+                    provider=provider.value,
+                    error=str(e),
+                )
+
+        raise LLMServiceError(
+            f"All vision providers failed. Last error: {last_error}"
+        ) from last_error
+
+    def get_provider_info(self) -> List[Dict[str, Any]]:
+        """Get information about the current LLM provider configurations."""
+        return [
+            {
+                "provider": config.provider.value,
+                "model": config.model,
+                "max_tokens": config.max_tokens,
+                "temperature": config.temperature,
+                "timeout": config.timeout,
+            }
+            for config in self.configs
+        ]
 
 
 def create_llm_service(
-    provider: str = "openai", model: Optional[str] = None, **kwargs
+    providers: str = "openai", models: Optional[str] = None, **kwargs
 ) -> LLMService:
     """
-    Factory function to create LLM service with sensible defaults.
+    Factory function to create LLM service with failover support.
 
     Args:
-        provider: LLM provider name
-        model: Model name (provider-specific defaults if not specified)
-        **kwargs: Additional configuration options
+        providers: Comma-separated string of LLM provider names (e.g., "openai,anthropic").
+        models: Comma-separated string of model names. If provided, must match the number of providers.
+        **kwargs: Additional configuration options applied to all providers.
 
     Returns:
-        Configured LLM service instance
+        Configured LLM service instance.
     """
-    provider_enum = LLMProvider(provider.lower())
+    provider_names = [p.strip() for p in providers.split(",")]
+    model_names = [m.strip() for m in models.split(",")] if models else []
 
-    # Set default models for each provider
-    if model is None:
-        if provider_enum == LLMProvider.OPENAI:
-            model = "gpt-4-turbo-preview"
-        elif provider_enum == LLMProvider.ANTHROPIC:
-            model = "claude-3-sonnet-20240229"
-        elif provider_enum == LLMProvider.GOOGLE:
-            model = "gemini-pro"
-        else:
-            raise ValueError(f"Unknown provider: {provider}")
+    if model_names and len(provider_names) != len(model_names):
+        raise LLMServiceError(
+            "The number of models must match the number of providers."
+        )
 
-    config = LLMConfig(provider=provider_enum, model=model, **kwargs)
+    configs: List[LLMConfig] = []
+    for i, provider_name in enumerate(provider_names):
+        provider_enum = LLMProvider(provider_name.lower())
+        model = model_names[i] if i < len(model_names) else None
 
-    return LLMService(config)
+        if model is None:
+            if provider_enum == LLMProvider.OPENAI:
+                model = "gpt-4-turbo-preview"
+            elif provider_enum == LLMProvider.ANTHROPIC:
+                model = "claude-3-sonnet-20240229"
+            elif provider_enum == LLMProvider.GOOGLE:
+                model = "gemini-pro"
+            else:
+                raise ValueError(f"Unknown provider: {provider_name}")
+
+        configs.append(LLMConfig(provider=provider_enum, model=model, **kwargs))
+
+    return LLMService(configs)

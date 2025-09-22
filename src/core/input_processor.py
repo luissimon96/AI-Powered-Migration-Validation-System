@@ -15,6 +15,15 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from .exceptions import (
+    ValidationInputError,
+    ResourceError,
+    SecurityError,
+    validation_input_error,
+    resource_error,
+    security_error,
+)
+from .logging import LoggerMixin, log_operation
 from .models import (
     InputData,
     InputType,
@@ -25,8 +34,8 @@ from .models import (
 )
 
 
-class InputProcessor:
-    """Processes and validates migration validation inputs."""
+class InputProcessor(LoggerMixin):
+    """Processes and validates migration validation inputs with security and validation."""
 
     def __init__(self, upload_dir: Optional[str] = None):
         """
@@ -34,7 +43,11 @@ class InputProcessor:
 
         Args:
             upload_dir: Directory for storing uploaded files. If None, uses temp directory.
+
+        Raises:
+            ResourceError: If upload directory cannot be created
         """
+        super().__init__()
         self.upload_dir = upload_dir or tempfile.mkdtemp(prefix="migration_validation_")
         self.max_file_size = 10 * 1024 * 1024  # 10MB per file
         self.max_total_size = 100 * 1024 * 1024  # 100MB total
@@ -72,8 +85,17 @@ class InputProcessor:
             ".webp",
         }
 
-        # Ensure upload directory exists
-        os.makedirs(self.upload_dir, exist_ok=True)
+        # Ensure upload directory exists with proper error handling
+        try:
+            os.makedirs(self.upload_dir, exist_ok=True)
+            self.logger.info("Upload directory initialized", path=self.upload_dir)
+        except OSError as e:
+            self.logger.error("Failed to create upload directory", path=self.upload_dir, error=str(e))
+            raise resource_error(
+                f"Failed to create upload directory: {str(e)}",
+                resource_type="filesystem",
+                cause=e
+            )
 
     def create_validation_request(
         self,

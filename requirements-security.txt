@@ -1,0 +1,126 @@
+# Security Dependencies for AI-Powered Migration Validation System
+# Production-grade security enhancement packages
+
+# ═══════════════════════════════════════════════════════════════
+# AUTHENTICATION & AUTHORIZATION
+# ═══════════════════════════════════════════════════════════════
+
+# JWT token handling
+PyJWT>=2.8.0,<3.0.0
+
+# Password hashing and verification
+passlib[bcrypt]>=1.7.4,<2.0.0
+
+# Additional cryptographic support
+python-jose[cryptography]>=3.3.0,<4.0.0
+
+# ═══════════════════════════════════════════════════════════════
+# ENCRYPTION & CRYPTOGRAPHY
+# ═══════════════════════════════════════════════════════════════
+
+# Modern cryptography library
+cryptography>=41.0.0,<42.0.0
+
+# Additional security utilities
+secrets-manager>=1.0.0; python_version >= "3.8"
+
+# ═══════════════════════════════════════════════════════════════
+# INPUT VALIDATION & SANITIZATION
+# ═══════════════════════════════════════════════════════════════
+
+# File type detection
+python-magic>=0.4.27,<1.0.0
+
+# Email validation (already included in pydantic but explicit for security)
+email-validator>=2.1.0,<3.0.0
+
+# HTML sanitization
+bleach>=6.1.0,<7.0.0
+
+# URL validation and parsing
+validators>=0.22.0,<1.0.0
+
+# ═══════════════════════════════════════════════════════════════
+# SECURITY HEADERS & MIDDLEWARE
+# ═══════════════════════════════════════════════════════════════
+
+# Security headers for FastAPI
+secure>=0.3.0,<1.0.0
+
+# CORS handling (already in FastAPI but explicit for security)
+fastapi-cors>=0.0.6,<1.0.0
+
+# ═══════════════════════════════════════════════════════════════
+# RATE LIMITING & PROTECTION
+# ═══════════════════════════════════════════════════════════════
+
+# Redis for distributed rate limiting (optional)
+redis>=5.0.0,<6.0.0
+
+# Memory-based rate limiting
+slowapi>=0.1.9,<1.0.0
+
+# ═══════════════════════════════════════════════════════════════
+# SECURITY MONITORING & LOGGING
+# ═══════════════════════════════════════════════════════════════
+
+# Enhanced logging for security events
+python-json-logger>=2.0.7,<3.0.0
+
+# Security event monitoring
+audit-logger>=1.0.0; python_version >= "3.8"
+
+# ═══════════════════════════════════════════════════════════════
+# VULNERABILITY SCANNING & DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════
+
+# Security scanning tools (for development)
+bandit>=1.7.5,<2.0.0
+
+# Dependency vulnerability checking
+safety>=2.3.0,<3.0.0
+
+# License checking
+pip-licenses>=4.3.0,<5.0.0
+
+# ═══════════════════════════════════════════════════════════════
+# OPTIONAL SECURITY ENHANCEMENTS
+# ═══════════════════════════════════════════════════════════════
+
+# Advanced session management
+itsdangerous>=2.1.2,<3.0.0
+
+# Secure cookie handling
+secure-cookie>=0.2.0,<1.0.0
+
+# Advanced request validation
+cerberus>=1.3.5,<2.0.0
+
+# Content Security Policy helpers
+flask-csp>=1.0.0,<2.0.0
+
+# ═══════════════════════════════════════════════════════════════
+# PRODUCTION DEPLOYMENT SECURITY
+# ═══════════════════════════════════════════════════════════════
+
+# SSL/TLS certificate handling
+certifi>=2023.7.22
+
+# Secure random number generation
+secrets; python_version >= "3.6"
+
+# Environment variable security
+python-decouple>=3.8,<4.0.0
+
+# ═══════════════════════════════════════════════════════════════
+# INSTALLATION NOTES
+# ═══════════════════════════════════════════════════════════════
+
+# To install security dependencies:
+# pip install -r requirements-security.txt
+
+# For development with security tools:
+# pip install -r requirements.txt -r requirements-security.txt
+
+# For production deployment:
+# pip install -r requirements.txt -r requirements-security.txt --no-dev

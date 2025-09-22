@@ -20,6 +20,7 @@ from ..core.models import (
     UIElement,
     ValidationScope,
 )
+from ..services.llm_service import LLMService, create_llm_service
 from .base import (
     BaseAnalyzer,
     ExtractionError,
@@ -36,6 +37,9 @@ class VisualAnalyzer(BaseAnalyzer):
         super().__init__(technology_context)
         self.supported_scopes = [ValidationScope.UI_LAYOUT, ValidationScope.FULL_SYSTEM]
         self.supported_image_formats = [".png", ".jpg", ".jpeg", ".bmp", ".gif"]
+        self.llm_service: LLMService = create_llm_service(
+            providers="openai,google,anthropic"
+        )
 
     async def analyze(
         self, input_data: InputData, scope: ValidationScope
@@ -99,7 +103,7 @@ class VisualAnalyzer(BaseAnalyzer):
                     metadata={
                         "image_path": image_path,
                         "image_size": {"width": width, "height": height},
-                        "analysis_method": "visual",
+                        "analysis_method": "visual_llm",
                     },
                 )
 
@@ -111,18 +115,17 @@ class VisualAnalyzer(BaseAnalyzer):
     async def _extract_ui_elements_from_image(
         self, image: Image.Image, image_path: str
     ) -> List[UIElement]:
-        """Extract UI elements from image using computer vision."""
+        """Extract UI elements from image using a multimodal LLM."""
         elements = []
 
         # Convert image to base64 for LLM processing
         image_base64 = self._image_to_base64(image)
 
         # Use multimodal LLM to analyze the image
-        # This is a placeholder - in real implementation, you would call
-        # a multimodal LLM like GPT-4V, Gemini Vision, or Claude 3
-        elements = await self._analyze_with_multimodal_llm(image_base64, image_path)
+        llm_response = await self._analyze_with_multimodal_llm(image_base64, image_path)
+        elements = self._parse_llm_visual_response(llm_response)
 
-        # Fallback to basic computer vision techniques if LLM fails
+        # Fallback to basic computer vision techniques if LLM fails or returns no elements
         if not elements:
             elements = self._basic_cv_analysis(image, image_path)
 
@@ -137,132 +140,50 @@ class VisualAnalyzer(BaseAnalyzer):
 
     async def _analyze_with_multimodal_llm(
         self, image_base64: str, image_path: str
-    ) -> List[UIElement]:
-        """Analyze image using multimodal LLM."""
-        # TODO: Implement actual LLM call
-        # This would involve calling GPT-4V, Gemini Vision, or similar
-
-        # Placeholder response structure
-        # In real implementation, this would be an actual API call
-        mock_response = await self._mock_llm_visual_analysis(image_path)
-
-        return self._parse_llm_visual_response(mock_response)
+    ) -> Dict[str, Any]:
+        """Analyze image using the multimodal LLM service."""
+        prompt = self._generate_visual_analysis_prompt()
+        try:
+            response = await self.llm_service.analyze_ui_screenshot(
+                image_base64=image_base64, prompt=prompt
+            )
+            return response
+        except Exception as e:
+            # Log the error and return an empty dict to allow fallback
+            print(f"Error during multimodal analysis for {image_path}: {e}")
+            return {}
 
     def _generate_visual_analysis_prompt(self) -> str:
         """Generate prompt for visual analysis LLM."""
         return """
         Analyze this UI screenshot and extract all visible interface elements.
+        Respond with a JSON object containing a single key "elements".
+        The value should be a list of objects, where each object represents a UI element.
         For each element, identify:
-
-        1. Type: button, input, label, text, image, table, menu, etc.
-        2. Text content: Any visible text
-        3. Position: Approximate location (top, middle, bottom, left, center, right)
-        4. Size: Relative size (small, medium, large)
-        5. Interactive elements: Is it clickable/interactive?
+        1. type: (e.g., "button", "input", "label", "image", "text", "table").
+        2. text: The text content of the element, if any.
+        3. id: A descriptive, stable ID for the element (e.g., "username-input", "login-button").
+        4. position: An object with x and y coordinates for the center of the element.
+        5. attributes: An object for other properties like "size" or "interactive".
         """
-
-    async def _mock_llm_visual_analysis(self, image_path: str) -> Dict[str, Any]:
-        """Mock LLM response for development/testing."""
-        # This is a placeholder that simulates LLM response
-        # In production, replace with actual LLM API call
-
-        filename = os.path.basename(image_path).lower()
-
-        # Generate mock elements based on filename patterns
-        mock_elements = []
-
-        if "login" in filename or "signin" in filename:
-            mock_elements = [
-                {
-                    "type": "label",
-                    "text": "Username",
-                    "position": {"x": "center", "y": "top"},
-                    "size": "small",
-                },
-                {
-                    "type": "input",
-                    "text": "",
-                    "position": {"x": "center", "y": "top"},
-                    "size": "medium",
-                    "id": "username",
-                },
-                {
-                    "type": "label",
-                    "text": "Password",
-                    "position": {"x": "center", "y": "middle"},
-                    "size": "small",
-                },
-                {
-                    "type": "input",
-                    "text": "",
-                    "position": {"x": "center", "y": "middle"},
-                    "size": "medium",
-                    "id": "password",
-                },
-                {
-                    "type": "button",
-                    "text": "Login",
-                    "position": {"x": "center", "y": "bottom"},
-                    "size": "medium",
-                    "interactive": True,
-                    "id": "login-btn",
-                },
-            ]
-        elif "form" in filename or "cadastro" in filename:
-            mock_elements = [
-                {
-                    "type": "label",
-                    "text": "Nome do Produto",
-                    "position": {"x": "left", "y": "top"},
-                    "size": "small",
-                },
-                {
-                    "type": "input",
-                    "text": "",
-                    "position": {"x": "center", "y": "top"},
-                    "size": "large",
-                    "id": "product-name",
-                },
-                {
-                    "type": "label",
-                    "text": "Preço",
-                    "position": {"x": "left", "y": "middle"},
-                    "size": "small",
-                },
-                {
-                    "type": "input",
-                    "text": "",
-                    "position": {"x": "center", "y": "middle"},
-                    "size": "medium",
-                    "id": "price",
-                },
-                {
-                    "type": "button",
-                    "text": "Salvar",
-                    "position": {"x": "center", "y": "bottom"},
-                    "size": "medium",
-                    "interactive": True,
-                    "id": "save-btn",
-                },
-            ]
-
-        return {"elements": mock_elements}
 
     def _parse_llm_visual_response(self, response: Dict[str, Any]) -> List[UIElement]:
         """Parse LLM response into UIElement objects."""
         elements = []
 
-        if "elements" in response:
+        # Handle cases where LLM returns raw content instead of JSON
+        if "raw_content" in response:
+            # Here you could add logic to try and parse elements from raw text
+            return []
+
+        if "elements" in response and isinstance(response["elements"], list):
             for elem_data in response["elements"]:
                 element = UIElement(
                     type=elem_data.get("type", "unknown"),
                     text=elem_data.get("text"),
                     id=elem_data.get("id"),
                     position=elem_data.get("position"),
-                    attributes={
-                        "size": elem_data.get("size"),
-                        "interactive": elem_data.get("interactive", False),
-                    },
+                    attributes=elem_data.get("attributes", {}),
                 )
                 elements.append(element)
 

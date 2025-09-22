@@ -19,6 +19,17 @@ from ..comparators.semantic_comparator import SemanticComparator
 from ..reporters.validation_reporter import ValidationReporter
 from ..services.llm_service import LLMService, LLMServiceError, create_llm_service
 from .config import get_validation_config
+from .exceptions import (
+    BaseValidationError,
+    ConfigurationError,
+    ProcessingError,
+    ValidationInputError,
+    ErrorRecoveryManager,
+    processing_error,
+    configuration_error,
+    validation_input_error,
+)
+from .logging import LoggerMixin, OperationLogger, get_logger, log_operation
 from .models import (
     InputType,
     MigrationValidationRequest,
@@ -30,7 +41,7 @@ from .models import (
 )
 
 
-class MigrationValidator:
+class MigrationValidator(LoggerMixin):
     """
     Main orchestrator for migration validation pipeline.
 
@@ -38,6 +49,9 @@ class MigrationValidator:
     1. Feature extraction from source and target systems
     2. Semantic comparison and discrepancy identification
     3. Report generation with actionable insights
+
+    Features production-ready error handling, structured logging,
+    and retry mechanisms for enhanced reliability.
     """
 
     def __init__(self, llm_client=None):
@@ -46,8 +60,14 @@ class MigrationValidator:
 
         Args:
             llm_client: Optional LLM service instance for enhanced analysis
+
+        Raises:
+            ConfigurationError: If critical configuration is invalid
         """
-        # Initialize LLM service
+        super().__init__()
+        self.recovery_manager = ErrorRecoveryManager(max_retries=3, base_delay=1.0)
+
+        # Initialize LLM service with proper error handling
         if llm_client is None:
             try:
                 validation_config = get_validation_config()
@@ -61,18 +81,39 @@ class MigrationValidator:
                         temperature=llm_config.temperature,
                         timeout=llm_config.timeout,
                     )
+                    self.logger.info(
+                        "LLM service initialized",
+                        provider=llm_config.provider,
+                        model=llm_config.model
+                    )
                 else:
                     self.llm_service = None
+                    self.logger.warning("No LLM configuration found, proceeding without LLM support")
             except Exception as e:
-                print(f"Failed to initialize LLM service: {e}")
-                self.llm_service = None
+                self.logger.error("Failed to initialize LLM service", error=str(e))
+                raise configuration_error(
+                    f"Failed to initialize LLM service: {str(e)}",
+                    config_key="llm_config",
+                    cause=e
+                )
         else:
             self.llm_service = llm_client
+            self.logger.info("LLM service provided externally")
 
-        self.comparator = SemanticComparator(self.llm_service)
-        self.reporter = ValidationReporter()
-        self._analyzer_cache: Dict[str, BaseAnalyzer] = {}
+        try:
+            self.comparator = SemanticComparator(self.llm_service)
+            self.reporter = ValidationReporter()
+            self._analyzer_cache: Dict[str, BaseAnalyzer] = {}
 
+            self.logger.info("Migration validator initialized successfully")
+        except Exception as e:
+            self.logger.error("Failed to initialize validator components", error=str(e))
+            raise configuration_error(
+                f"Failed to initialize validator components: {str(e)}",
+                cause=e
+            )
+
+    @log_operation("migration_validation_pipeline")
     async def validate_migration(
         self, request: MigrationValidationRequest
     ) -> ValidationSession:
@@ -148,20 +189,61 @@ class MigrationValidator:
 
             return session
 
+        except BaseValidationError as e:
+            session.add_log(f"Validation failed with structured error: {e.error_code} - {str(e)}")
+
+            # Log structured error details
+            self.logger.error(
+                "Structured validation error",
+                error_code=e.error_code,
+                severity=e.severity.value,
+                category=e.category.value,
+                recoverable=e.recoverable,
+                context=e.context,
+                user_message=e.user_message
+            )
+
+            # Create structured error result
+            execution_time = time.time() - start_time
+            session.result = ValidationResult(
+                overall_status="error",
+                fidelity_score=0.0,
+                summary=e.user_message,
+                discrepancies=[],
+                execution_time=execution_time,
+            )
+
+            raise
+
         except Exception as e:
-            session.add_log(f"Validation failed with error: {str(e)}")
+            session.add_log(f"Validation failed with unexpected error: {str(e)}")
+
+            # Wrap unexpected errors in structured format
+            self.logger.error(
+                "Unexpected validation error",
+                error=str(e),
+                error_type=type(e).__name__,
+                stage="pipeline_execution"
+            )
 
             # Create error result
             execution_time = time.time() - start_time
             session.result = ValidationResult(
                 overall_status="error",
                 fidelity_score=0.0,
-                summary=f"Validation failed due to error: {str(e)}",
+                summary=f"Validation failed due to unexpected error: {str(e)}",
                 discrepancies=[],
                 execution_time=execution_time,
             )
 
-            raise
+            # Wrap and re-raise as structured error
+            wrapped_error = processing_error(
+                f"Unexpected error during validation pipeline: {str(e)}",
+                stage="pipeline_execution",
+                operation="validate_migration",
+                cause=e
+            )
+            raise wrapped_error
 
     def _get_analyzer(
         self, technology_context: TechnologyContext, input_type: InputType
@@ -190,7 +272,11 @@ class MigrationValidator:
             # In production, you might want a HybridAnalyzer that combines both
             analyzer = CodeAnalyzer(technology_context)
         else:
-            raise AnalyzerError(f"Unsupported input type: {input_type}")
+            raise validation_input_error(
+                f"Unsupported input type: {input_type}",
+                field="input_type",
+                context={"supported_types": [t.value for t in InputType]}
+            )
 
         self._analyzer_cache[cache_key] = analyzer
         return analyzer
@@ -275,6 +361,7 @@ class MigrationValidator:
         # Ensure score stays within bounds
         return max(0.0, min(1.0, score))
 
+    @log_operation("validation_report_generation")
     async def generate_report(
         self, session: ValidationSession, format: str = "json"
     ) -> str:
@@ -344,6 +431,7 @@ class MigrationValidator:
             },
         }
 
+    @log_operation("request_validation")
     async def validate_request(
         self, request: MigrationValidationRequest
     ) -> Dict[str, Any]:
