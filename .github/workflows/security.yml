@@ -119,8 +119,8 @@ jobs:
 
       - name: 🛡️ Safety Vulnerability Check
         run: |
-          safety check --json --output safety-report.json || true
-          safety check --output text --output safety-report.txt || true
+          safety check --json > safety-report.json || true
+          safety check --output text > safety-report.txt || true
           echo "## 🛡️ Safety Vulnerability Check" >> $GITHUB_STEP_SUMMARY
           cat safety-report.txt >> $GITHUB_STEP_SUMMARY
 
@@ -167,8 +167,6 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: main
-          head: HEAD
           extra_args: --debug --only-verified
 
       - name: 🔐 GitLeaks Secrets Scan

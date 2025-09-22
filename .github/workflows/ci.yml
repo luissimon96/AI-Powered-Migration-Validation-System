@@ -119,7 +119,7 @@ jobs:
 
       - name: 🛡️ Dependency Vulnerability Check (Safety)
         run: |
-          safety check --json --output safety-report.json || true
+          safety check --json > safety-report.json || true
           safety check
 
       - name: 📊 Upload Security Reports
