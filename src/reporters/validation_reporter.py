@@ -305,7 +305,7 @@ class ValidationReporter:
         status_descriptions = {
             "approved": "✅ Migration validation PASSED. The target system successfully preserves all critical functionality from the source system.",
             "approved_with_warnings": f"⚠️ Migration validation PASSED WITH WARNINGS. The target system preserves core functionality but has {discrepancy_counts['warning']} items requiring attention.",
-            "rejected": f"❌ Migration validation FAILED. Critical issues were found that prevent approval of the migration.",
+            "rejected": "❌ Migration validation FAILED. Critical issues were found that prevent approval of the migration.",
         }
 
         return {
@@ -1240,17 +1240,17 @@ class ValidationReporter:
                 <p>Report ID: {report_data['metadata']['report_id']}</p>
                 <p>Generated: {report_data['metadata']['generated_at']}</p>
             </div>
-            
+
             <div class="summary">
                 <h2>Executive Summary</h2>
                 <p class="score">Fidelity Score: {report_data['executive_summary']['fidelity_percentage']}</p>
                 <p>{report_data['executive_summary']['status_description']}</p>
                 <p>{report_data['executive_summary']['summary']}</p>
             </div>
-            
+
             <h2>Detailed Findings</h2>
             {self._render_findings_html(report_data['detailed_findings'])}
-            
+
             <h2>Recommendations</h2>
             {self._render_recommendations_html(report_data['recommendations'])}
         </body>
@@ -1401,7 +1401,7 @@ class ValidationReporter:
                     )
                     if finding.get("recommendation"):
                         markdown += (
-                            f"   - *Recommendation:* {finding['recommendation']}\n"
+                            f"    - *Recommendation:* {finding['recommendation']}\n"
                         )
                     markdown += "\n"
 
@@ -1482,7 +1482,7 @@ class ValidationReporter:
         """Render Markdown template for the report."""
         markdown = f"""# Migration Validation Report
 
-**Report ID:** {report_data['metadata']['report_id']}  
+**Report ID:** {report_data['metadata']['report_id']}
 **Generated:** {report_data['metadata']['generated_at']}
 
 ## Executive Summary
@@ -1495,7 +1495,7 @@ class ValidationReporter:
 
 ### Summary Statistics
 - 🔴 Critical Issues: {report_data['executive_summary']['discrepancy_counts']['critical']}
-- 🟡 Warnings: {report_data['executive_summary']['discrepancy_counts']['warning']}  
+- 🟡 Warnings: {report_data['executive_summary']['discrepancy_counts']['warning']}
 - 🔵 Info: {report_data['executive_summary']['discrepancy_counts']['info']}
 
 ## Detailed Findings
@@ -1536,7 +1536,7 @@ class ValidationReporter:
                     markdown += f"{i}. **{finding['description']}**\n"
                     if finding.get("recommendation"):
                         markdown += (
-                            f"   - *Recommendation:* {finding['recommendation']}\n"
+                            f"    - *Recommendation:* {finding['recommendation']}\n"
                         )
                     markdown += "\n"
 
@@ -1562,4 +1562,3 @@ class ValidationReporter:
                 markdown += f"- {rec}\n"
 
         return markdown
-
