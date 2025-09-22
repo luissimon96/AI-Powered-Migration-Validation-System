@@ -672,12 +672,12 @@ class ValidationReporter:
             execution_details["static_execution_time"] = static_result.execution_time
             execution_details["static_timestamp"] = static_result.timestamp.isoformat()
         if behavioral_result:
-            execution_details["behavioral_execution_time"] = (
-                behavioral_result.execution_time
-            )
-            execution_details["behavioral_timestamp"] = (
-                behavioral_result.timestamp.isoformat()
-            )
+            execution_details[
+                "behavioral_execution_time"
+            ] = behavioral_result.execution_time
+            execution_details[
+                "behavioral_timestamp"
+            ] = behavioral_result.timestamp.isoformat()
 
         metadata["execution_details"] = execution_details
 
@@ -1296,7 +1296,9 @@ class ValidationReporter:
                 icon = (
                     "🔴"
                     if severity == "critical"
-                    else "🟡" if severity == "warning" else "🔵"
+                    else "🟡"
+                    if severity == "warning"
+                    else "🔵"
                 )
                 html += f"<h3 class='{severity}'>{icon} {severity.title()} Issues ({len(findings['by_severity'][severity])})</h3>"
 
@@ -1387,9 +1389,7 @@ class ValidationReporter:
 
         for severity in ["critical", "warning", "info"]:
             icon = (
-                "🔴"
-                if severity == "critical"
-                else "🟡" if severity == "warning" else "🔵"
+                "🔴" if severity == "critical" else "🟡" if severity == "warning" else "🔵"
             )
             if findings["by_severity"][severity]:
                 markdown += f"\n### {icon} {severity.title()} Issues ({len(findings['by_severity'][severity])})\n\n"
@@ -1525,9 +1525,7 @@ class ValidationReporter:
 
         for severity in ["critical", "warning", "info"]:
             icon = (
-                "🔴"
-                if severity == "critical"
-                else "🟡" if severity == "warning" else "🔵"
+                "🔴" if severity == "critical" else "🟡" if severity == "warning" else "🔵"
             )
             if findings["by_severity"][severity]:
                 markdown += f"\n### {icon} {severity.title()} Issues ({len(findings['by_severity'][severity])})\n\n"
