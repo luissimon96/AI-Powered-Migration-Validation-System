@@ -6,10 +6,17 @@ from datetime import datetime
 
 import pytest
 
-from src.core.models import (InputData, InputType, MigrationValidationRequest,
-                             SeverityLevel, TechnologyContext, TechnologyType,
-                             ValidationDiscrepancy, ValidationResult,
-                             ValidationScope)
+from src.core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    SeverityLevel,
+    TechnologyContext,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationScope,
+)
 
 
 class TestValidationDiscrepancy:

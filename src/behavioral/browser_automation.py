@@ -19,8 +19,7 @@ import structlog
 try:
     from browser_use.browser import Browser as BrowserUseAgent
     from browser_use.controller import Controller
-    from playwright.async_api import (Browser, BrowserContext, Page,
-                                      async_playwright)
+    from playwright.async_api import Browser, BrowserContext, Page, async_playwright
 except ImportError:
     # Graceful fallback for environments without browser dependencies
     async_playwright = None
@@ -539,7 +538,9 @@ class BrowserAutomationEngine:
                     "networkidle", timeout=10000
                 )
             except Exception as e:
-                logger.warning(f"Network idle timeout: {e}")  # Continue even if network idle timeout
+                logger.warning(
+                    f"Network idle timeout: {e}"
+                )  # Continue even if network idle timeout
 
             # Check for common success indicators
             current_url = self.current_page.url

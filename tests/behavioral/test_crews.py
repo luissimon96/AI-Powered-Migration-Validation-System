@@ -6,11 +6,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.behavioral.crews import (BehavioralValidationCrew,
-                                  BehavioralValidationRequest,
-                                  ComparisonJudgeAgent, ReportManagerAgent,
-                                  SourceExplorerAgent, TargetExecutorAgent,
-                                  create_behavioral_validation_crew)
+from src.behavioral.crews import (
+    BehavioralValidationCrew,
+    BehavioralValidationRequest,
+    ComparisonJudgeAgent,
+    ReportManagerAgent,
+    SourceExplorerAgent,
+    TargetExecutorAgent,
+    create_behavioral_validation_crew,
+)
 
 
 @pytest.mark.behavioral
