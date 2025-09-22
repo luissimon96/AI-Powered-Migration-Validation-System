@@ -2,11 +2,13 @@
 Unit tests for input processor.
 """
 
-import pytest
-import tempfile
 import os
+import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from src.core.input_processor import InputProcessor
 from src.core.models import InputData, InputType, TechnologyType
 
@@ -25,8 +27,7 @@ class TestInputProcessor:
         processor = InputProcessor()
 
         input_data = InputData(
-            type=InputType.CODE_FILES,
-            files=[temp_files["source_file"]]
+            type=InputType.CODE_FILES, files=[temp_files["source_file"]]
         )
 
         result = processor.process_input(input_data)
@@ -39,10 +40,7 @@ class TestInputProcessor:
         """Test processing nonexistent files."""
         processor = InputProcessor()
 
-        input_data = InputData(
-            type=InputType.CODE_FILES,
-            files=["nonexistent.py"]
-        )
+        input_data = InputData(type=InputType.CODE_FILES, files=["nonexistent.py"])
 
         with pytest.raises(FileNotFoundError):
             processor.process_input(input_data)
@@ -58,8 +56,7 @@ class TestInputProcessor:
 
         try:
             input_data = InputData(
-                type=InputType.SCREENSHOTS,
-                screenshots=[screenshot_path]
+                type=InputType.SCREENSHOTS, screenshots=[screenshot_path]
             )
 
             result = processor.process_input(input_data)
@@ -73,12 +70,9 @@ class TestInputProcessor:
         """Test processing URLs."""
         processor = InputProcessor()
 
-        input_data = InputData(
-            type=InputType.URL,
-            urls=["http://example.com"]
-        )
+        input_data = InputData(type=InputType.URL, urls=["http://example.com"])
 
-        with patch('src.core.input_processor.requests.get') as mock_get:
+        with patch("src.core.input_processor.requests.get") as mock_get:
             mock_response = MagicMock()
             mock_response.text = "<html><body>Test</body></html>"
             mock_response.status_code = 200
@@ -97,10 +91,10 @@ class TestInputProcessor:
             type=InputType.HYBRID,
             files=[temp_files["source_file"]],
             urls=["http://example.com"],
-            validation_scenarios=["test_scenario"]
+            validation_scenarios=["test_scenario"],
         )
 
-        with patch('src.core.input_processor.requests.get') as mock_get:
+        with patch("src.core.input_processor.requests.get") as mock_get:
             mock_response = MagicMock()
             mock_response.text = "<html><body>Test</body></html>"
             mock_response.status_code = 200
@@ -117,7 +111,9 @@ class TestInputProcessor:
         """Test extracting metadata from code."""
         processor = InputProcessor()
 
-        metadata = processor.extract_code_metadata(sample_python_code, TechnologyType.PYTHON_FLASK)
+        metadata = processor.extract_code_metadata(
+            sample_python_code, TechnologyType.PYTHON_FLASK
+        )
 
         assert metadata is not None
         assert "functions" in metadata
@@ -156,10 +152,7 @@ class TestInputProcessor:
         """Test processing empty input."""
         processor = InputProcessor()
 
-        input_data = InputData(
-            type=InputType.CODE_FILES,
-            files=[]
-        )
+        input_data = InputData(type=InputType.CODE_FILES, files=[])
 
         with pytest.raises(ValueError, match="No input files provided"):
             processor.process_input(input_data)
@@ -169,20 +162,19 @@ class TestInputProcessor:
         processor = InputProcessor()
 
         # Create large temporary file
-        with tempfile.NamedTemporaryFile(mode='w', suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             # Write 10MB of content
             large_content = "# " + "x" * (10 * 1024 * 1024)
             f.write(large_content)
             large_file_path = f.name
 
         try:
-            input_data = InputData(
-                type=InputType.CODE_FILES,
-                files=[large_file_path]
-            )
+            input_data = InputData(type=InputType.CODE_FILES, files=[large_file_path])
 
             # Should handle large files gracefully
-            result = processor.process_input(input_data, max_file_size=5 * 1024 * 1024)  # 5MB limit
+            result = processor.process_input(
+                input_data, max_file_size=5 * 1024 * 1024
+            )  # 5MB limit
 
             assert "size_warning" in result
         finally:

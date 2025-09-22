@@ -4,24 +4,21 @@ Pytest configuration and fixtures for AI-Powered Migration Validation System.
 Provides common fixtures and setup for all tests.
 """
 
-import pytest
 import asyncio
-import tempfile
 import os
-from typing import Dict, Any, List
+import tempfile
+from typing import Any, Dict, List
 from unittest.mock import AsyncMock, MagicMock
 
-from src.core.models import (
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-    InputData,
-    InputType
-)
-from src.services.llm_service import LLMService, LLMConfig, LLMProvider, LLMResponse
-from src.core.migration_validator import MigrationValidator
+import pytest
+
 from src.behavioral.crews import BehavioralValidationCrew
+from src.core.migration_validator import MigrationValidator
+from src.core.models import (InputData, InputType, MigrationValidationRequest,
+                             TechnologyContext, TechnologyType,
+                             ValidationScope)
+from src.services.llm_service import (LLMConfig, LLMProvider, LLMResponse,
+                                      LLMService)
 
 
 @pytest.fixture(scope="session")
@@ -36,16 +33,16 @@ def event_loop():
 def mock_llm_service():
     """Mock LLM service for testing."""
     mock_service = AsyncMock(spec=LLMService)
-    
+
     # Mock response for general queries
     mock_response = LLMResponse(
         content='{"similarity_score": 0.85, "functionally_equivalent": true, "confidence": 0.9}',
         model="mock-model",
         provider="mock",
-        usage={"total_tokens": 150}
+        usage={"total_tokens": 150},
     )
     mock_service.generate_response.return_value = mock_response
-    
+
     # Mock specialized methods
     mock_service.analyze_code_semantic_similarity.return_value = {
         "similarity_score": 0.85,
@@ -54,34 +51,34 @@ def mock_llm_service():
         "key_differences": ["Minor variable naming differences"],
         "potential_issues": [],
         "business_logic_preserved": True,
-        "recommendations": ["Consider standardizing naming conventions"]
+        "recommendations": ["Consider standardizing naming conventions"],
     }
-    
+
     mock_service.compare_ui_elements.return_value = {
         "elements_matched": 8,
         "missing_elements": [],
         "additional_elements": [],
         "functional_equivalent": True,
         "ux_preserved": True,
-        "recommendations": []
+        "recommendations": [],
     }
-    
+
     mock_service.validate_business_logic.return_value = {
         "business_logic_preserved": True,
         "critical_discrepancies": [],
         "validation_gaps": [],
         "risk_assessment": "low",
-        "recommendations": []
+        "recommendations": [],
     }
-    
+
     mock_service.get_provider_info.return_value = {
         "provider": "mock",
         "model": "mock-model",
         "max_tokens": 4000,
         "temperature": 0.1,
-        "timeout": 60.0
+        "timeout": 60.0,
     }
-    
+
     return mock_service
 
 
@@ -116,7 +113,7 @@ class UserManager:
 @pytest.fixture
 def sample_java_code():
     """Sample Java code for testing."""
-    return '''
+    return """
 public class UserValidator {
     public static boolean validateUserInput(String email, String password) {
         if (email == null || !email.contains("@")) {
@@ -145,18 +142,19 @@ public class UserManager {
         return user;
     }
 }
-'''
+"""
 
 
 @pytest.fixture
 def temp_files():
     """Create temporary files for testing."""
     temp_dir = tempfile.mkdtemp()
-    
+
     # Create sample source file
     source_file = os.path.join(temp_dir, "source.py")
     with open(source_file, "w") as f:
-        f.write("""
+        f.write(
+            """
 def calculate_total(price, tax_rate):
     return price * (1 + tax_rate)
 
@@ -164,12 +162,14 @@ def process_order(items, discount=0.0):
     total = sum(item['price'] * item['quantity'] for item in items)
     total *= (1 - discount)
     return total
-""")
-    
+"""
+        )
+
     # Create sample target file
     target_file = os.path.join(temp_dir, "target.java")
     with open(target_file, "w") as f:
-        f.write("""
+        f.write(
+            """
 public class OrderProcessor {
     public static double calculateTotal(double price, double taxRate) {
         return price * (1 + taxRate);
@@ -182,16 +182,14 @@ public class OrderProcessor {
         return total * (1 - discount);
     }
 }
-""")
-    
-    yield {
-        "temp_dir": temp_dir,
-        "source_file": source_file,
-        "target_file": target_file
-    }
-    
+"""
+        )
+
+    yield {"temp_dir": temp_dir, "source_file": source_file, "target_file": target_file}
+
     # Cleanup
     import shutil
+
     shutil.rmtree(temp_dir)
 
 
@@ -200,22 +198,18 @@ def sample_validation_request(temp_files):
     """Sample validation request for testing."""
     return MigrationValidationRequest(
         source_technology=TechnologyContext(
-            type=TechnologyType.PYTHON_FLASK,
-            version="2.0"
+            type=TechnologyType.PYTHON_FLASK, version="2.0"
         ),
         target_technology=TechnologyContext(
-            type=TechnologyType.JAVA_SPRING,
-            version="3.0"
+            type=TechnologyType.JAVA_SPRING, version="3.0"
         ),
         validation_scope=ValidationScope.BUSINESS_LOGIC,
         source_input=InputData(
-            type=InputType.CODE_FILES,
-            files=[temp_files["source_file"]]
+            type=InputType.CODE_FILES, files=[temp_files["source_file"]]
         ),
         target_input=InputData(
-            type=InputType.CODE_FILES,
-            files=[temp_files["target_file"]]
-        )
+            type=InputType.CODE_FILES, files=[temp_files["target_file"]]
+        ),
     )
 
 
@@ -223,7 +217,7 @@ def sample_validation_request(temp_files):
 def behavioral_validation_request():
     """Sample behavioral validation request."""
     from src.behavioral.crews import BehavioralValidationRequest
-    
+
     return BehavioralValidationRequest(
         source_url="http://legacy-system.test/login",
         target_url="http://new-system.test/login",
@@ -232,10 +226,10 @@ def behavioral_validation_request():
             "User login with invalid email",
             "User login with short password",
             "Password reset flow",
-            "Account creation workflow"
+            "Account creation workflow",
         ],
         timeout=300,
-        metadata={"test_environment": "staging"}
+        metadata={"test_environment": "staging"},
     )
 
 
@@ -255,8 +249,9 @@ def behavioral_crew(mock_llm_service):
 def mock_fastapi_client():
     """Mock FastAPI test client."""
     from fastapi.testclient import TestClient
+
     from src.api.routes import app
-    
+
     return TestClient(app)
 
 
@@ -275,16 +270,23 @@ def setup_test_environment():
     os.environ["ENVIRONMENT"] = "testing"
     os.environ["DEBUG"] = "true"
     os.environ["LOG_LEVEL"] = "DEBUG"
-    
+
     # Disable actual LLM calls in tests
     os.environ["OPENAI_API_KEY"] = "test-key-disabled"
     os.environ["ANTHROPIC_API_KEY"] = "test-key-disabled"
     os.environ["GOOGLE_API_KEY"] = "test-key-disabled"
-    
+
     yield
-    
+
     # Cleanup environment
-    test_vars = ["ENVIRONMENT", "DEBUG", "LOG_LEVEL", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY"]
+    test_vars = [
+        "ENVIRONMENT",
+        "DEBUG",
+        "LOG_LEVEL",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "GOOGLE_API_KEY",
+    ]
     for var in test_vars:
         if var in os.environ:
             del os.environ[var]

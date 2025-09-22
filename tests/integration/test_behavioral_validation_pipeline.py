@@ -4,19 +4,18 @@ Integration tests for behavioral validation pipeline.
 Tests the complete workflow from behavioral validation request to final results.
 """
 
-import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.behavioral.crews import (
-    BehavioralValidationCrew,
-    BehavioralValidationRequest,
-    BehavioralValidationResult,
-    create_behavioral_validation_crew
-)
+import pytest
+
 from src.behavioral.browser_automation import BrowserAutomationEngine
-from src.core.models import ValidationDiscrepancy, SeverityLevel
+from src.behavioral.crews import (BehavioralValidationCrew,
+                                  BehavioralValidationRequest,
+                                  BehavioralValidationResult,
+                                  create_behavioral_validation_crew)
+from src.core.models import SeverityLevel, ValidationDiscrepancy
 
 
 @pytest.mark.integration
@@ -28,7 +27,7 @@ class TestBehavioralValidationPipeline:
     @pytest.fixture
     def mock_browser_automation(self):
         """Mock browser automation for testing."""
-        with patch('src.behavioral.crews.BrowserTool') as mock_tool_class:
+        with patch("src.behavioral.crews.BrowserTool") as mock_tool_class:
             mock_tool = MagicMock()
             mock_tool_class.return_value = mock_tool
 
@@ -43,7 +42,7 @@ class TestBehavioralValidationPipeline:
                 "NAVIGATE SUCCESS - https://target.test",  # Navigate target
                 "CAPTURE_STATE SUCCESS - {'forms': 2, 'inputs': 4}",  # Capture state (different)
                 "SCENARIO LOGIN SUCCESS - 3/3 actions successful",  # Login scenario
-                "SESSION END session_456"  # End target session
+                "SESSION END session_456",  # End target session
             ]
 
             yield mock_tool
@@ -57,25 +56,19 @@ class TestBehavioralValidationPipeline:
             validation_scenarios=[
                 "User login with valid credentials",
                 "User login with invalid email",
-                "Password reset flow"
+                "Password reset flow",
             ],
-            credentials={
-                "username": "testuser",
-                "password": "testpass123"
-            },
+            credentials={"username": "testuser", "password": "testpass123"},
             timeout=300,
-            metadata={"environment": "test"}
+            metadata={"environment": "test"},
         )
 
     async def test_behavioral_validation_pipeline_success(
-        self,
-        mock_llm_service,
-        sample_behavioral_request,
-        mock_browser_automation
+        self, mock_llm_service, sample_behavioral_request, mock_browser_automation
     ):
         """Test successful behavioral validation pipeline."""
         # Mock CrewAI crew execution results
-        with patch('src.behavioral.crews.Crew') as mock_crew_class:
+        with patch("src.behavioral.crews.Crew") as mock_crew_class:
             mock_crew_instance = MagicMock()
             mock_crew_class.return_value = mock_crew_instance
 
@@ -89,7 +82,6 @@ class TestBehavioralValidationPipeline:
                     "interactions_performed": 12,
                     "screenshots_captured": 6
                 }""",
-
                 # Target execution result
                 """{
                     "target_execution": "completed",
@@ -98,7 +90,6 @@ class TestBehavioralValidationPipeline:
                     "interactions_performed": 12,
                     "behavioral_differences": 1
                 }""",
-
                 # Behavioral comparison result
                 """{
                     "behavioral_comparison": "completed",
@@ -114,7 +105,6 @@ class TestBehavioralValidationPipeline:
                         }
                     ]
                 }""",
-
                 # Final report result
                 """{
                     "overall_status": "approved_with_warnings",
@@ -134,7 +124,7 @@ class TestBehavioralValidationPipeline:
                         "total_interactions": 12,
                         "execution_time": 180.5
                     }
-                }"""
+                }""",
             ]
 
             # Execute behavioral validation
@@ -157,7 +147,9 @@ class TestBehavioralValidationPipeline:
 
             # Verify execution log
             assert len(result.execution_log) > 0
-            assert any("Source system exploration" in log for log in result.execution_log)
+            assert any(
+                "Source system exploration" in log for log in result.execution_log
+            )
             assert any("Target system execution" in log for log in result.execution_log)
             assert any("Behavioral comparison" in log for log in result.execution_log)
 
@@ -165,13 +157,10 @@ class TestBehavioralValidationPipeline:
             assert mock_crew_instance.kickoff.call_count == 4
 
     async def test_behavioral_validation_pipeline_with_critical_issues(
-        self,
-        mock_llm_service,
-        sample_behavioral_request,
-        mock_browser_automation
+        self, mock_llm_service, sample_behavioral_request, mock_browser_automation
     ):
         """Test behavioral validation pipeline with critical issues."""
-        with patch('src.behavioral.crews.Crew') as mock_crew_class:
+        with patch("src.behavioral.crews.Crew") as mock_crew_class:
             mock_crew_instance = MagicMock()
             mock_crew_class.return_value = mock_crew_instance
 
@@ -179,10 +168,8 @@ class TestBehavioralValidationPipeline:
             mock_crew_instance.kickoff.side_effect = [
                 # Source exploration - success
                 '{"source_exploration": "completed"}',
-
                 # Target execution - success
                 '{"target_execution": "completed"}',
-
                 # Comparison - critical issues found
                 """{
                     "behavioral_comparison": "completed_with_critical_issues",
@@ -201,7 +188,6 @@ class TestBehavioralValidationPipeline:
                         }
                     ]
                 }""",
-
                 # Final report - rejected due to critical issues
                 """{
                     "overall_status": "rejected",
@@ -216,7 +202,7 @@ class TestBehavioralValidationPipeline:
                             "confidence": 0.95
                         }
                     ]
-                }"""
+                }""",
             ]
 
             crew = BehavioralValidationCrew(mock_llm_service)
@@ -229,12 +215,10 @@ class TestBehavioralValidationPipeline:
             assert result.discrepancies[0].severity == SeverityLevel.CRITICAL
 
     async def test_behavioral_validation_pipeline_browser_failure(
-        self,
-        mock_llm_service,
-        sample_behavioral_request
+        self, mock_llm_service, sample_behavioral_request
     ):
         """Test behavioral validation pipeline when browser automation fails."""
-        with patch('src.behavioral.crews.Crew') as mock_crew_class:
+        with patch("src.behavioral.crews.Crew") as mock_crew_class:
             mock_crew_instance = MagicMock()
             mock_crew_class.return_value = mock_crew_instance
 
@@ -256,20 +240,16 @@ class TestBehavioralValidationPipeline:
             assert "Browser automation failed" in error_discrepancy.description
 
     async def test_behavioral_validation_pipeline_partial_success(
-        self,
-        mock_llm_service,
-        sample_behavioral_request,
-        mock_browser_automation
+        self, mock_llm_service, sample_behavioral_request, mock_browser_automation
     ):
         """Test behavioral validation pipeline with partial success."""
-        with patch('src.behavioral.crews.Crew') as mock_crew_class:
+        with patch("src.behavioral.crews.Crew") as mock_crew_class:
             mock_crew_instance = MagicMock()
             mock_crew_class.return_value = mock_crew_instance
 
             mock_crew_instance.kickoff.side_effect = [
                 # Source exploration - success
                 '{"source_exploration": "completed", "scenarios_tested": 3}',
-
                 # Target execution - partial failure
                 """{
                     "target_execution": "completed_with_issues",
@@ -277,7 +257,6 @@ class TestBehavioralValidationPipeline:
                     "failed_scenarios": ["Password reset flow"],
                     "error_details": "Password reset endpoint not found"
                 }""",
-
                 # Comparison - mixed results
                 """{
                     "behavioral_comparison": "completed",
@@ -290,7 +269,6 @@ class TestBehavioralValidationPipeline:
                         }
                     ]
                 }""",
-
                 # Final report
                 """{
                     "overall_status": "approved_with_warnings",
@@ -303,7 +281,7 @@ class TestBehavioralValidationPipeline:
                             "recommendation": "Complete feature migration before production deployment"
                         }
                     ]
-                }"""
+                }""",
             ]
 
             crew = BehavioralValidationCrew(mock_llm_service)
@@ -315,13 +293,10 @@ class TestBehavioralValidationPipeline:
             assert result.discrepancies[0].severity == SeverityLevel.WARNING
 
     async def test_behavioral_validation_cleanup_on_success(
-        self,
-        mock_llm_service,
-        sample_behavioral_request,
-        mock_browser_automation
+        self, mock_llm_service, sample_behavioral_request, mock_browser_automation
     ):
         """Test that browser resources are cleaned up after successful validation."""
-        with patch('src.behavioral.crews.Crew') as mock_crew_class:
+        with patch("src.behavioral.crews.Crew") as mock_crew_class:
             mock_crew_instance = MagicMock()
             mock_crew_class.return_value = mock_crew_instance
             mock_crew_instance.kickoff.return_value = '{"overall_status": "approved", "fidelity_score": 0.9, "discrepancies": []}'
@@ -329,7 +304,9 @@ class TestBehavioralValidationPipeline:
             crew = BehavioralValidationCrew(mock_llm_service)
 
             # Mock cleanup method
-            with patch.object(crew, 'cleanup_browser_resources', new_callable=AsyncMock) as mock_cleanup:
+            with patch.object(
+                crew, "cleanup_browser_resources", new_callable=AsyncMock
+            ) as mock_cleanup:
                 result = await crew.validate_migration(sample_behavioral_request)
 
                 # Verify cleanup was called
@@ -338,12 +315,10 @@ class TestBehavioralValidationPipeline:
             assert result.overall_status == "approved"
 
     async def test_behavioral_validation_cleanup_on_error(
-        self,
-        mock_llm_service,
-        sample_behavioral_request
+        self, mock_llm_service, sample_behavioral_request
     ):
         """Test that browser resources are cleaned up even when validation fails."""
-        with patch('src.behavioral.crews.Crew') as mock_crew_class:
+        with patch("src.behavioral.crews.Crew") as mock_crew_class:
             mock_crew_instance = MagicMock()
             mock_crew_class.return_value = mock_crew_instance
             mock_crew_instance.kickoff.side_effect = Exception("Validation error")
@@ -351,7 +326,9 @@ class TestBehavioralValidationPipeline:
             crew = BehavioralValidationCrew(mock_llm_service)
 
             # Mock cleanup method
-            with patch.object(crew, 'cleanup_browser_resources', new_callable=AsyncMock) as mock_cleanup:
+            with patch.object(
+                crew, "cleanup_browser_resources", new_callable=AsyncMock
+            ) as mock_cleanup:
                 result = await crew.validate_migration(sample_behavioral_request)
 
                 # Verify cleanup was called even on error
@@ -383,7 +360,7 @@ class TestBehavioralValidationPipeline:
         valid_request = BehavioralValidationRequest(
             source_url="https://valid-source.test",
             target_url="https://valid-target.test",
-            validation_scenarios=["login", "signup"]
+            validation_scenarios=["login", "signup"],
         )
 
         assert valid_request.source_url == "https://valid-source.test"
@@ -398,7 +375,7 @@ class TestBehavioralValidationPipeline:
         discrepancy = ValidationDiscrepancy(
             type="test_issue",
             severity=SeverityLevel.INFO,
-            description="Test discrepancy"
+            description="Test discrepancy",
         )
 
         result = BehavioralValidationResult(
@@ -407,7 +384,7 @@ class TestBehavioralValidationPipeline:
             discrepancies=[discrepancy],
             execution_log=["Step 1", "Step 2"],
             execution_time=120.0,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         # Test that result attributes are accessible
@@ -431,10 +408,10 @@ class TestBehavioralValidationPerformance:
             source_url="https://slow-source.test",
             target_url="https://slow-target.test",
             validation_scenarios=["slow_operation"],
-            timeout=1  # Very short timeout
+            timeout=1,  # Very short timeout
         )
 
-        with patch('src.behavioral.crews.Crew') as mock_crew_class:
+        with patch("src.behavioral.crews.Crew") as mock_crew_class:
             mock_crew_instance = MagicMock()
             mock_crew_class.return_value = mock_crew_instance
 
@@ -465,12 +442,12 @@ class TestBehavioralValidationPerformance:
             BehavioralValidationRequest(
                 source_url=f"https://source-{i}.test",
                 target_url=f"https://target-{i}.test",
-                validation_scenarios=[f"scenario_{i}"]
+                validation_scenarios=[f"scenario_{i}"],
             )
             for i in range(3)
         ]
 
-        with patch('src.behavioral.crews.Crew') as mock_crew_class:
+        with patch("src.behavioral.crews.Crew") as mock_crew_class:
             mock_crew_instance = MagicMock()
             mock_crew_class.return_value = mock_crew_instance
             mock_crew_instance.kickoff.return_value = '{"overall_status": "approved", "fidelity_score": 0.9, "discrepancies": []}'
@@ -484,10 +461,12 @@ class TestBehavioralValidationPerformance:
 
             # Execute concurrent validations
             start_time = datetime.now()
-            results = await asyncio.gather(*[
-                crew.validate_migration(request)
-                for crew, request in zip(crews, requests)
-            ])
+            results = await asyncio.gather(
+                *[
+                    crew.validate_migration(request)
+                    for crew, request in zip(crews, requests)
+                ]
+            )
             end_time = datetime.now()
 
             # All should complete successfully

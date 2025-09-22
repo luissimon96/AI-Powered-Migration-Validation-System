@@ -7,22 +7,19 @@ to verify the implementation works correctly.
 
 import asyncio
 import json
-import pytest
-from pathlib import Path
-import tempfile
-
 # Import the browser automation module
 import sys
+import tempfile
+from pathlib import Path
+
+import pytest
+
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
 from behavioral.browser_automation import (
-    BrowserAutomationEngine,
-    BrowserAction,
-    create_login_scenario,
-    create_form_submission_scenario,
-    create_comprehensive_validation_scenario,
-    execute_migration_validation_workflow
-)
+    BrowserAction, BrowserAutomationEngine,
+    create_comprehensive_validation_scenario, create_form_submission_scenario,
+    create_login_scenario, execute_migration_validation_workflow)
 
 
 class TestBrowserAutomation:
@@ -63,7 +60,7 @@ class TestBrowserAutomation:
             action = BrowserAction(
                 action_type="navigate",
                 target="https://example.com",
-                description="Navigate to example.com"
+                description="Navigate to example.com",
             )
 
             result = await engine.execute_action(action)
@@ -93,7 +90,7 @@ class TestBrowserAutomation:
             action = BrowserAction(
                 action_type="navigate",
                 target="https://example.com",
-                description="Navigate to example.com"
+                description="Navigate to example.com",
             )
             await engine.execute_action(action)
 
@@ -124,14 +121,13 @@ class TestBrowserAutomation:
             navigate_action = BrowserAction(
                 action_type="navigate",
                 target="https://example.com",
-                description="Navigate to example.com"
+                description="Navigate to example.com",
             )
             await engine.execute_action(navigate_action)
 
             # Capture screenshot
             capture_action = BrowserAction(
-                action_type="capture",
-                description="Capture screenshot"
+                action_type="capture", description="Capture screenshot"
             )
 
             result = await engine.execute_action(capture_action)
@@ -147,7 +143,9 @@ class TestBrowserAutomation:
 
     def test_login_scenario_creation(self):
         """Test login scenario creation."""
-        actions = create_login_scenario("testuser", "testpass", "https://example.com/login")
+        actions = create_login_scenario(
+            "testuser", "testpass", "https://example.com/login"
+        )
 
         assert len(actions) > 0
         assert any(action.action_type == "navigate" for action in actions)
@@ -159,13 +157,15 @@ class TestBrowserAutomation:
         form_data = {
             "name": "John Doe",
             "email": "john@example.com",
-            "message": "Test message"
+            "message": "Test message",
         }
 
         actions = create_form_submission_scenario("#contact-form", form_data)
 
         assert len(actions) > 0
-        assert sum(1 for action in actions if action.action_type == "fill") == len(form_data)
+        assert sum(1 for action in actions if action.action_type == "fill") == len(
+            form_data
+        )
         assert any(action.action_type == "submit" for action in actions)
         assert any(action.action_type == "capture" for action in actions)
 
@@ -174,10 +174,12 @@ class TestBrowserAutomation:
         credentials = {
             "username": "testuser",
             "password": "testpass",
-            "login_url": "https://example.com/login"
+            "login_url": "https://example.com/login",
         }
 
-        actions = create_comprehensive_validation_scenario("https://example.com", credentials)
+        actions = create_comprehensive_validation_scenario(
+            "https://example.com", credentials
+        )
 
         assert len(actions) > 0
         assert any(action.action_type == "navigate" for action in actions)
@@ -200,7 +202,7 @@ class TestBrowserAutomation:
                 "title": "Source System",
                 "forms": [{"action": "/submit", "method": "POST", "elements": []}],
                 "messages": [{"text": "Welcome", "className": "success"}],
-                "metrics": {"forms": 1, "inputs": 3, "buttons": 2}
+                "metrics": {"forms": 1, "inputs": 3, "buttons": 2},
             }
 
             state2 = {
@@ -208,7 +210,11 @@ class TestBrowserAutomation:
                 "title": "Target System",
                 "forms": [{"action": "/submit", "method": "POST", "elements": []}],
                 "messages": [{"text": "Welcome", "className": "success"}],
-                "metrics": {"forms": 1, "inputs": 3, "buttons": 1}  # Different button count
+                "metrics": {
+                    "forms": 1,
+                    "inputs": 3,
+                    "buttons": 1,
+                },  # Different button count
             }
 
             discrepancies = await engine.compare_page_states(state1, state2)
@@ -216,8 +222,7 @@ class TestBrowserAutomation:
             assert isinstance(discrepancies, list)
             # Should find at least the button count difference
             button_discrepancy = any(
-                "button" in disc.description.lower()
-                for disc in discrepancies
+                "button" in disc.description.lower() for disc in discrepancies
             )
             assert button_discrepancy
 
@@ -233,7 +238,10 @@ def test_browser_tool_integration():
 
     # Test action parsing
     result = tool._run("unknown_action:target:data")
-    assert "Unknown action type" in result or "Browser automation engine not available" in result
+    assert (
+        "Unknown action type" in result
+        or "Browser automation engine not available" in result
+    )
 
 
 async def demo_browser_automation():
@@ -270,7 +278,7 @@ async def demo_browser_automation():
         navigate_action = BrowserAction(
             action_type="navigate",
             target="https://httpbin.org/forms/post",
-            description="Navigate to test form"
+            description="Navigate to test form",
         )
 
         result = await engine.execute_action(navigate_action)
@@ -288,11 +296,14 @@ async def demo_browser_automation():
 
         # Test form interaction
         print("\n📝 Testing form interaction...")
-        form_actions = create_form_submission_scenario("form", {
-            "custname": "John Doe",
-            "custtel": "555-1234",
-            "custemail": "john@example.com"
-        })
+        form_actions = create_form_submission_scenario(
+            "form",
+            {
+                "custname": "John Doe",
+                "custtel": "555-1234",
+                "custemail": "john@example.com",
+            },
+        )
 
         for i, action in enumerate(form_actions[:3]):  # Test first 3 actions
             print(f"   Action {i+1}: {action.description}")
@@ -304,8 +315,7 @@ async def demo_browser_automation():
         # Capture screenshot
         print("\n📸 Capturing screenshot...")
         capture_action = BrowserAction(
-            action_type="capture",
-            description="Capture final state"
+            action_type="capture", description="Capture final state"
         )
 
         result = await engine.execute_action(capture_action)
@@ -320,7 +330,9 @@ async def demo_browser_automation():
         if session:
             print(f"⏱️  Session duration: {session.duration:.1f} seconds")
             print(f"📊 Total actions: {len(session.actions)}")
-            print(f"✅ Successful results: {sum(1 for r in session.results if r.success)}")
+            print(
+                f"✅ Successful results: {sum(1 for r in session.results if r.success)}"
+            )
 
         print("\n🎉 Browser automation demo completed successfully!")
 

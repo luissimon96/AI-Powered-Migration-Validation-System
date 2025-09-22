@@ -6,13 +6,14 @@ validation results, and system operations.
 """
 
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Dict, Any, Optional, Union
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 
 class TechnologyType(Enum):
     """Supported technology types for migration validation."""
+
     PYTHON_FLASK = "python-flask"
     PYTHON_DJANGO = "python-django"
     JAVA_SPRING = "java-spring"
@@ -28,6 +29,7 @@ class TechnologyType(Enum):
 
 class ValidationScope(Enum):
     """Defines what aspects of the migration to validate."""
+
     UI_LAYOUT = "ui_layout"
     BACKEND_FUNCTIONALITY = "backend_functionality"
     DATA_STRUCTURE = "data_structure"
@@ -39,6 +41,7 @@ class ValidationScope(Enum):
 
 class InputType(Enum):
     """Types of input that can be provided for validation."""
+
     CODE_FILES = "code_files"
     SCREENSHOTS = "screenshots"
     HYBRID = "hybrid"
@@ -46,6 +49,7 @@ class InputType(Enum):
 
 class SeverityLevel(Enum):
     """Severity levels for validation discrepancies."""
+
     CRITICAL = "critical"
     WARNING = "warning"
     INFO = "info"
@@ -54,6 +58,7 @@ class SeverityLevel(Enum):
 @dataclass
 class TechnologyContext:
     """Represents a technology context (source or target)."""
+
     type: TechnologyType
     version: Optional[str] = None
     framework_details: Dict[str, Any] = field(default_factory=dict)
@@ -62,18 +67,22 @@ class TechnologyContext:
 @dataclass
 class InputData:
     """Represents input data for validation."""
+
     type: InputType
     files: List[str] = field(default_factory=list)
     screenshots: List[str] = field(default_factory=list)
     urls: List[str] = field(default_factory=list)  # For behavioral validation
     credentials: Optional[Dict[str, str]] = None  # For authenticated systems
-    validation_scenarios: List[str] = field(default_factory=list)  # Behavioral test scenarios
+    validation_scenarios: List[str] = field(
+        default_factory=list
+    )  # Behavioral test scenarios
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class UIElement:
     """Represents a UI element extracted from code or screenshots."""
+
     type: str  # label, input, button, table, etc.
     id: Optional[str] = None
     text: Optional[str] = None
@@ -84,6 +93,7 @@ class UIElement:
 @dataclass
 class BackendFunction:
     """Represents a backend function or method."""
+
     name: str
     parameters: List[str] = field(default_factory=list)
     return_type: Optional[str] = None
@@ -96,6 +106,7 @@ class BackendFunction:
 @dataclass
 class DataField:
     """Represents a data field or property."""
+
     name: str
     type: str
     required: bool = False
@@ -106,6 +117,7 @@ class DataField:
 @dataclass
 class AbstractRepresentation:
     """Abstract representation of a system component."""
+
     screen_name: Optional[str] = None
     ui_elements: List[UIElement] = field(default_factory=list)
     backend_functions: List[BackendFunction] = field(default_factory=list)
@@ -117,6 +129,7 @@ class AbstractRepresentation:
 @dataclass
 class ValidationDiscrepancy:
     """Represents a discrepancy found during validation."""
+
     type: str  # missing_field, additional_field, type_mismatch, logic_divergence
     severity: SeverityLevel
     description: str
@@ -129,6 +142,7 @@ class ValidationDiscrepancy:
 @dataclass
 class ValidationResult:
     """Complete validation result for a migration."""
+
     overall_status: str  # approved, approved_with_warnings, rejected
     fidelity_score: float  # 0.0 to 1.0
     summary: str
@@ -140,6 +154,7 @@ class ValidationResult:
 @dataclass
 class MigrationValidationRequest:
     """Complete request for migration validation."""
+
     source_technology: TechnologyContext
     target_technology: TechnologyContext
     validation_scope: ValidationScope
@@ -152,12 +167,13 @@ class MigrationValidationRequest:
 @dataclass
 class ValidationSession:
     """Represents a complete validation session."""
+
     request: MigrationValidationRequest
     source_representation: Optional[AbstractRepresentation] = None
     target_representation: Optional[AbstractRepresentation] = None
     result: Optional[ValidationResult] = None
     processing_log: List[str] = field(default_factory=list)
-    
+
     def add_log(self, message: str):
         """Add a log entry with timestamp."""
         timestamp = datetime.now().isoformat()

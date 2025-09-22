@@ -2,8 +2,10 @@
 Unit tests for code analyzer.
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
+
 from src.analyzers.code_analyzer import CodeAnalyzer
 from src.core.models import TechnologyType
 
@@ -22,8 +24,7 @@ class TestCodeAnalyzer:
         analyzer = CodeAnalyzer()
 
         analysis = analyzer.analyze_code(
-            code=sample_python_code,
-            technology=TechnologyType.PYTHON_FLASK
+            code=sample_python_code, technology=TechnologyType.PYTHON_FLASK
         )
 
         assert analysis is not None
@@ -37,8 +38,7 @@ class TestCodeAnalyzer:
         analyzer = CodeAnalyzer()
 
         analysis = analyzer.analyze_code(
-            code=sample_java_code,
-            technology=TechnologyType.JAVA_SPRING
+            code=sample_java_code, technology=TechnologyType.JAVA_SPRING
         )
 
         assert analysis is not None
@@ -91,7 +91,9 @@ class TestCodeAnalyzer:
         """Test detecting code patterns."""
         analyzer = CodeAnalyzer()
 
-        patterns = analyzer.detect_patterns(sample_python_code, TechnologyType.PYTHON_FLASK)
+        patterns = analyzer.detect_patterns(
+            sample_python_code, TechnologyType.PYTHON_FLASK
+        )
 
         assert patterns is not None
         assert "design_patterns" in patterns
@@ -179,8 +181,12 @@ class TestCodeAnalyzer:
         """Test comparing code structures."""
         analyzer = CodeAnalyzer()
 
-        python_structure = analyzer.analyze_code(sample_python_code, TechnologyType.PYTHON_FLASK)
-        java_structure = analyzer.analyze_code(sample_java_code, TechnologyType.JAVA_SPRING)
+        python_structure = analyzer.analyze_code(
+            sample_python_code, TechnologyType.PYTHON_FLASK
+        )
+        java_structure = analyzer.analyze_code(
+            sample_java_code, TechnologyType.JAVA_SPRING
+        )
 
         comparison = analyzer.compare_structures(python_structure, java_structure)
 
@@ -254,12 +260,12 @@ class TestCodeAnalyzerPerformance:
         analyzer = CodeAnalyzer()
 
         # Generate large code file
-        large_code = "\n".join([
-            f"def function_{i}():\n    return {i}"
-            for i in range(1000)
-        ])
+        large_code = "\n".join(
+            [f"def function_{i}():\n    return {i}" for i in range(1000)]
+        )
 
         import time
+
         start_time = time.time()
 
         analysis = analyzer.analyze_code(large_code, TechnologyType.PYTHON_FLASK)

@@ -2,18 +2,15 @@
 Unit tests for configuration management.
 """
 
-import pytest
 import os
 import tempfile
-from unittest.mock import patch, mock_open
-from src.core.config import (
-    ValidationConfig,
-    LLMProviderConfig,
-    BrowserAutomationConfig,
-    get_validation_config,
-    load_config_from_file,
-    validate_config
-)
+from unittest.mock import mock_open, patch
+
+import pytest
+
+from src.core.config import (BrowserAutomationConfig, LLMProviderConfig,
+                             ValidationConfig, get_validation_config,
+                             load_config_from_file, validate_config)
 
 
 @pytest.mark.unit
@@ -25,22 +22,18 @@ class TestValidationConfig:
         config = ValidationConfig()
 
         assert config is not None
-        assert hasattr(config, 'llm_providers')
-        assert hasattr(config, 'browser_config')
-        assert hasattr(config, 'validation_settings')
+        assert hasattr(config, "llm_providers")
+        assert hasattr(config, "browser_config")
+        assert hasattr(config, "validation_settings")
 
     def test_config_with_custom_values(self):
         """Test creating configuration with custom values."""
         llm_config = LLMProviderConfig(
-            provider="openai",
-            model="gpt-4",
-            api_key="test-key",
-            enabled=True
+            provider="openai", model="gpt-4", api_key="test-key", enabled=True
         )
 
         config = ValidationConfig(
-            default_llm_provider="openai",
-            llm_providers={"openai": llm_config}
+            default_llm_provider="openai", llm_providers={"openai": llm_config}
         )
 
         assert config.default_llm_provider == "openai"
@@ -50,15 +43,11 @@ class TestValidationConfig:
     def test_get_default_llm_config(self):
         """Test getting default LLM configuration."""
         llm_config = LLMProviderConfig(
-            provider="anthropic",
-            model="claude-3",
-            api_key="test-key",
-            enabled=True
+            provider="anthropic", model="claude-3", api_key="test-key", enabled=True
         )
 
         config = ValidationConfig(
-            default_llm_provider="anthropic",
-            llm_providers={"anthropic": llm_config}
+            default_llm_provider="anthropic", llm_providers={"anthropic": llm_config}
         )
 
         default_config = config.get_default_llm_config()
@@ -96,7 +85,7 @@ class TestLLMProviderConfig:
             enabled=True,
             max_tokens=4000,
             temperature=0.1,
-            timeout=60.0
+            timeout=60.0,
         )
 
         assert config.provider == "openai"
@@ -110,9 +99,7 @@ class TestLLMProviderConfig:
     def test_llm_config_defaults(self):
         """Test LLM configuration defaults."""
         config = LLMProviderConfig(
-            provider="anthropic",
-            model="claude-3",
-            api_key="test-key"
+            provider="anthropic", model="claude-3", api_key="test-key"
         )
 
         assert config.enabled == True  # Default
@@ -124,27 +111,18 @@ class TestLLMProviderConfig:
         """Test LLM configuration validation."""
         # Valid configuration
         valid_config = LLMProviderConfig(
-            provider="openai",
-            model="gpt-4",
-            api_key="sk-test"
+            provider="openai", model="gpt-4", api_key="sk-test"
         )
         assert valid_config.is_valid() == True
 
         # Invalid configuration (missing API key)
-        invalid_config = LLMProviderConfig(
-            provider="openai",
-            model="gpt-4",
-            api_key=""
-        )
+        invalid_config = LLMProviderConfig(provider="openai", model="gpt-4", api_key="")
         assert invalid_config.is_valid() == False
 
     def test_get_provider_info(self):
         """Test getting provider information."""
         config = LLMProviderConfig(
-            provider="google",
-            model="gemini-pro",
-            api_key="test-key",
-            max_tokens=8000
+            provider="google", model="gemini-pro", api_key="test-key", max_tokens=8000
         )
 
         info = config.get_provider_info()
@@ -164,7 +142,7 @@ class TestBrowserAutomationConfig:
             headless=True,
             timeout=30,
             wait_for_elements=10,
-            screenshot_on_failure=True
+            screenshot_on_failure=True,
         )
 
         assert config.browser == "chrome"
@@ -205,17 +183,14 @@ class TestConfigLoading:
                     "provider": "openai",
                     "model": "gpt-4",
                     "api_key": "sk-test",
-                    "enabled": True
+                    "enabled": True,
                 }
             },
-            "browser_config": {
-                "browser": "chrome",
-                "headless": True,
-                "timeout": 30
-            }
+            "browser_config": {"browser": "chrome", "headless": True, "timeout": 30},
         }
 
         import json
+
         config_json = json.dumps(config_data)
 
         with patch("builtins.open", mock_open(read_data=config_json)):
@@ -239,11 +214,14 @@ class TestConfigLoading:
             config = load_config_from_file("invalid.json")
             assert config is None
 
-    @patch.dict(os.environ, {
-        'OPENAI_API_KEY': 'test-openai-key',
-        'ANTHROPIC_API_KEY': 'test-anthropic-key',
-        'VALIDATION_TIMEOUT': '60'
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "OPENAI_API_KEY": "test-openai-key",
+            "ANTHROPIC_API_KEY": "test-anthropic-key",
+            "VALIDATION_TIMEOUT": "60",
+        },
+    )
     def test_get_validation_config_from_env(self):
         """Test getting validation configuration from environment variables."""
         config = get_validation_config()
@@ -259,17 +237,17 @@ class TestConfigLoading:
             assert config is not None
             assert isinstance(config, ValidationConfig)
 
-    @patch('src.core.config.load_config_from_file')
+    @patch("src.core.config.load_config_from_file")
     def test_get_validation_config_from_file(self, mock_load_file):
         """Test getting validation configuration from file."""
         mock_config = ValidationConfig(default_llm_provider="test")
         mock_load_file.return_value = mock_config
 
-        with patch.dict(os.environ, {'VALIDATION_CONFIG_FILE': 'test.json'}):
+        with patch.dict(os.environ, {"VALIDATION_CONFIG_FILE": "test.json"}):
             config = get_validation_config()
 
             assert config == mock_config
-            mock_load_file.assert_called_once_with('test.json')
+            mock_load_file.assert_called_once_with("test.json")
 
 
 @pytest.mark.unit
@@ -279,20 +257,15 @@ class TestConfigValidation:
     def test_validate_complete_config(self):
         """Test validating complete configuration."""
         llm_config = LLMProviderConfig(
-            provider="openai",
-            model="gpt-4",
-            api_key="sk-test"
+            provider="openai", model="gpt-4", api_key="sk-test"
         )
 
-        browser_config = BrowserAutomationConfig(
-            browser="chrome",
-            headless=True
-        )
+        browser_config = BrowserAutomationConfig(browser="chrome", headless=True)
 
         config = ValidationConfig(
             default_llm_provider="openai",
             llm_providers={"openai": llm_config},
-            browser_config=browser_config
+            browser_config=browser_config,
         )
 
         assert validate_config(config) == True
@@ -325,9 +298,9 @@ class TestConfigValidation:
                     "provider": "openai",
                     "model": "gpt-4",
                     "api_key": "sk-test",
-                    "enabled": True
+                    "enabled": True,
                 }
-            }
+            },
         }
 
         config = ValidationConfig.from_dict(config_dict)
@@ -341,12 +314,15 @@ class TestConfigValidation:
 class TestConfigEnvironmentOverrides:
     """Test configuration environment variable overrides."""
 
-    @patch.dict(os.environ, {
-        'OPENAI_API_KEY': 'env-openai-key',
-        'ANTHROPIC_API_KEY': 'env-anthropic-key',
-        'BROWSER_HEADLESS': 'false',
-        'VALIDATION_TIMEOUT': '120'
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "OPENAI_API_KEY": "env-openai-key",
+            "ANTHROPIC_API_KEY": "env-anthropic-key",
+            "BROWSER_HEADLESS": "false",
+            "VALIDATION_TIMEOUT": "120",
+        },
+    )
     def test_environment_overrides(self):
         """Test that environment variables override configuration."""
         config = get_validation_config()
@@ -358,13 +334,13 @@ class TestConfigEnvironmentOverrides:
 
     def test_boolean_environment_parsing(self):
         """Test parsing boolean values from environment."""
-        with patch.dict(os.environ, {'BROWSER_HEADLESS': 'false'}):
+        with patch.dict(os.environ, {"BROWSER_HEADLESS": "false"}):
             config = get_validation_config()
 
             if config.browser_config:
                 assert config.browser_config.headless == False
 
-        with patch.dict(os.environ, {'BROWSER_HEADLESS': 'true'}):
+        with patch.dict(os.environ, {"BROWSER_HEADLESS": "true"}):
             config = get_validation_config()
 
             if config.browser_config:
@@ -372,7 +348,7 @@ class TestConfigEnvironmentOverrides:
 
     def test_numeric_environment_parsing(self):
         """Test parsing numeric values from environment."""
-        with patch.dict(os.environ, {'VALIDATION_TIMEOUT': '90'}):
+        with patch.dict(os.environ, {"VALIDATION_TIMEOUT": "90"}):
             config = get_validation_config()
 
             # Should parse as integer

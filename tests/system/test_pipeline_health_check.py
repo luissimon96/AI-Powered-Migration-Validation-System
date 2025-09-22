@@ -4,15 +4,16 @@ System health check tests for the complete AI Migration Validation pipeline.
 Tests system dependencies, configuration, and overall health of the pipeline.
 """
 
-import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.core.migration_validator import MigrationValidator
+import pytest
+
 from src.behavioral.crews import create_behavioral_validation_crew
-from src.services.llm_service import LLMService
+from src.core.migration_validator import MigrationValidator
 from src.reporters.validation_reporter import ValidationReporter
+from src.services.llm_service import LLMService
 
 
 @pytest.mark.system
@@ -23,10 +24,11 @@ class TestSystemHealthCheck:
         """Test that all required system dependencies are available."""
         # Test core dependencies
         try:
+            import crewai
             import fastapi
             import pydantic
             import structlog
-            import crewai
+
             assert True, "Core dependencies available"
         except ImportError as e:
             pytest.fail(f"Core dependency missing: {e}")
@@ -34,12 +36,14 @@ class TestSystemHealthCheck:
         # Test optional behavioral dependencies
         try:
             from playwright.async_api import async_playwright
+
             playwright_available = True
         except ImportError:
             playwright_available = False
 
         try:
             from browser_use.browser import Browser as BrowserUseAgent
+
             browser_use_available = True
         except ImportError:
             browser_use_available = False
@@ -77,8 +81,8 @@ class TestSystemHealthCheck:
         validator = MigrationValidator(llm_client=mock_llm_service)
 
         assert validator.llm_client == mock_llm_service
-        assert hasattr(validator, 'validate_migration')
-        assert hasattr(validator, 'validate_request')
+        assert hasattr(validator, "validate_migration")
+        assert hasattr(validator, "validate_request")
 
     def test_behavioral_crew_initialization(self):
         """Test behavioral validation crew can be initialized."""
@@ -87,28 +91,29 @@ class TestSystemHealthCheck:
 
         assert crew is not None
         assert crew.llm_service == mock_llm_service
-        assert hasattr(crew, 'validate_migration')
-        assert hasattr(crew, 'source_explorer')
-        assert hasattr(crew, 'target_executor')
-        assert hasattr(crew, 'comparison_judge')
-        assert hasattr(crew, 'report_manager')
+        assert hasattr(crew, "validate_migration")
+        assert hasattr(crew, "source_explorer")
+        assert hasattr(crew, "target_executor")
+        assert hasattr(crew, "comparison_judge")
+        assert hasattr(crew, "report_manager")
 
     def test_validation_reporter_initialization(self):
         """Test validation reporter can be initialized."""
         reporter = ValidationReporter()
 
         assert reporter is not None
-        assert hasattr(reporter, 'generate_report')
-        assert hasattr(reporter, 'generate_unified_report')
-        assert hasattr(reporter, 'generate_json_report')
-        assert hasattr(reporter, 'generate_html_report')
-        assert hasattr(reporter, 'generate_markdown_report')
+        assert hasattr(reporter, "generate_report")
+        assert hasattr(reporter, "generate_unified_report")
+        assert hasattr(reporter, "generate_json_report")
+        assert hasattr(reporter, "generate_html_report")
+        assert hasattr(reporter, "generate_markdown_report")
 
     @pytest.mark.asyncio
     async def test_browser_automation_availability(self):
         """Test browser automation system availability."""
         try:
-            from src.behavioral.browser_automation import BrowserAutomationEngine
+            from src.behavioral.browser_automation import \
+                BrowserAutomationEngine
 
             engine = BrowserAutomationEngine(headless=True)
             initialization_success = await engine.initialize()
@@ -132,7 +137,7 @@ class TestSystemHealthCheck:
 
         app = create_app()
         assert app is not None
-        assert hasattr(app, 'router')
+        assert hasattr(app, "router")
 
         # Check that key endpoints are registered
         routes = [route.path for route in app.routes]
@@ -141,11 +146,13 @@ class TestSystemHealthCheck:
             "/health",
             "/api/technologies",
             "/api/validate",
-            "/api/behavioral/validate"
+            "/api/behavioral/validate",
         ]
 
         for endpoint in expected_endpoints:
-            assert any(endpoint in route for route in routes), f"Missing endpoint: {endpoint}"
+            assert any(
+                endpoint in route for route in routes
+            ), f"Missing endpoint: {endpoint}"
 
 
 @pytest.mark.system
@@ -155,19 +162,15 @@ class TestSystemIntegrationHealth:
 
     async def test_static_validation_pipeline_health(self):
         """Test static validation pipeline health."""
-        from src.core.models import (
-            MigrationValidationRequest,
-            TechnologyContext,
-            TechnologyType,
-            ValidationScope,
-            InputData,
-            InputType
-        )
+        from src.core.models import (InputData, InputType,
+                                     MigrationValidationRequest,
+                                     TechnologyContext, TechnologyType,
+                                     ValidationScope)
 
         mock_llm_service = AsyncMock()
         mock_llm_service.analyze_code_semantic_similarity.return_value = {
             "similarity_score": 0.9,
-            "functionally_equivalent": True
+            "functionally_equivalent": True,
         }
 
         validator = MigrationValidator(llm_client=mock_llm_service)
@@ -175,22 +178,14 @@ class TestSystemIntegrationHealth:
         # Create minimal test request
         request = MigrationValidationRequest(
             source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK,
-                version="2.0"
+                type=TechnologyType.PYTHON_FLASK, version="2.0"
             ),
             target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING,
-                version="3.0"
+                type=TechnologyType.JAVA_SPRING, version="3.0"
             ),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
-            source_input=InputData(
-                type=InputType.CODE_FILES,
-                files=[]
-            ),
-            target_input=InputData(
-                type=InputType.CODE_FILES,
-                files=[]
-            )
+            source_input=InputData(type=InputType.CODE_FILES, files=[]),
+            target_input=InputData(type=InputType.CODE_FILES, files=[]),
         )
 
         # Test validation request validation
@@ -208,7 +203,7 @@ class TestSystemIntegrationHealth:
         request = BehavioralValidationRequest(
             source_url="https://test-source.example.com",
             target_url="https://test-target.example.com",
-            validation_scenarios=["health_check_scenario"]
+            validation_scenarios=["health_check_scenario"],
         )
 
         # Test that crew can handle request validation
@@ -224,8 +219,9 @@ class TestSystemIntegrationHealth:
 
     def test_unified_reporting_pipeline_health(self):
         """Test unified reporting pipeline health."""
-        from src.core.models import ValidationResult, ValidationDiscrepancy, SeverityLevel
         from src.behavioral.crews import BehavioralValidationResult
+        from src.core.models import (SeverityLevel, ValidationDiscrepancy,
+                                     ValidationResult)
 
         reporter = ValidationReporter()
 
@@ -238,9 +234,9 @@ class TestSystemIntegrationHealth:
                 ValidationDiscrepancy(
                     type="test_discrepancy",
                     severity=SeverityLevel.INFO,
-                    description="Test discrepancy for health check"
+                    description="Test discrepancy for health check",
                 )
-            ]
+            ],
         )
 
         behavioral_result = BehavioralValidationResult(
@@ -250,44 +246,42 @@ class TestSystemIntegrationHealth:
                 ValidationDiscrepancy(
                     type="behavioral_test_discrepancy",
                     severity=SeverityLevel.WARNING,
-                    description="Behavioral test discrepancy for health check"
+                    description="Behavioral test discrepancy for health check",
                 )
             ],
             execution_log=["Health check executed"],
             execution_time=10.0,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         # Test unified report generation
         unified_report = reporter.generate_unified_report(
-            static_result=static_result,
-            behavioral_result=behavioral_result
+            static_result=static_result, behavioral_result=behavioral_result
         )
 
         assert "metadata" in unified_report
         assert "executive_summary" in unified_report
         assert "fidelity_assessment" in unified_report
         assert unified_report["metadata"]["validation_types"]["static_analysis"] is True
-        assert unified_report["metadata"]["validation_types"]["behavioral_testing"] is True
+        assert (
+            unified_report["metadata"]["validation_types"]["behavioral_testing"] is True
+        )
 
         # Test different report formats
         json_report = reporter.generate_unified_json_report(
-            static_result=static_result,
-            behavioral_result=behavioral_result
+            static_result=static_result, behavioral_result=behavioral_result
         )
         assert json_report is not None
         assert len(json_report) > 0
 
         html_report = reporter.generate_unified_html_report(
-            static_result=static_result,
-            behavioral_result=behavioral_result
+            static_result=static_result, behavioral_result=behavioral_result
         )
         assert html_report is not None
         assert html_report.startswith("<!DOCTYPE html>")
 
         markdown_report = reporter.generate_unified_markdown_report(
-            static_result=static_result,
-            behavioral_result=behavioral_result
+            static_result=static_result, behavioral_result=behavioral_result
         )
         assert markdown_report is not None
         assert markdown_report.startswith("#")
@@ -306,7 +300,7 @@ class TestSystemPerformanceHealth:
         mock_llm_service = MagicMock()
         mock_llm_service.analyze_code_semantic_similarity.return_value = {
             "similarity_score": 0.9,
-            "functionally_equivalent": True
+            "functionally_equivalent": True,
         }
 
         def create_validator_instance():
@@ -337,15 +331,18 @@ class TestSystemPerformanceHealth:
 
     def test_memory_usage_reasonable(self):
         """Test that system components don't use excessive memory."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss
 
         # Create multiple system components
         mock_llm_service = MagicMock()
-        validators = [MigrationValidator(llm_client=mock_llm_service) for _ in range(10)]
+        validators = [
+            MigrationValidator(llm_client=mock_llm_service) for _ in range(10)
+        ]
         crews = [create_behavioral_validation_crew(mock_llm_service) for _ in range(5)]
         reporters = [ValidationReporter() for _ in range(5)]
 
@@ -354,7 +351,9 @@ class TestSystemPerformanceHealth:
 
         # Memory increase should be reasonable (less than 100MB for test objects)
         max_acceptable_increase = 100 * 1024 * 1024  # 100MB
-        assert memory_increase < max_acceptable_increase, f"Memory increase too high: {memory_increase / 1024 / 1024:.2f}MB"
+        assert (
+            memory_increase < max_acceptable_increase
+        ), f"Memory increase too high: {memory_increase / 1024 / 1024:.2f}MB"
 
         # Clean up references
         del validators, crews, reporters
@@ -406,7 +405,7 @@ class TestSystemConfigurationHealth:
                 if key in os.environ:
                     del os.environ[key]
 
-            from src.services.llm_service import LLMService, LLMConfig
+            from src.services.llm_service import LLMConfig, LLMService
 
             # Should still initialize with default configuration
             config = LLMConfig()
@@ -420,8 +419,9 @@ class TestSystemConfigurationHealth:
 
     def test_logging_configuration(self):
         """Test logging system is properly configured."""
-        import structlog
         import logging
+
+        import structlog
 
         # Test that structlog is configured
         logger = structlog.get_logger("test_logger")
@@ -437,8 +437,8 @@ class TestSystemConfigurationHealth:
 
     def test_file_system_permissions(self):
         """Test system has necessary file system permissions."""
-        import tempfile
         import os
+        import tempfile
 
         # Test temporary directory creation
         temp_dir = tempfile.mkdtemp()
@@ -459,14 +459,15 @@ class TestSystemConfigurationHealth:
     def test_json_serialization_compatibility(self):
         """Test that system objects can be JSON serialized."""
         import json
-        from src.core.models import ValidationDiscrepancy, SeverityLevel
+
+        from src.core.models import SeverityLevel, ValidationDiscrepancy
 
         # Test ValidationDiscrepancy serialization
         discrepancy = ValidationDiscrepancy(
             type="test_type",
             severity=SeverityLevel.INFO,
             description="Test description",
-            recommendation="Test recommendation"
+            recommendation="Test recommendation",
         )
 
         # Should be able to convert to dict for JSON serialization
@@ -474,7 +475,7 @@ class TestSystemConfigurationHealth:
             "type": discrepancy.type,
             "severity": discrepancy.severity.value,
             "description": discrepancy.description,
-            "recommendation": discrepancy.recommendation
+            "recommendation": discrepancy.recommendation,
         }
 
         # Should serialize to JSON without errors
@@ -496,15 +497,17 @@ class TestExternalDependencyHealth:
     @pytest.mark.skip(reason="Requires actual LLM API access")
     async def test_llm_service_connectivity(self):
         """Test LLM service connectivity (skip unless testing with real API)."""
-        from src.services.llm_service import LLMService, LLMConfig
+        from src.services.llm_service import LLMConfig, LLMService
 
         config = LLMConfig()
         service = LLMService(config)
 
         try:
-            response = await service.generate_response("Hello, this is a connectivity test.")
+            response = await service.generate_response(
+                "Hello, this is a connectivity test."
+            )
             assert response is not None
-            assert hasattr(response, 'content')
+            assert hasattr(response, "content")
         except Exception as e:
             pytest.skip(f"LLM service not accessible: {e}")
 
@@ -524,10 +527,11 @@ class TestExternalDependencyHealth:
             session_id = await engine.start_session("https://httpbin.org/")
 
             from src.behavioral.browser_automation import BrowserAction
+
             action = BrowserAction(
                 action_type="navigate",
                 target="https://httpbin.org/",
-                description="Test navigation"
+                description="Test navigation",
             )
 
             result = await engine.execute_action(action)

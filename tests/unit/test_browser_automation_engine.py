@@ -2,22 +2,18 @@
 Unit tests for BrowserAutomationEngine core functionality.
 """
 
-import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from src.behavioral.browser_automation import (
-    BrowserAutomationEngine,
-    BrowserAction,
-    BrowserActionResult,
-    BrowserSession,
-    create_login_scenario,
-    create_form_submission_scenario,
-    create_comprehensive_validation_scenario
-)
-from src.core.models import ValidationDiscrepancy, SeverityLevel
+    BrowserAction, BrowserActionResult, BrowserAutomationEngine,
+    BrowserSession, create_comprehensive_validation_scenario,
+    create_form_submission_scenario, create_login_scenario)
+from src.core.models import SeverityLevel, ValidationDiscrepancy
 
 
 @pytest.mark.unit
@@ -32,7 +28,7 @@ class TestBrowserAction:
             value="",
             timeout=10000,
             description="Navigate to example site",
-            wait_for="body"
+            wait_for="body",
         )
 
         assert action.action_type == "navigate"
@@ -65,7 +61,7 @@ class TestBrowserActionResult:
             success=True,
             action=action,
             result_data={"clicked": True},
-            execution_time=1.5
+            execution_time=1.5,
         )
 
         assert result.success is True
@@ -95,7 +91,7 @@ class TestBrowserSession:
             actions=[],
             results=[],
             metadata={"test": True},
-            start_time=datetime.now()
+            start_time=datetime.now(),
         )
 
         assert session.session_id == "test-session-123"
@@ -114,7 +110,7 @@ class TestBrowserSession:
             actions=[],
             results=[],
             metadata={},
-            start_time=start_time
+            start_time=start_time,
         )
 
         # Duration should be very small (just created)
@@ -123,6 +119,7 @@ class TestBrowserSession:
 
         # Test with end time set
         import time
+
         time.sleep(0.1)  # Wait a bit
         session.end_time = datetime.now()
         assert session.duration >= 0.1
@@ -134,11 +131,7 @@ class TestBrowserAutomationEngine:
 
     def test_engine_initialization_config(self):
         """Test engine initialization with configuration."""
-        engine = BrowserAutomationEngine(
-            headless=False,
-            slow_mo=100,
-            timeout=30000
-        )
+        engine = BrowserAutomationEngine(headless=False, slow_mo=100, timeout=30000)
 
         assert engine.headless is False
         assert engine.slow_mo == 100
@@ -159,7 +152,7 @@ class TestBrowserAutomationEngine:
     @pytest.mark.asyncio
     async def test_engine_initialization_no_playwright(self):
         """Test engine initialization when Playwright is not available."""
-        with patch('src.behavioral.browser_automation.async_playwright', None):
+        with patch("src.behavioral.browser_automation.async_playwright", None):
             engine = BrowserAutomationEngine()
             success = await engine.initialize()
 
@@ -248,14 +241,14 @@ class TestBrowserAutomationEngine:
             "title": "Source Page",
             "forms": [{"elements": []}],
             "messages": [{"text": "Welcome"}],
-            "metrics": {"forms": 1, "inputs": 2}
+            "metrics": {"forms": 1, "inputs": 2},
         }
 
         state2 = {
             "title": "Target Page",
             "forms": [{"elements": []}],
             "messages": [{"text": "Welcome"}],
-            "metrics": {"forms": 1, "inputs": 3}  # Different input count
+            "metrics": {"forms": 1, "inputs": 3},  # Different input count
         }
 
         discrepancies = await engine.compare_page_states(state1, state2)
@@ -263,9 +256,7 @@ class TestBrowserAutomationEngine:
         assert len(discrepancies) >= 2  # Title and input count differences
 
         # Check for title mismatch
-        title_discrepancy = any(
-            disc.type == "title_mismatch" for disc in discrepancies
-        )
+        title_discrepancy = any(disc.type == "title_mismatch" for disc in discrepancies)
         assert title_discrepancy
 
         # Check for input count difference
@@ -294,25 +285,18 @@ class TestBrowserAutomationEngine:
         """Test page state comparison with message differences."""
         engine = BrowserAutomationEngine()
 
-        state1 = {
-            "messages": [
-                {"text": "Success message"},
-                {"text": "Common message"}
-            ]
-        }
+        state1 = {"messages": [{"text": "Success message"}, {"text": "Common message"}]}
         state2 = {
             "messages": [
                 {"text": "Different success message"},
-                {"text": "Common message"}
+                {"text": "Common message"},
             ]
         }
 
         discrepancies = await engine.compare_page_states(state1, state2)
 
         # Should find missing and additional messages
-        missing_msg = any(
-            disc.type == "missing_message" for disc in discrepancies
-        )
+        missing_msg = any(disc.type == "missing_message" for disc in discrepancies)
         additional_msg = any(
             disc.type == "additional_message" for disc in discrepancies
         )
@@ -379,7 +363,7 @@ class TestBrowserAutomationEngine:
     @pytest.mark.asyncio
     async def test_context_manager(self):
         """Test using engine as async context manager."""
-        with patch('src.behavioral.browser_automation.async_playwright', None):
+        with patch("src.behavioral.browser_automation.async_playwright", None):
             async with BrowserAutomationEngine() as engine:
                 assert isinstance(engine, BrowserAutomationEngine)
                 # Engine should attempt initialization but fail gracefully
@@ -394,10 +378,12 @@ class TestScenarioCreation:
         actions = create_login_scenario(
             username="testuser",
             password="testpass123",
-            login_url="https://example.com/login"
+            login_url="https://example.com/login",
         )
 
-        assert len(actions) == 6  # navigate, fill username, fill password, click, wait, capture
+        assert (
+            len(actions) == 6
+        )  # navigate, fill username, fill password, click, wait, capture
 
         # Check navigation action
         nav_action = actions[0]
@@ -432,7 +418,7 @@ class TestScenarioCreation:
             "name": "John Doe",
             "email": "john@example.com",
             "phone": "555-1234",
-            "message": "Test message"
+            "message": "Test message",
         }
 
         actions = create_form_submission_scenario("#contact-form", form_data)
@@ -493,12 +479,11 @@ class TestScenarioCreation:
         credentials = {
             "username": "testuser",
             "password": "testpass",
-            "login_url": "https://example.com/login"
+            "login_url": "https://example.com/login",
         }
 
         actions = create_comprehensive_validation_scenario(
-            "https://example.com",
-            credentials
+            "https://example.com", credentials
         )
 
         # Should include login scenario actions
@@ -506,9 +491,7 @@ class TestScenarioCreation:
 
         # Check for login-related actions
         nav_actions = [a for a in actions if a.action_type == "navigate"]
-        login_nav = any(
-            "login" in action.target.lower() for action in nav_actions
-        )
+        login_nav = any("login" in action.target.lower() for action in nav_actions)
         assert login_nav
 
         # Check for fill actions (login credentials)
@@ -521,7 +504,7 @@ class TestScenarioCreation:
         """Test comprehensive scenario with custom login URL."""
         credentials = {
             "username": "user",
-            "password": "pass"
+            "password": "pass",
             # No login_url provided
         }
 

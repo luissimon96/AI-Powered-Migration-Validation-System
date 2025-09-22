@@ -4,17 +4,19 @@ End-to-end system tests for the complete AI Migration Validation pipeline.
 Tests the entire workflow from API request to final unified report generation.
 """
 
-import pytest
 import asyncio
-import tempfile
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+import tempfile
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 
 from src.api.routes import app
-from src.core.models import ValidationResult, ValidationDiscrepancy, SeverityLevel
 from src.behavioral.crews import BehavioralValidationResult
+from src.core.models import (SeverityLevel, ValidationDiscrepancy,
+                             ValidationResult)
 
 
 @pytest.mark.system
@@ -35,7 +37,8 @@ class TestEndToEndValidationPipeline:
 
         source_file = f"{temp_dir}/source.py"
         with open(source_file, "w") as f:
-            f.write("""
+            f.write(
+                """
 def authenticate_user(username, password):
     if not username or not password:
         raise ValueError("Username and password required")
@@ -67,11 +70,13 @@ class UserManager:
             "created_at": "2023-12-15"
         }
         return {"success": True, "user_id": len(self.users)}
-""")
+"""
+            )
 
         target_file = f"{temp_dir}/target.java"
         with open(target_file, "w") as f:
-            f.write("""
+            f.write(
+                """
 public class AuthenticationService {
     public static AuthResult authenticateUser(String username, String password) {
         if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
@@ -109,12 +114,13 @@ public class UserManager {
         return new CreateUserResult(true, users.size());
     }
 }
-""")
+"""
+            )
 
         return {
             "temp_dir": temp_dir,
             "source_file": source_file,
-            "target_file": target_file
+            "target_file": target_file,
         }
 
     def test_health_check_endpoints(self, client):
@@ -149,7 +155,7 @@ public class UserManager {
         request_data = {
             "source_technology": "python_flask",
             "target_technology": "java_spring",
-            "validation_scope": "business_logic"
+            "validation_scope": "business_logic",
         }
 
         response = client.post("/api/compatibility/check", json=request_data)
@@ -160,8 +166,10 @@ public class UserManager {
         assert "issues" in data
         assert "warnings" in data
 
-    @patch('src.core.migration_validator.MigrationValidator.validate_migration')
-    def test_static_validation_pipeline_e2e(self, mock_validate, client, sample_code_files):
+    @patch("src.core.migration_validator.MigrationValidator.validate_migration")
+    def test_static_validation_pipeline_e2e(
+        self, mock_validate, client, sample_code_files
+    ):
         """Test complete static validation pipeline end-to-end."""
         # Mock static validation result
         mock_result = ValidationResult(
@@ -173,17 +181,17 @@ public class UserManager {
                     type="exception_handling_difference",
                     severity=SeverityLevel.WARNING,
                     description="Source uses ValueError while target uses IllegalArgumentException",
-                    recommendation="Consider standardizing exception types for consistency"
+                    recommendation="Consider standardizing exception types for consistency",
                 ),
                 ValidationDiscrepancy(
                     type="return_value_structure",
                     severity=SeverityLevel.INFO,
                     description="Return value structures differ slightly between implementations",
-                    recommendation="Document return value differences for maintenance"
-                )
+                    recommendation="Document return value differences for maintenance",
+                ),
             ],
             execution_time=42.5,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         mock_session = MagicMock()
@@ -191,21 +199,24 @@ public class UserManager {
         mock_validate.return_value = mock_session
 
         # Prepare file upload
-        with open(sample_code_files["source_file"], "rb") as source_f, \
-             open(sample_code_files["target_file"], "rb") as target_f:
+        with open(sample_code_files["source_file"], "rb") as source_f, open(
+            sample_code_files["target_file"], "rb"
+        ) as target_f:
 
             files = [
                 ("source_files", ("source.py", source_f, "text/plain")),
-                ("target_files", ("target.java", target_f, "text/plain"))
+                ("target_files", ("target.java", target_f, "text/plain")),
             ]
 
             form_data = {
-                "request_data": json.dumps({
-                    "source_technology": "python_flask",
-                    "target_technology": "java_spring",
-                    "validation_scope": "business_logic",
-                    "metadata": {"test_run": True}
-                })
+                "request_data": json.dumps(
+                    {
+                        "source_technology": "python_flask",
+                        "target_technology": "java_spring",
+                        "validation_scope": "business_logic",
+                        "metadata": {"test_run": True},
+                    }
+                )
             }
 
             # Submit validation request
@@ -231,14 +242,16 @@ public class UserManager {
             assert result_data["discrepancy_counts"]["info"] == 1
 
             # Get detailed report
-            report_response = client.get(f"/api/validate/{request_id}/report?format=json")
+            report_response = client.get(
+                f"/api/validate/{request_id}/report?format=json"
+            )
             assert report_response.status_code == 200
 
             # Clean up
             cleanup_response = client.delete(f"/api/validate/{request_id}")
             assert cleanup_response.status_code == 200
 
-    @patch('src.api.routes.run_behavioral_validation_background')
+    @patch("src.api.routes.run_behavioral_validation_background")
     def test_behavioral_validation_pipeline_e2e(self, mock_background_task, client):
         """Test complete behavioral validation pipeline end-to-end."""
         # Test behavioral validation request
@@ -249,17 +262,14 @@ public class UserManager {
                 "User login with valid credentials",
                 "User login with invalid email",
                 "Password reset flow",
-                "Account registration process"
+                "Account registration process",
             ],
             "credentials": {
                 "username": "test.user@example.com",
-                "password": "TestPassword123"
+                "password": "TestPassword123",
             },
             "timeout": 300,
-            "metadata": {
-                "environment": "staging",
-                "browser": "chromium"
-            }
+            "metadata": {"environment": "staging", "browser": "chromium"},
         }
 
         # Submit behavioral validation request
@@ -283,34 +293,37 @@ public class UserManager {
                     type="response_time_degradation",
                     severity=SeverityLevel.WARNING,
                     description="Target system login is 400ms slower than source system",
-                    recommendation="Optimize login endpoint performance to match source system"
+                    recommendation="Optimize login endpoint performance to match source system",
                 ),
                 ValidationDiscrepancy(
                     type="error_message_inconsistency",
                     severity=SeverityLevel.INFO,
                     description="Invalid login error messages differ between systems",
-                    recommendation="Standardize error messages for user consistency"
-                )
+                    recommendation="Standardize error messages for user consistency",
+                ),
             ],
             execution_log=[
                 "Source system exploration started",
                 "Tested 4 validation scenarios successfully",
                 "Target system execution completed",
                 "Performance comparison analysis completed",
-                "Behavioral validation report generated"
+                "Behavioral validation report generated",
             ],
             execution_time=245.8,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
-        with patch('src.api.routes.behavioral_validation_sessions', {
-            request_id: {
-                "status": "completed",
-                "progress": "Behavioral validation completed",
-                "result": behavioral_result,
-                "logs": behavioral_result.execution_log
-            }
-        }):
+        with patch(
+            "src.api.routes.behavioral_validation_sessions",
+            {
+                request_id: {
+                    "status": "completed",
+                    "progress": "Behavioral validation completed",
+                    "result": behavioral_result,
+                    "logs": behavioral_result.execution_log,
+                }
+            },
+        ):
             # Check validation status
             status_response = client.get(f"/api/behavioral/{request_id}/status")
             assert status_response.status_code == 200
@@ -328,7 +341,8 @@ public class UserManager {
 
             # Verify discrepancy details
             performance_discrepancy = next(
-                d for d in result_data["discrepancies"]
+                d
+                for d in result_data["discrepancies"]
                 if d["type"] == "response_time_degradation"
             )
             assert performance_discrepancy["severity"] == "warning"
@@ -343,39 +357,44 @@ public class UserManager {
             cleanup_response = client.delete(f"/api/behavioral/{request_id}")
             assert cleanup_response.status_code == 200
 
-    @patch('src.api.routes.run_hybrid_validation_background')
-    def test_hybrid_validation_pipeline_e2e(self, mock_background_task, client, sample_code_files):
+    @patch("src.api.routes.run_hybrid_validation_background")
+    def test_hybrid_validation_pipeline_e2e(
+        self, mock_background_task, client, sample_code_files
+    ):
         """Test complete hybrid validation pipeline end-to-end."""
         # Prepare hybrid validation request
-        with open(sample_code_files["source_file"], "rb") as source_f, \
-             open(sample_code_files["target_file"], "rb") as target_f:
+        with open(sample_code_files["source_file"], "rb") as source_f, open(
+            sample_code_files["target_file"], "rb"
+        ) as target_f:
 
             files = [
                 ("source_files", ("source.py", source_f, "text/plain")),
-                ("target_files", ("target.java", target_f, "text/plain"))
+                ("target_files", ("target.java", target_f, "text/plain")),
             ]
 
             form_data = {
-                "request_data": json.dumps({
-                    "source_technology": "python_flask",
-                    "target_technology": "java_spring",
-                    "validation_scope": "full_system",
-                    "source_url": "https://legacy-app.example.com",
-                    "target_url": "https://new-app.example.com",
-                    "validation_scenarios": [
-                        "User authentication flow",
-                        "User registration process"
-                    ],
-                    "credentials": {
-                        "username": "test.user@example.com",
-                        "password": "TestPassword123"
-                    },
-                    "behavioral_timeout": 240,
-                    "metadata": {
-                        "hybrid_validation": True,
-                        "environment": "staging"
+                "request_data": json.dumps(
+                    {
+                        "source_technology": "python_flask",
+                        "target_technology": "java_spring",
+                        "validation_scope": "full_system",
+                        "source_url": "https://legacy-app.example.com",
+                        "target_url": "https://new-app.example.com",
+                        "validation_scenarios": [
+                            "User authentication flow",
+                            "User registration process",
+                        ],
+                        "credentials": {
+                            "username": "test.user@example.com",
+                            "password": "TestPassword123",
+                        },
+                        "behavioral_timeout": 240,
+                        "metadata": {
+                            "hybrid_validation": True,
+                            "environment": "staging",
+                        },
                     }
-                })
+                )
             }
 
             # Submit hybrid validation request
@@ -403,38 +422,41 @@ public class UserManager {
                         type="static_exception_handling_difference",
                         severity=SeverityLevel.WARNING,
                         description="[Static Analysis] Source uses ValueError while target uses IllegalArgumentException",
-                        recommendation="Consider standardizing exception types for consistency"
+                        recommendation="Consider standardizing exception types for consistency",
                     ),
                     # Behavioral discrepancies
                     ValidationDiscrepancy(
                         type="behavioral_response_time_degradation",
                         severity=SeverityLevel.WARNING,
                         description="[Behavioral Testing] Target system login is 400ms slower than source system",
-                        recommendation="Optimize login endpoint performance to match source system"
+                        recommendation="Optimize login endpoint performance to match source system",
                     ),
                     ValidationDiscrepancy(
                         type="behavioral_error_message_inconsistency",
                         severity=SeverityLevel.INFO,
                         description="[Behavioral Testing] Invalid login error messages differ between systems",
-                        recommendation="Standardize error messages for user consistency"
-                    )
+                        recommendation="Standardize error messages for user consistency",
+                    ),
                 ],
                 execution_time=288.3,  # Combined execution time
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
-            with patch('src.api.routes.validation_sessions', {
-                request_id: MagicMock(
-                    result=hybrid_result,
-                    processing_log=[
-                        "Hybrid validation started - Static: True, Behavioral: True",
-                        "Static validation completed with fidelity score: 0.88",
-                        "Behavioral validation completed with fidelity score: 0.75",
-                        "Combining static and behavioral validation results",
-                        "Hybrid validation completed successfully"
-                    ]
-                )
-            }):
+            with patch(
+                "src.api.routes.validation_sessions",
+                {
+                    request_id: MagicMock(
+                        result=hybrid_result,
+                        processing_log=[
+                            "Hybrid validation started - Static: True, Behavioral: True",
+                            "Static validation completed with fidelity score: 0.88",
+                            "Behavioral validation completed with fidelity score: 0.75",
+                            "Combining static and behavioral validation results",
+                            "Hybrid validation completed successfully",
+                        ],
+                    )
+                },
+            ):
                 # Check validation status
                 status_response = client.get(f"/api/validate/{request_id}/status")
                 assert status_response.status_code == 200
@@ -457,14 +479,20 @@ public class UserManager {
                 assert "Combined: 0.82" in result_data["summary"]
 
                 # Get detailed report in different formats
-                json_report_response = client.get(f"/api/validate/{request_id}/report?format=json")
+                json_report_response = client.get(
+                    f"/api/validate/{request_id}/report?format=json"
+                )
                 assert json_report_response.status_code == 200
 
-                html_report_response = client.get(f"/api/validate/{request_id}/report?format=html")
+                html_report_response = client.get(
+                    f"/api/validate/{request_id}/report?format=html"
+                )
                 assert html_report_response.status_code == 200
                 assert "text/html" in html_report_response.headers["content-type"]
 
-                markdown_report_response = client.get(f"/api/validate/{request_id}/report?format=markdown")
+                markdown_report_response = client.get(
+                    f"/api/validate/{request_id}/report?format=markdown"
+                )
                 assert markdown_report_response.status_code == 200
 
                 # Get processing logs
@@ -472,7 +500,9 @@ public class UserManager {
                 assert logs_response.status_code == 200
                 logs_data = logs_response.json()
                 assert len(logs_data["logs"]) == 5
-                assert any("Hybrid validation started" in log for log in logs_data["logs"])
+                assert any(
+                    "Hybrid validation started" in log for log in logs_data["logs"]
+                )
 
     def test_validation_session_lifecycle_management(self, client):
         """Test validation session lifecycle management."""
@@ -511,33 +541,25 @@ public class UserManager {
         """Test system error handling and recovery."""
         # Test invalid JSON in validation request
         response = client.post(
-            "/api/validate",
-            data={"request_data": "invalid json"},
-            files=[]
+            "/api/validate", data={"request_data": "invalid json"}, files=[]
         )
         assert response.status_code == 400
         assert "Invalid JSON" in response.json()["detail"]
 
         # Test invalid JSON in behavioral validation
         response = client.post(
-            "/api/behavioral/validate",
-            json="invalid json structure"
+            "/api/behavioral/validate", json="invalid json structure"
         )
         assert response.status_code == 422  # Validation error
 
         # Test invalid JSON in hybrid validation
         response = client.post(
-            "/api/validate/hybrid",
-            data={"request_data": "invalid json"},
-            files=[]
+            "/api/validate/hybrid", data={"request_data": "invalid json"}, files=[]
         )
         assert response.status_code == 400
 
         # Test invalid compatibility check request
-        response = client.post(
-            "/api/compatibility/check",
-            json={"invalid": "request"}
-        )
+        response = client.post("/api/compatibility/check", json={"invalid": "request"})
         assert response.status_code == 422
 
     @pytest.mark.performance
@@ -565,16 +587,21 @@ public class UserManager {
 
         # Test compatibility check response time
         start_time = time.time()
-        response = client.post("/api/compatibility/check", json={
-            "source_technology": "python_flask",
-            "target_technology": "java_spring",
-            "validation_scope": "business_logic"
-        })
+        response = client.post(
+            "/api/compatibility/check",
+            json={
+                "source_technology": "python_flask",
+                "target_technology": "java_spring",
+                "validation_scope": "business_logic",
+            },
+        )
         end_time = time.time()
 
         assert response.status_code == 200
         response_time = end_time - start_time
-        assert response_time < 3.0, f"Compatibility check too slow: {response_time:.3f}s"
+        assert (
+            response_time < 3.0
+        ), f"Compatibility check too slow: {response_time:.3f}s"
 
     def test_api_documentation_availability(self, client):
         """Test API documentation is available."""
@@ -602,11 +629,13 @@ public class UserManager {
             "/api/behavioral/validate",
             "/api/validate/hybrid",
             "/api/technologies",
-            "/health"
+            "/health",
         ]
 
         for path in expected_paths:
-            assert any(path in documented_path for documented_path in paths.keys()), f"Missing documentation for {path}"
+            assert any(
+                path in documented_path for documented_path in paths.keys()
+            ), f"Missing documentation for {path}"
 
     def test_cors_headers(self, client):
         """Test CORS headers are properly configured."""
