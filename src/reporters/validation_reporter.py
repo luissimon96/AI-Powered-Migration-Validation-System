@@ -1562,3 +1562,4 @@ class ValidationReporter:
                 markdown += f"- {rec}\n"
 
         return markdown
+
