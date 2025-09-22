@@ -5,7 +5,7 @@ Handles environment variables, LLM provider settings, and system configuration.
 """
 
 import os
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
 from enum import Enum
 try:

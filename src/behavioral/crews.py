@@ -14,7 +14,8 @@ from datetime import datetime
 import structlog
 
 from crewai import Agent, Crew, Task, Process
-from crewai_tools import BaseTool
+# BaseTool not available in this version, will create custom tool base
+# from crewai_tools import BaseTool
 from pydantic import BaseModel, Field
 
 from ..core.models import (
@@ -50,25 +51,272 @@ class BehavioralValidationResult:
     timestamp: datetime
 
 
-class BrowserTool(BaseTool):
-    """Custom tool for browser automation using browser-use."""
-    
+class BrowserTool(BaseModel):
+    """Advanced browser automation tool using Playwright and browser-use."""
+
     name: str = "browser_tool"
-    description: str = "Automated browser interaction for testing web applications"
-    
+    description: str = """Advanced browser automation for comprehensive web application testing.
+
+    Supports actions:
+    - navigate: Go to URL
+    - click: Click element by selector
+    - fill: Fill form field
+    - submit: Submit form
+    - wait: Wait for element or time
+    - capture: Take screenshot
+    - evaluate: Run JavaScript
+    - intelligent: Use AI-powered interaction
+    - authenticate: Login with credentials
+    - capture_state: Capture page state for comparison
+    - scenario: Execute pre-defined scenario
+
+    Example usage:
+    - navigate:https://example.com
+    - click:button#submit
+    - fill:input[name="username"]:john@example.com
+    - authenticate:username:password:login_url
+    - scenario:login:username:password
+    """
+
     def __init__(self):
         super().__init__()
-        # Initialize browser-use here when available
-        self.browser = None
-    
+        self.automation_engine = None
+        self.logger = structlog.get_logger("browser_tool")
+        self._initialized = False
+
+    async def _ensure_initialized(self):
+        """Ensure browser automation engine is initialized."""
+        if not self._initialized:
+            from .browser_automation import BrowserAutomationEngine
+            self.automation_engine = BrowserAutomationEngine(
+                headless=True,  # Run headless for production
+                slow_mo=100,    # Small delay for stability
+                timeout=30000   # 30 second timeout
+            )
+            success = await self.automation_engine.initialize()
+            if not success:
+                raise Exception("Failed to initialize browser automation engine")
+            self._initialized = True
+            self.logger.info("Browser automation engine initialized")
+
     def _run(self, action: str, target: str = "", data: str = "") -> str:
-        """Execute browser action."""
+        """Execute browser action synchronously."""
         try:
-            # Placeholder for browser-use integration
-            # This would use the browser-use library for intelligent browser control
-            return f"Browser action '{action}' executed on '{target}' with data '{data}'"
+            # Create event loop if none exists
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+            # Run async method
+            return loop.run_until_complete(self._run_async(action, target, data))
+
         except Exception as e:
-            return f"Browser action failed: {str(e)}"
+            error_msg = f"Browser action failed: {str(e)}"
+            self.logger.error("Browser tool execution failed", action=action, error=str(e))
+            return error_msg
+
+    async def _run_async(self, action: str, target: str = "", data: str = "") -> str:
+        """Execute browser action asynchronously."""
+        await self._ensure_initialized()
+
+        if not self.automation_engine:
+            return "Browser automation engine not available"
+
+        # Parse action string (format: action:target:data or action:target)
+        action_parts = action.split(":", 2)
+        action_type = action_parts[0].lower()
+        action_target = action_parts[1] if len(action_parts) > 1 else target
+        action_data = action_parts[2] if len(action_parts) > 2 else data
+
+        try:
+            from .browser_automation import BrowserAction, create_login_scenario, create_form_submission_scenario
+
+            if action_type == "navigate":
+                browser_action = BrowserAction(
+                    action_type="navigate",
+                    target=action_target,
+                    description=f"Navigate to {action_target}"
+                )
+                result = await self.automation_engine.execute_action(browser_action)
+
+            elif action_type == "click":
+                browser_action = BrowserAction(
+                    action_type="click",
+                    target=action_target,
+                    description=f"Click element {action_target}"
+                )
+                result = await self.automation_engine.execute_action(browser_action)
+
+            elif action_type == "fill":
+                browser_action = BrowserAction(
+                    action_type="fill",
+                    target=action_target,
+                    value=action_data,
+                    description=f"Fill {action_target} with data"
+                )
+                result = await self.automation_engine.execute_action(browser_action)
+
+            elif action_type == "submit":
+                browser_action = BrowserAction(
+                    action_type="submit",
+                    target=action_target,
+                    description=f"Submit form {action_target}"
+                )
+                result = await self.automation_engine.execute_action(browser_action)
+
+            elif action_type == "wait":
+                browser_action = BrowserAction(
+                    action_type="wait",
+                    target=action_target,
+                    value=action_data,
+                    description="Wait for element or time"
+                )
+                result = await self.automation_engine.execute_action(browser_action)
+
+            elif action_type == "capture":
+                browser_action = BrowserAction(
+                    action_type="capture",
+                    target=action_target,
+                    description="Capture screenshot"
+                )
+                result = await self.automation_engine.execute_action(browser_action)
+
+            elif action_type == "evaluate":
+                browser_action = BrowserAction(
+                    action_type="evaluate",
+                    target=action_target,
+                    description="Execute JavaScript"
+                )
+                result = await self.automation_engine.execute_action(browser_action)
+
+            elif action_type == "intelligent":
+                browser_action = BrowserAction(
+                    action_type="intelligent",
+                    target=action_target,
+                    description=action_data or "Intelligent browser interaction"
+                )
+                result = await self.automation_engine.execute_action(browser_action)
+
+            elif action_type == "authenticate":
+                # Format: authenticate:username:password:login_url
+                parts = [action_target, action_data] + (data.split(":") if data else [])
+                if len(parts) >= 3:
+                    username, password, login_url = parts[0], parts[1], parts[2]
+                    success = await self.automation_engine.authenticate(
+                        username=username,
+                        password=password,
+                        login_url=login_url
+                    )
+                    return f"Authentication {'successful' if success else 'failed'}"
+                else:
+                    return "Authentication requires username:password:login_url format"
+
+            elif action_type == "capture_state":
+                state = await self.automation_engine.capture_page_state()
+                return json.dumps(state, indent=2)
+
+            elif action_type == "scenario":
+                # Format: scenario:login:username:password or scenario:form:form_selector:field1=value1,field2=value2
+                scenario_type = action_target
+
+                if scenario_type == "login" and action_data:
+                    parts = action_data.split(":")
+                    if len(parts) >= 3:
+                        username, password, login_url = parts[0], parts[1], parts[2]
+                        actions = create_login_scenario(username, password, login_url)
+                        results = await self.automation_engine.execute_scenario("login", actions)
+                        success_count = sum(1 for r in results if r.success)
+                        return f"Login scenario executed: {success_count}/{len(results)} actions successful"
+                    else:
+                        return "Login scenario requires username:password:login_url"
+
+                elif scenario_type == "form" and action_data:
+                    parts = action_data.split(":")
+                    if len(parts) >= 2:
+                        form_selector = parts[0]
+                        form_data_str = parts[1]
+
+                        # Parse form data (field1=value1,field2=value2)
+                        form_data = {}
+                        for pair in form_data_str.split(","):
+                            if "=" in pair:
+                                key, value = pair.split("=", 1)
+                                form_data[key.strip()] = value.strip()
+
+                        actions = create_form_submission_scenario(form_selector, form_data)
+                        results = await self.automation_engine.execute_scenario("form_submission", actions)
+                        success_count = sum(1 for r in results if r.success)
+                        return f"Form scenario executed: {success_count}/{len(results)} actions successful"
+                    else:
+                        return "Form scenario requires form_selector:field1=value1,field2=value2"
+                else:
+                    return f"Unknown scenario type: {scenario_type}"
+
+            elif action_type == "session":
+                # Session management
+                if action_target == "start":
+                    session_id = await self.automation_engine.start_session(
+                        action_data or "about:blank"
+                    )
+                    return f"Started session: {session_id}"
+                elif action_target == "end":
+                    session = await self.automation_engine.end_session()
+                    if session:
+                        return f"Ended session {session.session_id}, duration: {session.duration:.1f}s"
+                    else:
+                        return "No active session to end"
+                else:
+                    return "Session action requires 'start' or 'end'"
+
+            else:
+                return f"Unknown action type: {action_type}"
+
+            # Format result
+            if hasattr(result, 'success'):
+                status = "SUCCESS" if result.success else "FAILED"
+                details = ""
+
+                if result.result_data:
+                    details = f" - {json.dumps(result.result_data)}"
+
+                if result.error_message:
+                    details += f" - Error: {result.error_message}"
+
+                if result.screenshot_path:
+                    details += f" - Screenshot: {result.screenshot_path}"
+
+                return f"{action_type.upper()} {status}{details}"
+            else:
+                return str(result)
+
+        except Exception as e:
+            error_msg = f"Action execution failed: {str(e)}"
+            self.logger.error("Browser action execution failed",
+                            action_type=action_type,
+                            error=str(e))
+            return error_msg
+
+    async def cleanup(self):
+        """Clean up browser resources."""
+        if self.automation_engine:
+            await self.automation_engine.cleanup()
+            self.automation_engine = None
+            self._initialized = False
+
+    def __del__(self):
+        """Cleanup on destruction."""
+        if self._initialized and self.automation_engine:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # Schedule cleanup for later if loop is running
+                    loop.create_task(self.cleanup())
+                else:
+                    loop.run_until_complete(self.cleanup())
+            except:
+                pass  # Ignore cleanup errors during destruction
 
 
 class ValidationScenarioResult(BaseModel):
@@ -110,31 +358,47 @@ class SourceExplorerAgent:
     def create_exploration_task(self, source_url: str, scenarios: List[str]) -> Task:
         """Create task for exploring source system."""
         scenario_list = "\n".join([f"- {scenario}" for scenario in scenarios])
-        
+
         return Task(
             description=f"""
-            Explore the source system at {source_url} and document its behavior.
-            
+            Explore the source system at {source_url} and document its behavior using the browser_tool.
+
             Test these validation scenarios:
             {scenario_list}
-            
+
+            Use the browser_tool to systematically test each scenario:
+
+            1. START SESSION: Use browser_tool with "session:start:{source_url}"
+            2. NAVIGATE: Use "navigate:{source_url}" to go to the main page
+            3. CAPTURE INITIAL STATE: Use "capture_state" to document page structure
+
             For each scenario:
-            1. Navigate to the relevant page/section
-            2. Execute the test scenario step by step
-            3. Document all interactions, responses, and behaviors
-            4. Test both success and error cases
-            5. Note any validation messages, UI changes, or side effects
-            
-            Create a detailed behavioral log with:
-            - Exact steps taken
-            - System responses
-            - Error messages and validation behavior
-            - UI state changes
-            - Performance observations
+            4. NAVIGATE to relevant sections using "navigate:url"
+            5. INTERACT with elements using "click:selector", "fill:selector:value", "submit:form_selector"
+            6. CAPTURE screenshots using "capture" for visual documentation
+            7. CAPTURE page state using "capture_state" after each interaction
+            8. TEST ERROR CASES by entering invalid data and documenting responses
+            9. WAIT for elements to load using "wait:selector" or "wait::milliseconds"
+
+            For authentication scenarios:
+            - Use "authenticate:username:password:login_url" for login testing
+            - Or use "scenario:login:username:password:login_url" for complete login flow
+
+            For form scenarios:
+            - Use "scenario:form:form_selector:field1=value1,field2=value2" for form testing
+
+            6. END SESSION: Use "session:end" to complete documentation
+
+            Document each browser_tool response and create a comprehensive behavioral log.
             """,
-            expected_output="""A comprehensive behavioral log in JSON format with detailed 
-            documentation of each scenario execution, including success flows, error cases, 
-            and all observed system behaviors.""",
+            expected_output="""A comprehensive behavioral log in JSON format containing:
+            - Session metadata and timing
+            - Detailed step-by-step browser interactions
+            - Page states captured at each critical point
+            - Screenshot paths for visual verification
+            - Error messages and validation behaviors observed
+            - Performance metrics and response times
+            - Success/failure status for each scenario tested""",
             agent=self.agent
         )
 
@@ -169,25 +433,47 @@ class TargetExecutorAgent:
         """Create task for executing scenarios on target system."""
         return Task(
             description=f"""
-            Using the source system behavioral log as a guide, execute the same 
-            scenarios on the target system at {target_url}.
-            
+            Using the source system behavioral log as a guide, execute the identical
+            scenarios on the target system at {target_url} using the browser_tool.
+
             Source System Log:
             {source_log}
-            
-            For each scenario in the source log:
-            1. Follow the exact same steps documented for the source system
-            2. Use the same input data and interaction patterns
-            3. Document the target system's responses and behaviors
-            4. Note any differences in UI, messages, or functionality
-            5. Test the same error cases and edge conditions
-            
-            Create a parallel behavioral log that can be directly compared 
-            with the source system log.
+
+            Replicate the exact testing approach from the source system:
+
+            1. START SESSION: Use browser_tool with "session:start:{target_url}"
+            2. NAVIGATE: Use "navigate:{target_url}" to access the target system
+            3. CAPTURE INITIAL STATE: Use "capture_state" to document target page structure
+
+            For each scenario documented in the source log:
+            4. REPLICATE the same navigation pattern using "navigate:url"
+            5. PERFORM identical interactions using "click:selector", "fill:selector:value", "submit:form_selector"
+            6. USE THE SAME selectors and input values when possible
+            7. CAPTURE screenshots using "capture" at the same interaction points
+            8. CAPTURE page state using "capture_state" after each critical interaction
+            9. TEST identical error cases with the same invalid inputs
+            10. MEASURE timing using "wait" commands for performance comparison
+
+            For authentication scenarios:
+            - Use "authenticate:username:password:login_url" with same credentials as source
+            - Or use "scenario:login:username:password:login_url" for login replication
+
+            For form scenarios:
+            - Use "scenario:form:form_selector:field1=value1,field2=value2" with identical data
+
+            11. END SESSION: Use "session:end" to complete parallel documentation
+
+            Document all browser_tool responses and create a behavioral log that exactly
+            mirrors the source system structure for precise comparison.
             """,
-            expected_output="""A detailed behavioral log in JSON format that mirrors 
-            the source system log structure, documenting the target system's behavior 
-            for direct comparison.""",
+            expected_output="""A parallel behavioral log in JSON format that exactly matches
+            the source system log structure, containing:
+            - Identical session timing and interaction patterns
+            - Same screenshot capture points for visual comparison
+            - Parallel page state documentation for structural analysis
+            - Identical error case testing results
+            - Performance metrics for timing comparison
+            - Direct mapping to source system behaviors for validation""",
             agent=self.agent
         )
 
@@ -220,33 +506,103 @@ class ComparisonJudgeAgent:
         """Create task for comparing behavioral logs."""
         return Task(
             description=f"""
-            Compare the source and target system behavioral logs to identify discrepancies.
-            
+            Perform comprehensive behavioral comparison between source and target systems
+            using the detailed browser automation logs.
+
             Source System Log:
             {source_log}
-            
+
             Target System Log:
             {target_log}
-            
-            Analyze the following aspects:
-            1. Functional equivalence - Do both systems achieve the same outcomes?
-            2. User experience consistency - Are interactions and flows similar?
-            3. Error handling - Do validation and error messages match?
-            4. Performance characteristics - Any significant response time differences?
-            5. Data integrity - Is information processed and stored correctly?
-            
-            For each discrepancy found:
-            - Classify severity: critical, warning, or info
-            - Explain the business impact
-            - Provide specific recommendations for resolution
-            - Assess confidence in the finding
+
+            Conduct systematic analysis across multiple dimensions:
+
+            1. STRUCTURAL COMPARISON:
+            - Compare page states captured at identical interaction points
+            - Analyze form structures, field counts, and element types
+            - Evaluate navigation patterns and URL structures
+            - Check UI element consistency (buttons, inputs, messages)
+
+            2. FUNCTIONAL EQUIVALENCE:
+            - Compare scenario execution success rates
+            - Analyze identical input -> output patterns
+            - Verify business logic consistency
+            - Check data processing and validation outcomes
+
+            3. USER EXPERIENCE ANALYSIS:
+            - Compare interaction patterns and response times
+            - Analyze error message consistency and clarity
+            - Evaluate visual consistency using screenshot comparisons
+            - Check accessibility and usability patterns
+
+            4. PERFORMANCE METRICS:
+            - Compare page load times and response latencies
+            - Analyze interaction timing patterns
+            - Evaluate system responsiveness under identical conditions
+
+            5. ERROR HANDLING VALIDATION:
+            - Compare error case behaviors and messaging
+            - Analyze validation rule consistency
+            - Check error recovery patterns
+
+            6. AUTHENTICATION & SECURITY:
+            - Compare login flows and security measures
+            - Analyze session management consistency
+            - Check access control patterns
+
+            For each discrepancy identified:
+            - Classify severity: CRITICAL (blocks migration), WARNING (needs attention), INFO (minor difference)
+            - Quantify business impact (user confusion, workflow disruption, data issues)
+            - Provide specific technical recommendations with implementation guidance
+            - Assign confidence score (0.0-1.0) based on evidence strength
+            - Include screenshot/state references for visual validation
+
+            Calculate overall fidelity score based on:
+            - Functional equivalence (40% weight)
+            - User experience consistency (30% weight)
+            - Error handling accuracy (20% weight)
+            - Performance parity (10% weight)
             """,
-            expected_output="""A comprehensive comparison report in JSON format with:
-            - Overall similarity assessment and fidelity score
-            - Detailed list of discrepancies with severity classification
-            - Business impact analysis for each finding
-            - Specific recommendations for migration improvements
-            - Confidence scores for all assessments""",
+            expected_output="""A comprehensive behavioral validation report in JSON format:
+            {
+                "overall_fidelity_score": 0.85,
+                "migration_readiness": "approved_with_warnings",
+                "executive_summary": "Migration demonstrates high functional equivalence with minor UX differences",
+                "category_scores": {
+                    "functional_equivalence": 0.92,
+                    "user_experience": 0.81,
+                    "error_handling": 0.87,
+                    "performance": 0.79
+                },
+                "discrepancies": [
+                    {
+                        "id": "DISC-001",
+                        "type": "error_message_difference",
+                        "severity": "warning",
+                        "title": "Login error message inconsistency",
+                        "description": "Source shows 'Invalid credentials' while target shows 'Login failed'",
+                        "business_impact": "Minor user confusion but no functional impact",
+                        "recommendation": "Standardize error messaging to match source system",
+                        "confidence": 0.95,
+                        "evidence": {
+                            "source_screenshot": "/path/to/source_error.png",
+                            "target_screenshot": "/path/to/target_error.png",
+                            "source_state": {...},
+                            "target_state": {...}
+                        }
+                    }
+                ],
+                "recommendations": [
+                    "Update error messaging for consistency",
+                    "Performance optimization for login flow"
+                ],
+                "validation_metadata": {
+                    "scenarios_tested": 12,
+                    "total_interactions": 156,
+                    "screenshots_captured": 24,
+                    "execution_time": 180.5
+                }
+            }""",
             agent=self.agent
         )
 
@@ -413,16 +769,24 @@ class BehavioralValidationCrew:
             execution_log.append("Generating final validation report")
             final_report = report_crew.kickoff()
             execution_log.append("Final validation report completed")
-            
+
             # Parse results
             results = self._parse_validation_results(str(final_report))
-            
+
             execution_time = (datetime.now() - start_time).total_seconds()
-            
+
+            # Clean up browser resources
+            try:
+                await self.cleanup_browser_resources()
+                execution_log.append("Browser resources cleaned up")
+            except Exception as e:
+                self.logger.warning("Browser cleanup failed", error=str(e))
+                execution_log.append(f"Browser cleanup warning: {str(e)}")
+
             self.logger.info("Behavioral validation completed successfully",
                            execution_time=execution_time,
                            discrepancies_found=len(results.get('discrepancies', [])))
-            
+
             return BehavioralValidationResult(
                 overall_status=results.get('overall_status', 'completed'),
                 fidelity_score=results.get('fidelity_score', 0.0),
@@ -435,7 +799,15 @@ class BehavioralValidationCrew:
         except Exception as e:
             execution_time = (datetime.now() - start_time).total_seconds()
             self.logger.error("Behavioral validation failed", error=str(e))
-            
+
+            # Attempt cleanup even on failure
+            try:
+                await self.cleanup_browser_resources()
+                execution_log.append("Browser resources cleaned up after error")
+            except Exception as cleanup_error:
+                self.logger.warning("Browser cleanup failed after error", error=str(cleanup_error))
+                execution_log.append(f"Browser cleanup error: {str(cleanup_error)}")
+
             return BehavioralValidationResult(
                 overall_status="error",
                 fidelity_score=0.0,
@@ -457,8 +829,45 @@ class BehavioralValidationCrew:
         try:
             # Try to parse as JSON
             if report_content.strip().startswith('{'):
-                return json.loads(report_content)
-            
+                parsed_results = json.loads(report_content)
+
+                # Convert discrepancy dictionaries to ValidationDiscrepancy objects
+                if 'discrepancies' in parsed_results and isinstance(parsed_results['discrepancies'], list):
+                    validated_discrepancies = []
+                    for disc_data in parsed_results['discrepancies']:
+                        if isinstance(disc_data, dict):
+                            try:
+                                # Handle severity conversion
+                                severity = disc_data.get('severity', 'info')
+                                if isinstance(severity, str):
+                                    severity = SeverityLevel(severity.lower())
+                                elif hasattr(severity, 'value'):
+                                    severity = SeverityLevel(severity.value.lower())
+
+                                discrepancy = ValidationDiscrepancy(
+                                    type=disc_data.get('type', 'unknown'),
+                                    severity=severity,
+                                    description=disc_data.get('description', 'No description'),
+                                    source_element=disc_data.get('source_element'),
+                                    target_element=disc_data.get('target_element'),
+                                    recommendation=disc_data.get('recommendation'),
+                                    confidence=float(disc_data.get('confidence', 1.0))
+                                )
+                                validated_discrepancies.append(discrepancy)
+                            except (ValueError, KeyError) as e:
+                                self.logger.warning("Invalid discrepancy data", error=str(e), data=disc_data)
+                                # Create a fallback discrepancy
+                                validated_discrepancies.append(ValidationDiscrepancy(
+                                    type="parsing_error",
+                                    severity=SeverityLevel.WARNING,
+                                    description=f"Failed to parse discrepancy: {str(e)}",
+                                    recommendation="Manual review required"
+                                ))
+
+                    parsed_results['discrepancies'] = validated_discrepancies
+
+                return parsed_results
+
             # Fallback parsing for non-JSON content
             return {
                 'overall_status': 'completed',
@@ -466,9 +875,10 @@ class BehavioralValidationCrew:
                 'discrepancies': [],
                 'raw_content': report_content
             }
-            
-        except json.JSONDecodeError:
+
+        except json.JSONDecodeError as e:
             self.logger.warning("Failed to parse validation results as JSON",
+                              error=str(e),
                               content_preview=report_content[:200])
             return {
                 'overall_status': 'completed_with_parsing_issues',
@@ -477,12 +887,45 @@ class BehavioralValidationCrew:
                     ValidationDiscrepancy(
                         type="parsing_error",
                         severity=SeverityLevel.WARNING,
-                        description="Could not parse validation results properly",
+                        description=f"Could not parse validation results: {str(e)}",
                         recommendation="Manual review of raw results recommended"
                     )
                 ],
                 'raw_content': report_content
             }
+
+        except Exception as e:
+            self.logger.error("Unexpected error parsing validation results", error=str(e))
+            return {
+                'overall_status': 'error',
+                'fidelity_score': 0.0,
+                'discrepancies': [
+                    ValidationDiscrepancy(
+                        type="unexpected_error",
+                        severity=SeverityLevel.CRITICAL,
+                        description=f"Unexpected error during result parsing: {str(e)}",
+                        recommendation="Contact system administrator"
+                    )
+                ],
+                'raw_content': report_content
+            }
+
+    async def cleanup_browser_resources(self):
+        """Clean up browser automation resources after validation."""
+        try:
+            # Clean up browser tools in all agents
+            agents_with_browsers = [
+                self.source_explorer,
+                self.target_executor
+            ]
+
+            for agent in agents_with_browsers:
+                if hasattr(agent, 'browser_tool') and hasattr(agent.browser_tool, 'cleanup'):
+                    await agent.browser_tool.cleanup()
+                    self.logger.info("Cleaned up browser resources for agent", agent=agent.__class__.__name__)
+
+        except Exception as e:
+            self.logger.warning("Error during browser cleanup", error=str(e))
 
 
 # Factory function for easy crew creation
