@@ -1,0 +1,157 @@
+# ═══════════════════════════════════════════════════════════════
+# AI-Powered Migration Validation System - Dependabot Configuration
+# ═══════════════════════════════════════════════════════════════
+
+version: 2
+
+updates:
+  # ───────────────────────────────────────────────────────────────
+  # 🐍 Python Dependencies
+  # ───────────────────────────────────────────────────────────────
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    target-branch: "develop"
+    
+    # Security updates (daily)
+    vulnerability-alerts:
+      enabled: true
+    
+    # Dependency groups for better organization
+    groups:
+      # Core framework dependencies
+      core-framework:
+        patterns:
+          - "fastapi*"
+          - "uvicorn*"
+          - "pydantic*"
+          - "python-dotenv"
+          - "structlog"
+        
+      # AI/ML dependencies  
+      ai-ml:
+        patterns:
+          - "openai*"
+          - "anthropic*"
+          - "google-generativeai*"
+          - "crewai*"
+          - "browser-use*"
+        
+      # Testing dependencies
+      testing:
+        patterns:
+          - "pytest*"
+          - "coverage*"
+          - "playwright*"
+        
+      # Development tools
+      dev-tools:
+        patterns:
+          - "black"
+          - "flake8"
+          - "isort"
+          - "mypy"
+          - "bandit"
+          - "safety"
+    
+    # Custom commit message
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    
+    # Auto-merge for patch and minor updates (security)
+    # Note: This requires GITHUB_TOKEN with appropriate permissions
+    reviewers:
+      - "ai-migration-validator-team"
+    
+    assignees:
+      - "ai-migration-validator-team"
+    
+    # Labels for better PR categorization
+    labels:
+      - "dependencies"
+      - "python"
+      - "automated"
+    
+    # Ignore specific packages that require manual updates
+    ignore:
+      # Pin specific versions that are known to be stable
+      - dependency-name: "pillow"
+        versions: [">=11.0.0"]
+      # Ignore major version updates for critical dependencies
+      - dependency-name: "sqlalchemy"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "alembic"
+        update-types: ["version-update:semver-major"]
+
+  # ───────────────────────────────────────────────────────────────
+  # 🚀 GitHub Actions Dependencies
+  # ───────────────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    target-branch: "develop"
+    
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"
+    
+    reviewers:
+      - "ai-migration-validator-team"
+    
+    # Group GitHub Actions updates
+    groups:
+      github-actions:
+        patterns:
+          - "actions/*"
+          - "codecov/*"
+          - "dorny/*"
+        
+    # Keep actions up to date for security
+    ignore:
+      # Don't auto-update to pre-release versions
+      - dependency-name: "*"
+        update-types: ["version-update:semver-prerelease"]
+
+  # ───────────────────────────────────────────────────────────────
+  # 🐳 Docker Dependencies (if applicable)
+  # ───────────────────────────────────────────────────────────────
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "first"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    target-branch: "develop"
+    
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"
+    
+    # Only update base images monthly for stability
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
