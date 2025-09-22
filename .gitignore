@@ -1,0 +1,204 @@
+# ═══════════════════════════════════════════════════════════════
+# AI-Powered Migration Validation System - .gitignore
+# ═══════════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────────
+# Python Environment & Virtual Environments
+# ───────────────────────────────────────────────────────────────
+venv/
+env/
+ENV/
+.venv/
+.env/
+.ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ───────────────────────────────────────────────────────────────
+# Environment Variables & Configuration
+# ───────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+*.env
+
+# ───────────────────────────────────────────────────────────────
+# IDE & Editor Files
+# ───────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ───────────────────────────────────────────────────────────────
+# Testing & Coverage
+# ───────────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+.cache
+.tox/
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# ───────────────────────────────────────────────────────────────
+# Logging & Runtime Files
+# ───────────────────────────────────────────────────────────────
+*.log
+*.log.*
+logs/
+log/
+*.pid
+*.lock
+
+# ───────────────────────────────────────────────────────────────
+# AI/ML Model Files & Data
+# ───────────────────────────────────────────────────────────────
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.ckpt
+*.model
+models/
+data/raw/
+data/processed/
+checkpoints/
+
+# ───────────────────────────────────────────────────────────────
+# Temporary & Cache Files
+# ───────────────────────────────────────────────────────────────
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
+.cache/
+*.cache
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ───────────────────────────────────────────────────────────────
+# Database Files
+# ───────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# ───────────────────────────────────────────────────────────────
+# Development Tools & Quality
+# ───────────────────────────────────────────────────────────────
+.bandit
+.flake8
+.isort.cfg
+.mypy.ini
+.pre-commit-config.yaml
+
+# ───────────────────────────────────────────────────────────────
+# Jupyter Notebooks
+# ───────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ───────────────────────────────────────────────────────────────
+# Browser Automation
+# ───────────────────────────────────────────────────────────────
+downloads/
+screenshots/
+videos/
+traces/
+
+# ───────────────────────────────────────────────────────────────
+# Documentation Build
+# ───────────────────────────────────────────────────────────────
+site/
+docs/_build/
+docs/build/
+
+# ───────────────────────────────────────────────────────────────
+# System & OS Files
+# ───────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ───────────────────────────────────────────────────────────────
+# Security & Sensitive Data
+# ───────────────────────────────────────────────────────────────
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+secrets/
+credentials/
+auth/
+api_keys/
+
+# ───────────────────────────────────────────────────────────────
+# Performance & Profiling
+# ───────────────────────────────────────────────────────────────
+profile_*
+*.prof
+memory_profiler/
+locust_results/
+
+# ───────────────────────────────────────────────────────────────
+# MCP Servers & Framework Data
+# ───────────────────────────────────────────────────────────────
+.serena/
+.claude/CLAUDE.md
+.memory/
+
+# ───────────────────────────────────────────────────────────────
+# Project-Specific Exclusions
+# ───────────────────────────────────────────────────────────────
+# Add any project-specific files that should not be committed
+migration_results/
+validation_reports/
+test_outputs/
+backup/
+archive/
