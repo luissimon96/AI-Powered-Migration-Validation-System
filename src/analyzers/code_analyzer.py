@@ -260,7 +260,8 @@ class CodeAnalyzer(BaseAnalyzer):
 
         # Extract JSX elements
         jsx_patterns = [
-            r'<input[^>]*(?:id=["\']([^"\']+)["\'])?[^>]*(?:placeholder=["\']([^"\']+)["\'])?[^>]*/>',
+            r'<input[^>]*(?:id=["\']([^"\']+)["\'])?[^>]*'
+            r'(?:placeholder=["\']([^"\']+)["\'])?[^>]*/>',
             r'<button[^>]*(?:id=["\']([^"\']+)["\'])?[^>]*>([^<]+)</button>',
             r'<label[^>]*(?:htmlFor=["\']([^"\']+)["\'])?[^>]*>([^<]+)</label>',
         ]
@@ -378,11 +379,18 @@ class CodeAnalyzer(BaseAnalyzer):
 
         # Common HTML form elements
         patterns = {
-            "input": r'<input[^>]*(?:id=["\']([^"\']+)["\'])?[^>]*(?:placeholder=["\']([^"\']+)["\'])?[^>]*(?:type=["\']([^"\']+)["\'])?[^>]*>',
+            "input": (
+                r'<input[^>]*(?:id=["\']([^"\']+)["\'])?[^>]*'
+                r'(?:placeholder=["\']([^"\']+)["\'])?[^>]*'
+                r'(?:type=["\']([^"\']+)["\'])?[^>]*>'
+            ),
             "button": r'<button[^>]*(?:id=["\']([^"\']+)["\'])?[^>]*>([^<]+)</button>',
             "label": r'<label[^>]*(?:for=["\']([^"\']+)["\'])?[^>]*>([^<]+)</label>',
             "select": r'<select[^>]*(?:id=["\']([^"\']+)["\'])?[^>]*>',
-            "textarea": r'<textarea[^>]*(?:id=["\']([^"\']+)["\'])?[^>]*(?:placeholder=["\']([^"\']+)["\'])?[^>]*>',
+            "textarea": (
+                r'<textarea[^>]*(?:id=["\']([^"\']+)["\'])?[^>]*'
+                r'(?:placeholder=["\']([^"\']+)["\'])?[^>]*>'
+            ),
         }
 
         for element_type, pattern in patterns.items():

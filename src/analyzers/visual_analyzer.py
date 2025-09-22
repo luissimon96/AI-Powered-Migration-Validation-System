@@ -132,8 +132,6 @@ class VisualAnalyzer(BaseAnalyzer):
         # TODO: Implement actual LLM call
         # This would involve calling GPT-4V, Gemini Vision, or similar
 
-        prompt = self._generate_visual_analysis_prompt()
-
         # Placeholder response structure
         # In real implementation, this would be an actual API call
         mock_response = await self._mock_llm_visual_analysis(image_path)
@@ -145,28 +143,12 @@ class VisualAnalyzer(BaseAnalyzer):
         return """
         Analyze this UI screenshot and extract all visible interface elements.
         For each element, identify:
-        
+
         1. Type: button, input, label, text, image, table, menu, etc.
         2. Text content: Any visible text
         3. Position: Approximate location (top, middle, bottom, left, center, right)
         4. Size: Relative size (small, medium, large)
         5. Interactive elements: Is it clickable/interactive?
-        
-        Focus on form elements, navigation, buttons, and data display components.
-        Return the analysis in JSON format with the following structure:
-        
-        {
-          "elements": [
-            {
-              "type": "button",
-              "text": "Submit",
-              "position": {"x": "center", "y": "bottom"},
-              "size": "medium",
-              "interactive": true,
-              "id": "submit-btn"
-            }
-          ]
-        }
         """
 
     async def _mock_llm_visual_analysis(self, image_path: str) -> Dict[str, Any]:
