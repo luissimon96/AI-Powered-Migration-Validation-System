@@ -11,22 +11,11 @@ import re
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
-from ..core.models import (
-    AbstractRepresentation,
-    BackendFunction,
-    DataField,
-    InputData,
-    InputType,
-    TechnologyContext,
-    UIElement,
-    ValidationScope,
-)
-from .base import (
-    BaseAnalyzer,
-    ExtractionError,
-    InvalidInputError,
-    UnsupportedScopeError,
-)
+from ..core.models import (AbstractRepresentation, BackendFunction, DataField,
+                           InputData, InputType, TechnologyContext, UIElement,
+                           ValidationScope)
+from .base import (BaseAnalyzer, ExtractionError, InvalidInputError,
+                   UnsupportedScopeError)
 
 
 class CodeAnalyzer(BaseAnalyzer):

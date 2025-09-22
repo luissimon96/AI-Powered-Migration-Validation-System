@@ -12,20 +12,10 @@ from typing import Any, Dict, List, Optional
 
 from PIL import Image
 
-from ..core.models import (
-    AbstractRepresentation,
-    InputData,
-    InputType,
-    TechnologyContext,
-    UIElement,
-    ValidationScope,
-)
-from .base import (
-    BaseAnalyzer,
-    ExtractionError,
-    InvalidInputError,
-    UnsupportedScopeError,
-)
+from ..core.models import (AbstractRepresentation, InputData, InputType,
+                           TechnologyContext, UIElement, ValidationScope)
+from .base import (BaseAnalyzer, ExtractionError, InvalidInputError,
+                   UnsupportedScopeError)
 
 
 class VisualAnalyzer(BaseAnalyzer):

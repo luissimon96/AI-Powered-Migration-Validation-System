@@ -19,12 +19,8 @@ from crewai import Agent, Crew, Process, Task
 # from crewai_tools import BaseTool
 from pydantic import BaseModel, Field
 
-from ..core.models import (
-    AbstractRepresentation,
-    SeverityLevel,
-    ValidationDiscrepancy,
-    ValidationScope,
-)
+from ..core.models import (AbstractRepresentation, SeverityLevel,
+                           ValidationDiscrepancy, ValidationScope)
 from ..services.llm_service import LLMService
 
 logger = structlog.get_logger(__name__)
@@ -137,11 +133,9 @@ class BrowserTool(BaseModel):
         action_data = action_parts[2] if len(action_parts) > 2 else data
 
         try:
-            from .browser_automation import (
-                BrowserAction,
-                create_form_submission_scenario,
-                create_login_scenario,
-            )
+            from .browser_automation import (BrowserAction,
+                                             create_form_submission_scenario,
+                                             create_login_scenario)
 
             if action_type == "navigate":
                 browser_action = BrowserAction(

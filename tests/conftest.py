@@ -14,15 +14,11 @@ import pytest
 
 from src.behavioral.crews import BehavioralValidationCrew
 from src.core.migration_validator import MigrationValidator
-from src.core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-)
-from src.services.llm_service import LLMConfig, LLMProvider, LLMResponse, LLMService
+from src.core.models import (InputData, InputType, MigrationValidationRequest,
+                             TechnologyContext, TechnologyType,
+                             ValidationScope)
+from src.services.llm_service import (LLMConfig, LLMProvider, LLMResponse,
+                                      LLMService)
 
 
 @pytest.fixture(scope="session")

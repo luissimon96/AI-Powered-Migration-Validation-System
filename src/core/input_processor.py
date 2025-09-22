@@ -15,14 +15,8 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-)
+from .models import (InputData, InputType, MigrationValidationRequest,
+                     TechnologyContext, TechnologyType, ValidationScope)
 
 
 class InputProcessor:

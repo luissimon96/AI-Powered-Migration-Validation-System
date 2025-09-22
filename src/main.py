@@ -11,20 +11,12 @@ from pathlib import Path
 import click
 import uvicorn
 
-from .behavioral.crews import (
-    BehavioralValidationRequest,
-    create_behavioral_validation_crew,
-)
+from .behavioral.crews import (BehavioralValidationRequest,
+                               create_behavioral_validation_crew)
 from .core.config import get_settings, get_validation_config, is_development
 from .core.migration_validator import MigrationValidator
-from .core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-)
+from .core.models import (InputData, InputType, MigrationValidationRequest,
+                          TechnologyContext, TechnologyType, ValidationScope)
 
 
 @click.group()

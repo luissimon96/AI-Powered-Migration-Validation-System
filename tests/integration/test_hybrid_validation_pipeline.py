@@ -10,23 +10,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.behavioral.crews import (
-    BehavioralValidationCrew,
-    BehavioralValidationRequest,
-    BehavioralValidationResult,
-)
+from src.behavioral.crews import (BehavioralValidationCrew,
+                                  BehavioralValidationRequest,
+                                  BehavioralValidationResult)
 from src.core.migration_validator import MigrationValidator
-from src.core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    SeverityLevel,
-    TechnologyContext,
-    TechnologyType,
-    ValidationDiscrepancy,
-    ValidationResult,
-    ValidationScope,
-)
+from src.core.models import (InputData, InputType, MigrationValidationRequest,
+                             SeverityLevel, TechnologyContext, TechnologyType,
+                             ValidationDiscrepancy, ValidationResult,
+                             ValidationScope)
 from src.reporters.validation_reporter import ValidationReporter
 
 

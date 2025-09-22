@@ -14,20 +14,16 @@ from typing import Any, Dict, Optional
 
 from ..analyzers import BaseAnalyzer, CodeAnalyzer, VisualAnalyzer
 from ..analyzers.base import AnalyzerError
-from ..behavioral.crews import BehavioralValidationCrew, BehavioralValidationRequest
+from ..behavioral.crews import (BehavioralValidationCrew,
+                                BehavioralValidationRequest)
 from ..comparators.semantic_comparator import SemanticComparator
 from ..reporters.validation_reporter import ValidationReporter
-from ..services.llm_service import LLMService, LLMServiceError, create_llm_service
+from ..services.llm_service import (LLMService, LLMServiceError,
+                                    create_llm_service)
 from .config import get_validation_config
-from .models import (
-    InputType,
-    MigrationValidationRequest,
-    SeverityLevel,
-    TechnologyContext,
-    ValidationResult,
-    ValidationScope,
-    ValidationSession,
-)
+from .models import (InputType, MigrationValidationRequest, SeverityLevel,
+                     TechnologyContext, ValidationResult, ValidationScope,
+                     ValidationSession)
 
 
 class MigrationValidator:
