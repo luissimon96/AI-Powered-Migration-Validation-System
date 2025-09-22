@@ -20,7 +20,8 @@ from datetime import datetime
 
 from ..core.migration_validator import MigrationValidator
 from ..core.input_processor import InputProcessor
-from ..core.models import ValidationSession
+from ..core.models import ValidationSession, ValidationResult, ValidationDiscrepancy, SeverityLevel
+from ..behavioral.crews import BehavioralValidationRequest, create_behavioral_validation_crew
 
 
 # Pydantic models for API requests/responses
@@ -86,8 +87,55 @@ class CompatibilityCheckResponse(BaseModel):
     warnings: List[str]
 
 
+class BehavioralValidationRequestModel(BaseModel):
+    source_url: str = Field(..., description="URL of the source system")
+    target_url: str = Field(..., description="URL of the target system")
+    validation_scenarios: List[str] = Field(..., description="List of validation scenarios to execute")
+    credentials: Optional[Dict[str, str]] = Field(None, description="Authentication credentials")
+    timeout: int = Field(300, description="Timeout in seconds")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+
+
+class BehavioralValidationStatusResponse(BaseModel):
+    request_id: str
+    status: str  # pending, processing, completed, error
+    progress: Optional[str] = None
+    message: Optional[str] = None
+    result_available: bool = False
+
+
+class BehavioralValidationResultResponse(BaseModel):
+    request_id: str
+    overall_status: str
+    fidelity_score: float
+    fidelity_percentage: str
+    discrepancies: List[Dict[str, Any]]
+    execution_time: Optional[float]
+    timestamp: str
+
+
+class HybridValidationRequest(BaseModel):
+    # Static validation parameters
+    source_technology: str = Field(..., description="Source technology type")
+    target_technology: str = Field(..., description="Target technology type")
+    validation_scope: str = Field(..., description="Validation scope")
+    source_tech_version: Optional[str] = Field(None, description="Source technology version")
+    target_tech_version: Optional[str] = Field(None, description="Target technology version")
+
+    # Behavioral validation parameters
+    source_url: Optional[str] = Field(None, description="URL of the source system")
+    target_url: Optional[str] = Field(None, description="URL of the target system")
+    validation_scenarios: List[str] = Field(default=[], description="Behavioral validation scenarios")
+    credentials: Optional[Dict[str, str]] = Field(None, description="Authentication credentials")
+    behavioral_timeout: int = Field(300, description="Behavioral validation timeout")
+
+    # Common metadata
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+
+
 # Global storage for validation sessions (in production, use Redis or database)
 validation_sessions: Dict[str, ValidationSession] = {}
+behavioral_validation_sessions: Dict[str, Dict[str, Any]] = {}
 
 
 def create_app() -> FastAPI:
@@ -508,7 +556,235 @@ def create_app() -> FastAPI:
             "sessions": sessions_info,
             "total_count": len(sessions_info)
         }
-    
+
+    @app.post("/api/behavioral/validate", tags=["Behavioral Validation"])
+    async def start_behavioral_validation(
+        background_tasks: BackgroundTasks,
+        request: BehavioralValidationRequestModel
+    ):
+        """
+        Start behavioral validation with source and target URLs.
+
+        This endpoint initiates behavioral testing using browser automation
+        to compare user interactions between source and target systems.
+        """
+        try:
+            # Generate unique request ID
+            request_id = f"behavioral_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(request.source_url + request.target_url) % 10000:04d}"
+
+            # Create behavioral validation request
+            behavioral_request = BehavioralValidationRequest(
+                source_url=request.source_url,
+                target_url=request.target_url,
+                validation_scenarios=request.validation_scenarios,
+                credentials=request.credentials,
+                timeout=request.timeout,
+                metadata=request.metadata or {}
+            )
+
+            # Initialize session tracking
+            behavioral_validation_sessions[request_id] = {
+                "request": behavioral_request,
+                "status": "pending",
+                "created_at": datetime.now(),
+                "progress": "Behavioral validation queued for processing",
+                "result": None,
+                "logs": ["Behavioral validation request received and queued"]
+            }
+
+            # Start validation in background
+            background_tasks.add_task(
+                run_behavioral_validation_background,
+                request_id,
+                behavioral_request
+            )
+
+            return {
+                "request_id": request_id,
+                "status": "accepted",
+                "message": "Behavioral validation request accepted and processing started",
+                "estimated_time": f"{request.timeout}s maximum"
+            }
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to start behavioral validation: {str(e)}")
+
+    @app.get("/api/behavioral/{request_id}/status", response_model=BehavioralValidationStatusResponse, tags=["Behavioral Validation"])
+    async def get_behavioral_validation_status(request_id: str):
+        """Get behavioral validation status and progress."""
+        if request_id not in behavioral_validation_sessions:
+            raise HTTPException(status_code=404, detail="Behavioral validation request not found")
+
+        session = behavioral_validation_sessions[request_id]
+
+        return BehavioralValidationStatusResponse(
+            request_id=request_id,
+            status=session["status"],
+            progress=session.get("progress"),
+            message=session["logs"][-1] if session["logs"] else None,
+            result_available=session["result"] is not None
+        )
+
+    @app.get("/api/behavioral/{request_id}/result", response_model=BehavioralValidationResultResponse, tags=["Behavioral Validation"])
+    async def get_behavioral_validation_result(request_id: str):
+        """Get behavioral validation results."""
+        if request_id not in behavioral_validation_sessions:
+            raise HTTPException(status_code=404, detail="Behavioral validation request not found")
+
+        session = behavioral_validation_sessions[request_id]
+
+        if session["result"] is None:
+            raise HTTPException(status_code=202, detail="Behavioral validation still in progress")
+
+        result = session["result"]
+
+        if result.overall_status == "error":
+            raise HTTPException(status_code=500, detail="Behavioral validation failed")
+
+        # Convert discrepancies to dictionary format for JSON serialization
+        discrepancies_dict = []
+        for discrepancy in result.discrepancies:
+            discrepancies_dict.append({
+                "type": discrepancy.type,
+                "severity": discrepancy.severity.value,
+                "description": discrepancy.description,
+                "source_element": discrepancy.source_element,
+                "target_element": discrepancy.target_element,
+                "recommendation": discrepancy.recommendation,
+                "confidence": discrepancy.confidence
+            })
+
+        return BehavioralValidationResultResponse(
+            request_id=request_id,
+            overall_status=result.overall_status,
+            fidelity_score=result.fidelity_score,
+            fidelity_percentage=f"{result.fidelity_score * 100:.1f}%",
+            discrepancies=discrepancies_dict,
+            execution_time=result.execution_time,
+            timestamp=result.timestamp.isoformat()
+        )
+
+    @app.post("/api/validate/hybrid", tags=["Validation"])
+    async def validate_migration_hybrid(
+        background_tasks: BackgroundTasks,
+        request_data: str = Form(...),
+        source_files: List[UploadFile] = File(default=[]),
+        source_screenshots: List[UploadFile] = File(default=[]),
+        target_files: List[UploadFile] = File(default=[]),
+        target_screenshots: List[UploadFile] = File(default=[])
+    ):
+        """
+        Execute hybrid validation combining static analysis and behavioral testing.
+
+        This endpoint handles both file-based static analysis and URL-based behavioral
+        validation, providing a comprehensive migration assessment.
+        """
+        try:
+            # Parse request data
+            import json
+            hybrid_request = HybridValidationRequest(**json.loads(request_data))
+
+            # Generate unique request ID for hybrid validation
+            request_id = f"hybrid_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(str(hybrid_request.dict())) % 10000:04d}"
+
+            # Determine validation types to perform
+            perform_static = bool(source_files or target_files or source_screenshots or target_screenshots)
+            perform_behavioral = bool(hybrid_request.source_url and hybrid_request.target_url)
+
+            if not perform_static and not perform_behavioral:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Either static files/screenshots or behavioral URLs must be provided"
+                )
+
+            # Initialize hybrid session tracking
+            validation_sessions[request_id] = ValidationSession(
+                request=None,  # Will be populated during processing
+                processing_log=[
+                    f"Hybrid validation started - Static: {perform_static}, Behavioral: {perform_behavioral}"
+                ]
+            )
+
+            # Start hybrid validation in background
+            background_tasks.add_task(
+                run_hybrid_validation_background,
+                request_id,
+                hybrid_request,
+                {
+                    "source_files": source_files,
+                    "source_screenshots": source_screenshots,
+                    "target_files": target_files,
+                    "target_screenshots": target_screenshots
+                },
+                perform_static,
+                perform_behavioral,
+                validator,
+                input_processor
+            )
+
+            return {
+                "request_id": request_id,
+                "status": "accepted",
+                "message": "Hybrid validation request accepted and processing started",
+                "validation_types": {
+                    "static_analysis": perform_static,
+                    "behavioral_testing": perform_behavioral
+                }
+            }
+
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid JSON in request data")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Hybrid validation failed: {str(e)}")
+
+    @app.get("/api/behavioral/{request_id}/logs", tags=["Behavioral Validation"])
+    async def get_behavioral_validation_logs(request_id: str):
+        """Get behavioral validation processing logs."""
+        if request_id not in behavioral_validation_sessions:
+            raise HTTPException(status_code=404, detail="Behavioral validation request not found")
+
+        session = behavioral_validation_sessions[request_id]
+
+        return {
+            "request_id": request_id,
+            "logs": session["logs"],
+            "log_count": len(session["logs"])
+        }
+
+    @app.delete("/api/behavioral/{request_id}", tags=["Behavioral Validation"])
+    async def delete_behavioral_validation_session(request_id: str):
+        """Delete behavioral validation session and clean up resources."""
+        if request_id not in behavioral_validation_sessions:
+            raise HTTPException(status_code=404, detail="Behavioral validation request not found")
+
+        # Remove session
+        del behavioral_validation_sessions[request_id]
+
+        return {"message": f"Behavioral validation session {request_id} deleted successfully"}
+
+    @app.get("/api/behavioral", tags=["Behavioral Validation"])
+    async def list_behavioral_validation_sessions():
+        """List all behavioral validation sessions."""
+        sessions_info = []
+
+        for request_id, session in behavioral_validation_sessions.items():
+            sessions_info.append({
+                "request_id": request_id,
+                "status": session["status"],
+                "created_at": session["created_at"].isoformat(),
+                "source_url": session["request"].source_url,
+                "target_url": session["request"].target_url,
+                "scenarios_count": len(session["request"].validation_scenarios),
+                "fidelity_score": session["result"].fidelity_score if session["result"] else None
+            })
+
+        return {
+            "sessions": sessions_info,
+            "total_count": len(sessions_info)
+        }
+
     return app
 
 
@@ -529,6 +805,231 @@ async def run_validation_background(request_id: str, migration_request, validato
                 fidelity_score=0.0,
                 summary=f"Validation failed: {str(e)}",
                 discrepancies=[]
+            )
+
+
+async def run_behavioral_validation_background(request_id: str, behavioral_request: BehavioralValidationRequest):
+    """Run behavioral validation in background task."""
+    try:
+        # Update session status
+        if request_id in behavioral_validation_sessions:
+            behavioral_validation_sessions[request_id]["status"] = "processing"
+            behavioral_validation_sessions[request_id]["progress"] = "Initializing behavioral validation crew"
+            behavioral_validation_sessions[request_id]["logs"].append("Starting behavioral validation crew")
+
+        # Create behavioral validation crew
+        crew = create_behavioral_validation_crew()
+
+        # Update progress
+        if request_id in behavioral_validation_sessions:
+            behavioral_validation_sessions[request_id]["progress"] = "Executing behavioral validation scenarios"
+            behavioral_validation_sessions[request_id]["logs"].append("Behavioral validation crew initialized, starting validation")
+
+        # Execute behavioral validation
+        result = await crew.validate_migration(behavioral_request)
+
+        # Update session with results
+        if request_id in behavioral_validation_sessions:
+            behavioral_validation_sessions[request_id]["status"] = "completed"
+            behavioral_validation_sessions[request_id]["progress"] = "Behavioral validation completed"
+            behavioral_validation_sessions[request_id]["result"] = result
+            behavioral_validation_sessions[request_id]["logs"].append(f"Behavioral validation completed with fidelity score: {result.fidelity_score:.2f}")
+
+    except Exception as e:
+        # Update session with error
+        if request_id in behavioral_validation_sessions:
+            behavioral_validation_sessions[request_id]["status"] = "error"
+            behavioral_validation_sessions[request_id]["progress"] = f"Behavioral validation failed: {str(e)}"
+            behavioral_validation_sessions[request_id]["logs"].append(f"Behavioral validation error: {str(e)}")
+
+            # Create error result
+            from ..behavioral.crews import BehavioralValidationResult
+            error_result = BehavioralValidationResult(
+                overall_status="error",
+                fidelity_score=0.0,
+                discrepancies=[
+                    ValidationDiscrepancy(
+                        type="behavioral_validation_error",
+                        severity=SeverityLevel.CRITICAL,
+                        description=f"Behavioral validation failed: {str(e)}",
+                        recommendation="Review system configuration and retry validation"
+                    )
+                ],
+                execution_log=[f"Error: {str(e)}"],
+                execution_time=0.0,
+                timestamp=datetime.now()
+            )
+            behavioral_validation_sessions[request_id]["result"] = error_result
+
+
+async def run_hybrid_validation_background(
+    request_id: str,
+    hybrid_request: HybridValidationRequest,
+    uploaded_files: Dict[str, List],
+    perform_static: bool,
+    perform_behavioral: bool,
+    validator: MigrationValidator,
+    input_processor: InputProcessor
+):
+    """Run hybrid validation combining static and behavioral validation."""
+    try:
+        session = validation_sessions[request_id]
+        session.add_log("Starting hybrid validation process")
+
+        static_result = None
+        behavioral_result = None
+
+        # Perform static validation if files were provided
+        if perform_static:
+            session.add_log("Starting static validation component")
+
+            # Process uploaded files similar to the main validation endpoint
+            source_file_paths = []
+            source_screenshot_paths = []
+            target_file_paths = []
+            target_screenshot_paths = []
+
+            # Handle source files
+            if uploaded_files["source_files"]:
+                source_uploaded = []
+                for file in uploaded_files["source_files"]:
+                    if file.filename:
+                        contents = await file.read()
+                        source_uploaded.append((file.filename, contents))
+
+                if source_uploaded:
+                    source_file_paths = input_processor.upload_files(source_uploaded, "hybrid_source")
+
+            # Handle source screenshots
+            if uploaded_files["source_screenshots"]:
+                source_screenshot_uploaded = []
+                for file in uploaded_files["source_screenshots"]:
+                    if file.filename:
+                        contents = await file.read()
+                        source_screenshot_uploaded.append((file.filename, contents))
+
+                if source_screenshot_uploaded:
+                    source_screenshot_paths = input_processor.upload_files(
+                        source_screenshot_uploaded, "hybrid_source_screenshots"
+                    )
+
+            # Handle target files
+            if uploaded_files["target_files"]:
+                target_uploaded = []
+                for file in uploaded_files["target_files"]:
+                    if file.filename:
+                        contents = await file.read()
+                        target_uploaded.append((file.filename, contents))
+
+                if target_uploaded:
+                    target_file_paths = input_processor.upload_files(target_uploaded, "hybrid_target")
+
+            # Handle target screenshots
+            if uploaded_files["target_screenshots"]:
+                target_screenshot_uploaded = []
+                for file in uploaded_files["target_screenshots"]:
+                    if file.filename:
+                        contents = await file.read()
+                        target_screenshot_uploaded.append((file.filename, contents))
+
+                if target_screenshot_uploaded:
+                    target_screenshot_paths = input_processor.upload_files(
+                        target_screenshot_uploaded, "hybrid_target_screenshots"
+                    )
+
+            # Create static validation request
+            migration_request = input_processor.create_validation_request(
+                source_technology=hybrid_request.source_technology,
+                target_technology=hybrid_request.target_technology,
+                validation_scope=hybrid_request.validation_scope,
+                source_files=source_file_paths,
+                source_screenshots=source_screenshot_paths,
+                target_files=target_file_paths,
+                target_screenshots=target_screenshot_paths,
+                source_tech_version=hybrid_request.source_tech_version,
+                target_tech_version=hybrid_request.target_tech_version,
+                metadata=hybrid_request.metadata
+            )
+
+            session.request = migration_request
+            session.add_log("Static validation request created")
+
+            # Execute static validation
+            static_session = await validator.validate_migration(migration_request)
+            static_result = static_session.result
+            session.add_log(f"Static validation completed with fidelity score: {static_result.fidelity_score:.2f}")
+
+        # Perform behavioral validation if URLs were provided
+        if perform_behavioral:
+            session.add_log("Starting behavioral validation component")
+
+            # Create behavioral validation request
+            behavioral_request = BehavioralValidationRequest(
+                source_url=hybrid_request.source_url,
+                target_url=hybrid_request.target_url,
+                validation_scenarios=hybrid_request.validation_scenarios,
+                credentials=hybrid_request.credentials,
+                timeout=hybrid_request.behavioral_timeout,
+                metadata=hybrid_request.metadata or {}
+            )
+
+            # Execute behavioral validation
+            crew = create_behavioral_validation_crew()
+            behavioral_result = await crew.validate_migration(behavioral_request)
+            session.add_log(f"Behavioral validation completed with fidelity score: {behavioral_result.fidelity_score:.2f}")
+
+        # Combine results
+        session.add_log("Combining static and behavioral validation results")
+
+        if static_result and behavioral_result:
+            # Hybrid result with both components
+            combined_fidelity = (static_result.fidelity_score + behavioral_result.fidelity_score) / 2
+            combined_discrepancies = static_result.discrepancies + behavioral_result.discrepancies
+            combined_status = "approved" if combined_fidelity >= 0.8 else "approved_with_warnings" if combined_fidelity >= 0.6 else "rejected"
+
+            session.result = ValidationResult(
+                overall_status=combined_status,
+                fidelity_score=combined_fidelity,
+                summary=f"Hybrid validation completed. Static fidelity: {static_result.fidelity_score:.2f}, Behavioral fidelity: {behavioral_result.fidelity_score:.2f}, Combined: {combined_fidelity:.2f}",
+                discrepancies=combined_discrepancies,
+                execution_time=(static_result.execution_time or 0) + (behavioral_result.execution_time or 0)
+            )
+
+        elif static_result:
+            # Static-only result
+            session.result = static_result
+            session.result.summary = f"Static validation completed. Fidelity score: {static_result.fidelity_score:.2f}"
+
+        elif behavioral_result:
+            # Behavioral-only result (convert from BehavioralValidationResult to ValidationResult)
+            session.result = ValidationResult(
+                overall_status=behavioral_result.overall_status,
+                fidelity_score=behavioral_result.fidelity_score,
+                summary=f"Behavioral validation completed. Fidelity score: {behavioral_result.fidelity_score:.2f}",
+                discrepancies=behavioral_result.discrepancies,
+                execution_time=behavioral_result.execution_time
+            )
+
+        session.add_log("Hybrid validation completed successfully")
+
+    except Exception as e:
+        # Update session with error
+        if request_id in validation_sessions:
+            session = validation_sessions[request_id]
+            session.add_log(f"Hybrid validation failed: {str(e)}")
+
+            session.result = ValidationResult(
+                overall_status="error",
+                fidelity_score=0.0,
+                summary=f"Hybrid validation failed: {str(e)}",
+                discrepancies=[
+                    ValidationDiscrepancy(
+                        type="hybrid_validation_error",
+                        severity=SeverityLevel.CRITICAL,
+                        description=f"Hybrid validation failed: {str(e)}",
+                        recommendation="Review system configuration and retry validation"
+                    )
+                ]
             )
 
 

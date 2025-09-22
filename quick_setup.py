@@ -174,7 +174,7 @@ def main():
     print("2. Run: python test_basic.py")
     print("3. Run: python run.py")
     print("4. Visit: http://localhost:8000/docs")
-    print("\n🔧 For full setup: pip install -r requirements-minimal.txt")
+    print("\n🔧 For full setup: pip install -e \".[dev,ai,browser]\"")
 
 if __name__ == "__main__":
     main()

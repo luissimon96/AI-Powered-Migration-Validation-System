@@ -606,10 +606,7 @@ class SemanticComparator:
             messages = [
                 {
                     "role": "user", 
-                    "content": f"{prompt}
-
-Data to analyze:
-{json.dumps(data, indent=2)}"
+                    "content": f"{prompt}\n\nData to analyze:\n{json.dumps(data, indent=2)}"
                 }
             ]
             

@@ -1,52 +1,114 @@
-# Production Dependencies - AI-Powered Migration Validation System
+# AI-Powered Migration Validation System - Unified Requirements
+# Optimized single-file dependency management with optional extras
 
-# Web Framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
+# ═══════════════════════════════════════════════════════════════
+# CORE DEPENDENCIES - Required for basic functionality
+# ═══════════════════════════════════════════════════════════════
 
-# Data Validation and Models
-pydantic==2.5.0
+# Web Framework & API
+fastapi>=0.104.0,<0.105.0
+uvicorn[standard]>=0.24.0,<0.25.0
 
-# Image Processing
-Pillow==10.1.0
+# Data Validation & Models
+pydantic>=2.5.0,<3.0.0
+pydantic-settings>=2.1.0,<3.0.0
 
-# AI and LLM Integration
-openai==1.3.8
-anthropic==0.7.8
-google-generativeai==0.3.2
+# Configuration & Environment
+python-dotenv>=1.0.0,<2.0.0
 
-# Multi-Agent AI Framework
-crewai==0.1.26
-
-# Browser Automation
-playwright==1.40.0
-browser-use==0.1.4
-
-# HTTP Client for API calls
-httpx==0.25.2
-aiohttp==3.9.1
-
-# Configuration Management
-python-dotenv==1.0.0
-pydantic-settings==2.1.0
+# HTTP Client & Async
+httpx>=0.25.0,<0.26.0
+aiohttp>=3.9.0,<4.0.0
 
 # File Processing
-python-multipart==0.0.6
+python-multipart>=0.0.6,<1.0.0
+Pillow>=10.1.0,<11.0.0
 
-# Async Support
-asyncio-throttle==1.0.2
+# Logging & Monitoring
+structlog>=23.2.0,<24.0.0
 
-# Logging and Monitoring
-structlog==23.2.0
+# Async Utilities
+asyncio-throttle>=1.0.0,<2.0.0
 
-# Database (optional for session persistence)
-sqlalchemy==2.0.23
-alembic==1.13.1
-asyncpg==0.29.0
+# ═══════════════════════════════════════════════════════════════
+# OPTIONAL DEPENDENCIES - Install via pip install -e ".[extra_name]"
+# ═══════════════════════════════════════════════════════════════
 
-# Caching
-redis==5.0.1
+# LLM & AI Integration - pip install -e ".[ai]"
+openai>=1.3.0,<2.0.0 ; extra == "ai"
+anthropic>=0.7.0,<1.0.0 ; extra == "ai"
+google-generativeai>=0.3.0,<1.0.0 ; extra == "ai"
 
-# Security
-passlib[bcrypt]==1.7.4
-python-jose[cryptography]==3.3.0
+# Multi-Agent AI Framework - pip install -e ".[crewai]"
+crewai>=0.1.26,<1.0.0 ; extra == "crewai"
+
+# Browser Automation - pip install -e ".[browser]"
+playwright>=1.40.0,<2.0.0 ; extra == "browser"
+browser-use>=0.1.4,<1.0.0 ; extra == "browser"
+
+# Database & Persistence - pip install -e ".[database]"
+sqlalchemy>=2.0.23,<3.0.0 ; extra == "database"
+alembic>=1.13.0,<2.0.0 ; extra == "database"
+asyncpg>=0.29.0,<1.0.0 ; extra == "database"
+
+# Caching & Performance - pip install -e ".[cache]"
+redis>=5.0.0,<6.0.0 ; extra == "cache"
+
+# Security & Authentication - pip install -e ".[security]"
+passlib[bcrypt]>=1.7.4,<2.0.0 ; extra == "security"
+python-jose[cryptography]>=3.3.0,<4.0.0 ; extra == "security"
+
+# Development & Testing - pip install -e ".[dev]"
+pytest>=7.4.0,<8.0.0 ; extra == "dev"
+pytest-asyncio>=0.21.0,<1.0.0 ; extra == "dev"
+pytest-cov>=4.1.0,<5.0.0 ; extra == "dev"
+pytest-mock>=3.12.0,<4.0.0 ; extra == "dev"
+pytest-xdist>=3.5.0,<4.0.0 ; extra == "dev"
+
+# Code Quality & Formatting - pip install -e ".[quality]"
+black>=23.11.0,<24.0.0 ; extra == "quality"
+flake8>=6.1.0,<7.0.0 ; extra == "quality"
+isort>=5.12.0,<6.0.0 ; extra == "quality"
+mypy>=1.7.0,<2.0.0 ; extra == "quality"
+
+# Security Scanning - pip install -e ".[security-scan]"
+bandit>=1.7.5,<2.0.0 ; extra == "security-scan"
+safety>=2.3.0,<3.0.0 ; extra == "security-scan"
+
+# Performance Testing - pip install -e ".[performance]"
+locust>=2.17.0,<3.0.0 ; extra == "performance"
+memory-profiler>=0.61.0,<1.0.0 ; extra == "performance"
+
+# Development Tools - pip install -e ".[tools]"
+pre-commit>=3.6.0,<4.0.0 ; extra == "tools"
+jupyter>=1.0.0,<2.0.0 ; extra == "tools"
+ipython>=8.17.0,<9.0.0 ; extra == "tools"
+debugpy>=1.8.0,<2.0.0 ; extra == "tools"
+watchdog>=3.0.0,<4.0.0 ; extra == "tools"
+
+# Documentation - pip install -e ".[docs]"
+mkdocs>=1.5.0,<2.0.0 ; extra == "docs"
+mkdocs-material>=9.4.0,<10.0.0 ; extra == "docs"
+
+# Type Stubs - pip install -e ".[types]"
+types-requests>=2.31.0,<3.0.0 ; extra == "types"
+types-redis>=4.6.0,<5.0.0 ; extra == "types"
+
+# ═══════════════════════════════════════════════════════════════
+# INSTALLATION EXAMPLES
+# ═══════════════════════════════════════════════════════════════
+
+# Basic installation (core only):
+# pip install -e .
+
+# Full development setup:
+# pip install -e ".[dev,quality,ai,browser,database,tools]"
+
+# Production with AI capabilities:
+# pip install -e ".[ai,crewai,database,cache,security]"
+
+# Testing environment:
+# pip install -e ".[dev,quality,security-scan]"
+
+# Documentation development:
+# pip install -e ".[dev,docs,tools]"
