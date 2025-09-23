@@ -6,7 +6,7 @@ name: 🚀 CI/CD Pipeline
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths-ignore:
       - '*.md'
       - 'docs/**'
@@ -70,6 +70,9 @@ jobs:
 
       - name: 📦 Install isort
         run: pip install isort
+
+      - name: 📦 Install flake8
+        run: pip install flake8
 
       - name: 📏 Import Sorting (isort)
         run: isort --check-only --diff src/ tests/
