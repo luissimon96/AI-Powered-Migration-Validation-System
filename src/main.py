@@ -55,7 +55,7 @@ def serve(host, port, reload, workers):
     click.echo(f"🔧 Environment: {settings.environment}")
 
     uvicorn.run(
-        "src.api.routes:app",
+        "src.api.database_routes:app",
         host=host,
         port=port,
         reload=reload,
@@ -278,6 +278,37 @@ def health():
     except ImportError:
         click.echo("❌ CrewAI: Not installed")
 
+    # Check database dependencies
+    click.echo("\n🗃️  Database:")
+
+    try:
+        import sqlalchemy
+
+        click.echo(f"✅ SQLAlchemy: {sqlalchemy.__version__}")
+    except ImportError:
+        click.echo("❌ SQLAlchemy: Not installed")
+
+    try:
+        import alembic
+
+        click.echo(f"✅ Alembic: Available")
+    except ImportError:
+        click.echo("❌ Alembic: Not installed")
+
+    try:
+        import asyncpg
+
+        click.echo(f"✅ AsyncPG: {asyncpg.__version__}")
+    except ImportError:
+        click.echo("❌ AsyncPG: Not installed")
+
+    try:
+        import aiosqlite
+
+        click.echo(f"✅ AIOSQLite: {aiosqlite.__version__}")
+    except ImportError:
+        click.echo("❌ AIOSQLite: Not installed")
+
     # Check LLM providers
     click.echo("\n🤖 LLM Providers:")
 
@@ -312,6 +343,33 @@ def health():
     except ImportError:
         click.echo("❌ Playwright: Not installed")
 
+    # Check database connectivity
+    click.echo("\n💾 Database Connectivity:")
+    try:
+        from .database.config import get_database_config
+        from .database.session import DatabaseManager
+
+        async def check_db():
+            db_config = get_database_config()
+            db_manager = DatabaseManager(db_config)
+            try:
+                await db_manager.initialize()
+                is_healthy = await db_manager.health_check()
+                return is_healthy, db_config.url
+            except Exception as e:
+                return False, str(e)
+            finally:
+                await db_manager.close()
+
+        is_healthy, db_info = asyncio.run(check_db())
+        if is_healthy:
+            click.echo(f"✅ Database: Connected ({db_info})")
+        else:
+            click.echo(f"❌ Database: Connection failed ({db_info})")
+
+    except Exception as e:
+        click.echo(f"❌ Database: Configuration error ({e})")
+
     # Check configuration
     click.echo("\n⚙️  Configuration:")
     validation_config = get_validation_config()
@@ -321,6 +379,115 @@ def health():
         click.echo(f"✅ LLM Providers: {', '.join(available_providers)}")
     else:
         click.echo("⚠️  No LLM providers configured")
+
+
+@cli.command()
+@click.option("--target", default="head", help="Target migration revision")
+@click.option("--verbose", is_flag=True, help="Enable verbose output")
+def db_init(target: str, verbose: bool):
+    """Initialize database and run migrations."""
+    click.echo("🗃️  Initializing database...")
+
+    try:
+        from .database.config import get_database_config
+        from .database.session import DatabaseManager
+        from .database.migrations import MigrationManager
+
+        async def init_database():
+            db_config = get_database_config()
+            db_manager = DatabaseManager(db_config)
+
+            await db_manager.initialize()
+
+            if verbose:
+                click.echo(f"Connected to database: {db_config.url}")
+
+            # Create tables
+            await db_manager.create_tables()
+
+            # Run migrations
+            migration_manager = MigrationManager(db_manager)
+            migration_needed = await migration_manager.is_migration_needed()
+
+            if migration_needed:
+                click.echo("Running database migrations...")
+                success = await migration_manager.run_migrations(target)
+                if success:
+                    click.echo("✅ Migrations completed successfully")
+                else:
+                    click.echo("❌ Migrations failed")
+                    return False
+            else:
+                click.echo("✅ Database is already up to date")
+
+            await db_manager.close()
+            return True
+
+        success = asyncio.run(init_database())
+        if success:
+            click.echo("✅ Database initialization completed successfully")
+        else:
+            click.echo("❌ Database initialization failed")
+            sys.exit(1)
+
+    except Exception as e:
+        click.echo(f"❌ Database initialization failed: {e}")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--days-old", default=30, help="Delete sessions older than N days")
+@click.option("--dry-run", is_flag=True, help="Show what would be deleted without deleting")
+@click.option("--verbose", is_flag=True, help="Enable verbose output")
+def db_cleanup(days_old: int, dry_run: bool, verbose: bool):
+    """Clean up old database records."""
+    click.echo(f"🧹 Cleaning up database records older than {days_old} days...")
+
+    try:
+        from .database.config import get_database_config
+        from .database.session import DatabaseManager
+        from .database.utils import cleanup_database, get_database_statistics
+
+        async def cleanup_db():
+            db_config = get_database_config()
+            db_manager = DatabaseManager(db_config)
+            await db_manager.initialize()
+
+            async with db_manager.get_session() as session:
+                if dry_run:
+                    stats = await get_database_statistics(session)
+                    click.echo(f"Current database statistics:")
+                    click.echo(f"  Total sessions: {stats.get('validation_sessions_count', 0)}")
+                    click.echo(f"  Total results: {stats.get('validation_results_count', 0)}")
+                    click.echo("Use without --dry-run to perform actual cleanup")
+                    return True
+
+                cleanup_results = await cleanup_database(session, days_old, True)
+
+                if "error" in cleanup_results:
+                    click.echo(f"❌ Cleanup failed: {cleanup_results['error']}")
+                    return False
+
+                total_cleaned = sum(
+                    v for k, v in cleanup_results.items() if k != "error" and isinstance(v, int)
+                )
+                click.echo(f"✅ Cleanup completed: {total_cleaned} records removed")
+
+                if verbose:
+                    for key, value in cleanup_results.items():
+                        if isinstance(value, int):
+                            click.echo(f"  {key}: {value}")
+
+            await db_manager.close()
+            return True
+
+        success = asyncio.run(cleanup_db())
+        if not success:
+            sys.exit(1)
+
+    except Exception as e:
+        click.echo(f"❌ Database cleanup failed: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

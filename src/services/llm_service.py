@@ -2,17 +2,20 @@
 LLM Service for AI-Powered Migration Validation System.
 
 Provides a unified interface for multiple LLM providers (OpenAI, Anthropic, Google)
-with async support, error handling, and token management.
+with async support, error handling, token management, and structured prompt templates.
 """
 
 import asyncio
 import base64
+import json
 import os
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 import structlog
+
+from .prompt_templates import AnalysisType, prompt_manager
 
 try:
     import openai
@@ -65,6 +68,18 @@ class LLMResponse:
     metadata: Optional[Dict[str, Any]] = None
 
 
+@dataclass
+class AnalysisResult:
+    """Structured analysis result with confidence scoring."""
+
+    analysis_type: AnalysisType
+    result: Dict[str, Any]
+    confidence: float
+    provider_used: str
+    model_used: str
+    metadata: Dict[str, Any]
+
+
 class LLMServiceError(Exception):
     """Base exception for LLM service errors."""
 
@@ -79,7 +94,7 @@ class LLMProviderNotAvailable(LLMServiceError):
 
 class LLMService:
     """
-    Unified LLM service supporting multiple providers with failover.
+    Unified LLM service supporting multiple providers with failover and structured analysis.
 
     Provides a resilient async interface for semantic analysis, code comparison,
     and natural language processing tasks in the migration validation pipeline.
@@ -208,6 +223,193 @@ class LLMService:
             f"All LLM providers failed. Last error: {last_error}"
         ) from last_error
 
+    async def structured_analysis(
+        self,
+        analysis_type: AnalysisType,
+        context: Dict[str, Any],
+        retry_on_parse_error: bool = True
+    ) -> AnalysisResult:
+        """
+        Perform structured analysis using prompt templates.
+
+        Args:
+            analysis_type: Type of analysis to perform
+            context: Context data for the analysis
+            retry_on_parse_error: Whether to retry with a different provider on parse errors
+
+        Returns:
+            Structured analysis result with confidence scoring
+        """
+        # Get formatted prompts
+        system_prompt, user_prompt = prompt_manager.format_prompt(analysis_type, context)
+
+        # Enhance user prompt with format expectations
+        enhanced_user_prompt = f"""{user_prompt}
+
+IMPORTANT: Respond ONLY in valid JSON format matching this structure:
+{json.dumps(prompt_manager.get_expected_format(analysis_type), indent=2)}
+
+Do not include any text before or after the JSON response."""
+
+        messages = [{"role": "user", "content": enhanced_user_prompt}]
+
+        last_error = None
+        used_provider = None
+        used_model = None
+
+        for config in self.configs:
+            if config.provider not in self._clients:
+                continue
+
+            try:
+                self.logger.info(
+                    "Attempting structured analysis",
+                    analysis_type=analysis_type.value,
+                    provider=config.provider.value,
+                )
+
+                response = await self.generate_response(
+                    messages, system_prompt, max_tokens=config.max_tokens
+                )
+
+                used_provider = response.provider
+                used_model = response.model
+
+                # Parse JSON response
+                result = self._parse_analysis_response(analysis_type, response.content)
+
+                # Calculate confidence score
+                confidence = self._calculate_confidence(analysis_type, result, response)
+
+                return AnalysisResult(
+                    analysis_type=analysis_type,
+                    result=result,
+                    confidence=confidence,
+                    provider_used=used_provider,
+                    model_used=used_model,
+                    metadata={
+                        "usage": response.usage,
+                        "response_metadata": response.metadata,
+                        "parse_successful": True
+                    }
+                )
+
+            except json.JSONDecodeError as e:
+                self.logger.warning(
+                    "JSON parse error for structured analysis",
+                    analysis_type=analysis_type.value,
+                    provider=config.provider.value,
+                    error=str(e)
+                )
+                last_error = e
+                if not retry_on_parse_error:
+                    break
+
+            except Exception as e:
+                self.logger.error(
+                    "Structured analysis failed for provider",
+                    analysis_type=analysis_type.value,
+                    provider=config.provider.value,
+                    error=str(e)
+                )
+                last_error = e
+
+        # All providers failed, return fallback response
+        self.logger.warning(
+            "All providers failed for structured analysis, using fallback",
+            analysis_type=analysis_type.value,
+            last_error=str(last_error) if last_error else "Unknown"
+        )
+
+        fallback_result = prompt_manager.get_fallback_response(analysis_type)
+        return AnalysisResult(
+            analysis_type=analysis_type,
+            result=fallback_result,
+            confidence=0.1,
+            provider_used=used_provider or "fallback",
+            model_used=used_model or "fallback",
+            metadata={
+                "fallback_used": True,
+                "last_error": str(last_error) if last_error else None,
+                "parse_successful": False
+            }
+        )
+
+    def _parse_analysis_response(
+        self,
+        analysis_type: AnalysisType,
+        response_content: str
+    ) -> Dict[str, Any]:
+        """Parse and validate analysis response."""
+        try:
+            # Clean response content (remove potential markdown formatting)
+            content = response_content.strip()
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+
+            result = json.loads(content)
+
+            # Validate response format
+            if not prompt_manager.validate_response_format(analysis_type, result):
+                self.logger.warning(
+                    "Response format validation failed",
+                    analysis_type=analysis_type.value
+                )
+
+            return result
+
+        except json.JSONDecodeError as e:
+            self.logger.error(
+                "Failed to parse JSON response",
+                analysis_type=analysis_type.value,
+                content_preview=response_content[:200],
+                error=str(e)
+            )
+            raise
+
+    def _calculate_confidence(
+        self,
+        analysis_type: AnalysisType,
+        result: Dict[str, Any],
+        response: LLMResponse
+    ) -> float:
+        """Calculate confidence score based on response quality."""
+        base_confidence = 0.8  # Base confidence for successful parsing
+
+        # Adjust confidence based on analysis-specific factors
+        template = prompt_manager.get_template(analysis_type)
+
+        # Check if response includes confidence field
+        if "confidence" in result and isinstance(result["confidence"], (int, float)):
+            explicit_confidence = float(result["confidence"])
+            # Weight explicit confidence with our assessment
+            return (base_confidence + explicit_confidence) / 2
+
+        # Response quality indicators
+        quality_factors = []
+
+        # Check completeness of response
+        expected_keys = set(template.expected_response_format.keys())
+        actual_keys = set(result.keys())
+        completeness = len(actual_keys & expected_keys) / len(expected_keys)
+        quality_factors.append(completeness)
+
+        # Check for empty or default values
+        non_empty_values = sum(
+            1 for value in result.values()
+            if value not in [None, "", [], {}, 0]
+        )
+        value_quality = non_empty_values / len(result) if result else 0
+        quality_factors.append(value_quality)
+
+        # Calculate weighted confidence
+        quality_score = sum(quality_factors) / len(quality_factors) if quality_factors else 0.5
+
+        return min(base_confidence * quality_score, 1.0)
+
     async def _openai_generate(
         self,
         config: LLMConfig,
@@ -300,76 +502,34 @@ class LLMService:
         )
 
     async def analyze_code_semantic_similarity(
-        self, source_code: str, target_code: str, context: str = ""
-    ) -> Dict[str, Any]:
+        self, source_code: str, target_code: str, context: str = "",
+        source_language: str = "auto", target_language: str = "auto"
+    ) -> AnalysisResult:
         """
-        Analyze semantic similarity between source and target code.
+        Analyze semantic similarity between source and target code using structured prompts.
 
         Args:
             source_code: Source code snippet
             target_code: Target code snippet
             context: Additional context about the migration
+            source_language: Programming language of source code
+            target_language: Programming language of target code
 
         Returns:
-            Analysis results with similarity score and discrepancies
+            Structured analysis results with similarity score and discrepancies
         """
-        system_prompt = """You are an expert code analysis AI specializing in migration validation.
-        
-Your task is to analyze two code snippets (source and target) and determine:
-1. Semantic similarity score (0.0 to 1.0)
-2. Functional equivalence assessment
-3. Key differences and potential issues
-4. Business logic preservation
+        analysis_context = {
+            "source_code": source_code,
+            "target_code": target_code,
+            "context": context,
+            "source_language": source_language,
+            "target_language": target_language
+        }
 
-Respond in JSON format with:
-{
-  "similarity_score": float,
-  "functionally_equivalent": boolean,
-  "confidence": float,
-  "key_differences": [string],
-  "potential_issues": [string],
-  "business_logic_preserved": boolean,
-  "recommendations": [string]
-}"""
-
-        messages = [
-            {
-                "role": "user",
-                "content": f"""Analyze these code snippets for semantic similarity:
-
-SOURCE CODE:
-```
-{source_code}
-```
-
-TARGET CODE:
-```
-{target_code}
-```
-
-CONTEXT: {context}
-
-Provide detailed analysis in JSON format.""",
-            }
-        ]
-
-        response = await self.generate_response(messages, system_prompt)
-
-        try:
-            import json
-
-            return json.loads(response.content)
-        except json.JSONDecodeError:
-            self.logger.warning("Failed to parse JSON response", content=response.content)
-            return {
-                "similarity_score": 0.5,
-                "functionally_equivalent": False,
-                "confidence": 0.3,
-                "key_differences": ["Analysis failed - could not parse response"],
-                "potential_issues": ["LLM response parsing error"],
-                "business_logic_preserved": False,
-                "recommendations": ["Manual review required"],
-            }
+        return await self.structured_analysis(
+            AnalysisType.CODE_SEMANTIC_SIMILARITY,
+            analysis_context
+        )
 
     async def compare_ui_elements(
         self,
@@ -387,7 +547,7 @@ Provide detailed analysis in JSON format.""",
             Comparison analysis with matched elements and discrepancies
         """
         system_prompt = """You are a UI/UX expert analyzing migration fidelity.
-        
+
 Analyze the provided UI elements from source and target systems and provide:
 1. Element matching and mapping
 2. Missing or additional elements
@@ -411,11 +571,8 @@ Provide comprehensive UI comparison analysis.""",
             }
         ]
 
-        response = await self.generate_response(messages, system_prompt)
-
         try:
-            import json
-
+            response = await self.generate_response(messages, system_prompt)
             return json.loads(response.content)
         except json.JSONDecodeError:
             return {
@@ -432,9 +589,9 @@ Provide comprehensive UI comparison analysis.""",
         source_functions: List[Dict[str, Any]],
         target_functions: List[Dict[str, Any]],
         domain_context: str = "",
-    ) -> Dict[str, Any]:
+    ) -> AnalysisResult:
         """
-        Validate preservation of business logic between source and target.
+        Validate preservation of business logic between source and target using structured analysis.
 
         Args:
             source_functions: Source business functions
@@ -442,56 +599,24 @@ Provide comprehensive UI comparison analysis.""",
             domain_context: Business domain context
 
         Returns:
-            Business logic validation results
+            Structured business logic validation results
         """
-        system_prompt = """You are a business analyst and software architect expert.
-        
-Analyze the business logic preservation in a system migration by comparing:
-1. Function signatures and parameters
-2. Business rules and constraints
-3. Data validation logic
-4. Error handling patterns
-5. Workflow preservation
+        analysis_context = {
+            "source_functions_json": json.dumps(source_functions, indent=2),
+            "target_functions_json": json.dumps(target_functions, indent=2),
+            "domain_context": domain_context
+        }
 
-Focus on identifying critical business logic that must be preserved."""
-
-        messages = [
-            {
-                "role": "user",
-                "content": f"""Validate business logic preservation:
-
-DOMAIN CONTEXT: {domain_context}
-
-SOURCE FUNCTIONS:
-{source_functions}
-
-TARGET FUNCTIONS:
-{target_functions}
-
-Analyze business logic preservation and identify critical discrepancies.""",
-            }
-        ]
-
-        response = await self.generate_response(messages, system_prompt)
-
-        try:
-            import json
-
-            return json.loads(response.content)
-        except json.JSONDecodeError:
-            return {
-                "business_logic_preserved": False,
-                "critical_discrepancies": ["Analysis failed"],
-                "validation_gaps": ["Manual review required"],
-                "risk_assessment": "high",
-                "recommendations": ["Comprehensive manual business logic review required"],
-            }
+        return await self.structured_analysis(
+            AnalysisType.BUSINESS_LOGIC_VALIDATION,
+            analysis_context
+        )
 
     async def analyze_ui_screenshot(
         self, image_base64: str, prompt: str, detail: str = "auto"
-    ) -> Dict[str, Any]:
+    ) -> AnalysisResult:
         """
-        Analyze a UI screenshot using a multimodal LLM.
+        Analyze a UI screenshot using a multimodal LLM with structured output.
 
         Args:
             image_base64: Base64 encoded image string.
@@ -499,7 +624,7 @@ Analyze business logic preservation and identify critical discrepancies.""",
             detail: The level of detail for the image analysis (OpenAI specific).
 
         Returns:
-            A dictionary containing the analysis from the LLM.
+            Structured analysis result containing the analysis from the LLM.
 
         Raises:
             LLMServiceError: If all configured vision providers fail.
@@ -589,16 +714,24 @@ Analyze business logic preservation and identify critical discrepancies.""",
                 if not content:
                     raise LLMServiceError("Received empty content from provider")
 
-                import json
+                try:
+                    result_data = json.loads(content)
+                except json.JSONDecodeError:
+                    self.logger.warning(
+                        "Failed to parse JSON from vision model, returning raw content",
+                        provider=provider.value,
+                    )
+                    result_data = {"raw_content": content}
 
-                return json.loads(content)
-
-            except json.JSONDecodeError:
-                self.logger.warning(
-                    "Failed to parse JSON from vision model, returning raw content",
-                    provider=provider.value,
+                return AnalysisResult(
+                    analysis_type=AnalysisType.VISUAL_SCREENSHOT_ANALYSIS,
+                    result=result_data,
+                    confidence=0.8,  # Default confidence for vision analysis
+                    provider_used=provider.value,
+                    model_used=config.model,
+                    metadata={"vision_analysis": True}
                 )
-                return {"raw_content": content}
+
             except Exception as e:
                 last_error = e
                 self.logger.error(
@@ -610,6 +743,62 @@ Analyze business logic preservation and identify critical discrepancies.""",
         raise LLMServiceError(
             f"All vision providers failed. Last error: {last_error}"
         ) from last_error
+
+    async def analyze_ui_element_relationships(
+        self,
+        elements: List[Dict[str, Any]],
+        screen_context: str = ""
+    ) -> AnalysisResult:
+        """
+        Analyze relationships between UI elements using structured analysis.
+
+        Args:
+            elements: List of UI elements to analyze
+            screen_context: Context about the screen/page
+
+        Returns:
+            Structured analysis of element relationships and workflows
+        """
+        analysis_context = {
+            "elements_json": json.dumps(elements, indent=2),
+            "screen_context": screen_context
+        }
+
+        return await self.structured_analysis(
+            AnalysisType.UI_RELATIONSHIP_ANALYSIS,
+            analysis_context
+        )
+
+    async def assess_migration_fidelity(
+        self,
+        source_analysis: Dict[str, Any],
+        target_analysis: Dict[str, Any],
+        discrepancies: List[Dict[str, Any]],
+        validation_scope: str
+    ) -> AnalysisResult:
+        """
+        Assess overall migration fidelity using comprehensive analysis.
+
+        Args:
+            source_analysis: Source system analysis results
+            target_analysis: Target system analysis results
+            discrepancies: List of identified discrepancies
+            validation_scope: Scope of validation
+
+        Returns:
+            Comprehensive migration fidelity assessment
+        """
+        analysis_context = {
+            "source_analysis_json": json.dumps(source_analysis, indent=2),
+            "target_analysis_json": json.dumps(target_analysis, indent=2),
+            "discrepancies_json": json.dumps(discrepancies, indent=2),
+            "validation_scope": validation_scope
+        }
+
+        return await self.structured_analysis(
+            AnalysisType.MIGRATION_FIDELITY,
+            analysis_context
+        )
 
     def get_provider_info(self) -> List[Dict[str, Any]]:
         """Get information about the current LLM provider configurations."""

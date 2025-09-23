@@ -8,7 +8,7 @@ database persistence layer, allowing for gradual migration and fallback.
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import FastAPI, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -168,7 +168,7 @@ class DatabaseIntegration:
 
     async def list_sessions(
         self, limit: int = 50, offset: int = 0, **filters
-    ) -> tuple[List[Dict[str, Any]], int]:
+    ) -> Tuple[List[Dict[str, Any]], int]:
         """
         List validation sessions from database.
 

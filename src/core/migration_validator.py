@@ -342,8 +342,12 @@ class MigrationValidator(LoggerMixin):
         # Info issues have minimal impact
         score -= info_count * 0.01
 
-        # Apply confidence weighting if available
-        # TODO: Incorporate individual discrepancy confidence scores
+        # Apply confidence weighting based on individual discrepancy scores
+        if discrepancies:
+            confidence_weights = [d.confidence_score for d in discrepancies if hasattr(d, 'confidence_score')]
+            if confidence_weights:
+                avg_confidence = sum(confidence_weights) / len(confidence_weights)
+                score *= avg_confidence  # Weight by average confidence
 
         # Ensure score stays within bounds
         return max(0.0, min(1.0, score))

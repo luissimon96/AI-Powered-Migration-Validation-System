@@ -18,7 +18,7 @@ from ..core.models import (
     ValidationDiscrepancy,
     ValidationScope,
 )
-from ..services.llm_service import LLMService, LLMServiceError, create_llm_service
+from ..services.llm_service import AnalysisType, LLMService, LLMServiceError, create_llm_service
 
 
 class SemanticComparator:
@@ -29,11 +29,12 @@ class SemanticComparator:
         self.llm_service = llm_client
         if self.llm_service is None:
             try:
-                # Try to create default LLM service
-                self.llm_service = create_llm_service()
+                # Create default LLM service with structured analysis capabilities
+                self.llm_service = create_llm_service(providers="openai,anthropic,google")
             except Exception:
                 # LLM service not available, will use fallback analysis
                 self.llm_service = None
+
         self.comparison_weights = {
             ValidationScope.UI_LAYOUT: {
                 "ui_elements": 0.8,
@@ -123,7 +124,7 @@ class SemanticComparator:
             discrepancies.extend(api_discrepancies)
 
         # Enhance discrepancies with LLM analysis if available
-        if self.llm_client:
+        if self.llm_service:
             enhanced_discrepancies = await self._enhance_with_llm_analysis(
                 source, target, discrepancies, scope
             )
@@ -428,7 +429,7 @@ class SemanticComparator:
             source_func = source_map[name]
             target_func = target_map[name]
 
-            func_discrepancies = self._compare_function_details(source_func, target_func)
+            func_discrepancies = await self._compare_function_details(source_func, target_func)
             discrepancies.extend(func_discrepancies)
 
         return discrepancies
@@ -463,10 +464,10 @@ class SemanticComparator:
 
         return len(common_params) / len(total_params) if total_params else 0.0
 
-    def _compare_function_details(
+    async def _compare_function_details(
         self, source_func: BackendFunction, target_func: BackendFunction
     ) -> List[ValidationDiscrepancy]:
-        """Compare details of matching functions."""
+        """Compare details of matching functions using enhanced LLM analysis."""
         discrepancies = []
 
         # Compare parameters
@@ -481,12 +482,59 @@ class SemanticComparator:
             )
             discrepancies.append(discrepancy)
 
-        # Compare logic summaries if available
+        # Enhanced LLM-based logic comparison if both functions have logic summaries
         if (
+            source_func.logic_summary
+            and target_func.logic_summary
+            and self.llm_service
+        ):
+            try:
+                # Use LLM to compare business logic semantically
+                logic_analysis = await self.llm_service.analyze_code_semantic_similarity(
+                    source_code=source_func.logic_summary,
+                    target_code=target_func.logic_summary,
+                    context=f"Comparing business logic for function '{source_func.name}'",
+                    source_language="pseudocode",
+                    target_language="pseudocode"
+                )
+
+                similarity_score = logic_analysis.result.get("similarity_score", 0.5)
+                functionally_equivalent = logic_analysis.result.get("functionally_equivalent", False)
+
+                # Create discrepancy based on LLM analysis
+                if similarity_score < 0.7 or not functionally_equivalent:
+                    severity = SeverityLevel.CRITICAL if similarity_score < 0.5 else SeverityLevel.WARNING
+
+                    discrepancy = ValidationDiscrepancy(
+                        type="business_logic_change",
+                        severity=severity,
+                        description=f"Function '{source_func.name}' business logic has changed significantly (similarity: {similarity_score:.2f})",
+                        source_element=f"function:{source_func.name}",
+                        target_element=f"function:{target_func.name}",
+                        recommendation=logic_analysis.result.get("recommendations", ["Review logic changes carefully"])[0] if logic_analysis.result.get("recommendations") else "Review logic changes to ensure business requirements are still met",
+                        confidence=logic_analysis.confidence,
+                    )
+                    discrepancies.append(discrepancy)
+
+            except Exception as e:
+                # Fallback to simple comparison if LLM analysis fails
+                if source_func.logic_summary != target_func.logic_summary:
+                    discrepancy = ValidationDiscrepancy(
+                        type="logic_change",
+                        severity=SeverityLevel.WARNING,
+                        description=f"Function '{source_func.name}' logic appears to have changed",
+                        source_element=f"function:{source_func.name}",
+                        target_element=f"function:{target_func.name}",
+                        recommendation="Review logic changes to ensure business requirements are still met",
+                    )
+                    discrepancies.append(discrepancy)
+
+        elif (
             source_func.logic_summary
             and target_func.logic_summary
             and source_func.logic_summary != target_func.logic_summary
         ):
+            # Simple text comparison fallback
             discrepancy = ValidationDiscrepancy(
                 type="logic_change",
                 severity=SeverityLevel.WARNING,
@@ -554,34 +602,95 @@ class SemanticComparator:
         initial_discrepancies: List[ValidationDiscrepancy],
         scope: ValidationScope,
     ) -> List[ValidationDiscrepancy]:
-        """Enhance discrepancy analysis using LLM."""
-        if not self.llm_client:
+        """Enhance discrepancy analysis using comprehensive LLM analysis."""
+        if not self.llm_service:
             return initial_discrepancies
 
-        # Prepare data for LLM analysis
-        comparison_data = {
-            "source": self._serialize_representation(source),
-            "target": self._serialize_representation(target),
-            "scope": scope.value,
-            "initial_discrepancies": [asdict(disc) for disc in initial_discrepancies],
-        }
-
-        # Generate LLM prompt
-        prompt = self._generate_comparison_prompt(comparison_data)
-
         try:
-            # Call LLM for enhanced analysis
-            llm_response = await self._call_llm_for_comparison(prompt, comparison_data)
+            # Prepare data for LLM analysis
+            source_data = self._serialize_representation(source)
+            target_data = self._serialize_representation(target)
+            discrepancies_data = [asdict(disc) for disc in initial_discrepancies]
 
-            # Parse LLM response and enhance discrepancies
-            enhanced_discrepancies = self._parse_llm_comparison_response(
-                llm_response, initial_discrepancies
+            # Use structured LLM analysis for migration fidelity assessment
+            fidelity_analysis = await self.llm_service.assess_migration_fidelity(
+                source_analysis=source_data,
+                target_analysis=target_data,
+                discrepancies=discrepancies_data,
+                validation_scope=scope.value
             )
+
+            # Create enhanced discrepancies based on LLM analysis
+            enhanced_discrepancies = initial_discrepancies.copy()
+
+            # Add LLM-identified additional discrepancies
+            fidelity_results = fidelity_analysis.result
+
+            # Extract critical differences from functional equivalence analysis
+            functional_equiv = fidelity_results.get("functional_equivalence", {})
+            critical_differences = functional_equiv.get("critical_differences", [])
+
+            for difference in critical_differences:
+                enhanced_discrepancy = ValidationDiscrepancy(
+                    type="llm_critical_difference",
+                    severity=SeverityLevel.CRITICAL,
+                    description=difference,
+                    recommendation="Address this critical functional difference",
+                    confidence=fidelity_analysis.confidence,
+                )
+                enhanced_discrepancies.append(enhanced_discrepancy)
+
+            # Extract UX issues
+            ux_analysis = fidelity_results.get("user_experience", {})
+            ux_issues = ux_analysis.get("ux_issues", [])
+
+            for issue in ux_issues:
+                enhanced_discrepancy = ValidationDiscrepancy(
+                    type="ux_issue",
+                    severity=SeverityLevel.WARNING,
+                    description=f"User experience issue: {issue}",
+                    recommendation="Review and address UX concerns",
+                    confidence=fidelity_analysis.confidence,
+                )
+                enhanced_discrepancies.append(enhanced_discrepancy)
+
+            # Extract data integrity risks
+            data_integrity = fidelity_results.get("data_integrity", {})
+            integrity_risks = data_integrity.get("integrity_risks", [])
+
+            for risk in integrity_risks:
+                enhanced_discrepancy = ValidationDiscrepancy(
+                    type="data_integrity_risk",
+                    severity=SeverityLevel.CRITICAL,
+                    description=f"Data integrity risk: {risk}",
+                    recommendation="Ensure data integrity is maintained",
+                    confidence=fidelity_analysis.confidence,
+                )
+                enhanced_discrepancies.append(enhanced_discrepancy)
+
+            # Process recommendations for priority-based enhancements
+            recommendations = fidelity_results.get("recommendations", [])
+            for rec in recommendations:
+                if rec.get("priority") == "high":
+                    enhanced_discrepancy = ValidationDiscrepancy(
+                        type="high_priority_recommendation",
+                        severity=SeverityLevel.WARNING,
+                        description=f"High priority: {rec.get('description', '')}",
+                        recommendation=rec.get('description', ''),
+                        confidence=fidelity_analysis.confidence,
+                    )
+                    enhanced_discrepancies.append(enhanced_discrepancy)
+
+            # Update confidence scores for existing discrepancies based on LLM assessment
+            overall_confidence = fidelity_analysis.confidence
+            for discrepancy in enhanced_discrepancies:
+                if discrepancy.confidence is None:
+                    discrepancy.confidence = overall_confidence * 0.8  # Slightly lower for derived confidence
 
             return enhanced_discrepancies
 
         except Exception as e:
-            # Fall back to initial discrepancies if LLM fails
+            # Log error but don't fail - return original discrepancies
             print(f"LLM enhancement failed: {e}")
             return initial_discrepancies
 
@@ -596,101 +705,104 @@ class SemanticComparator:
             "metadata": representation.metadata,
         }
 
-    def _generate_comparison_prompt(self, comparison_data: Dict[str, Any]) -> str:
-        """Generate prompt for LLM comparison analysis."""
-        return f"""
-        You are an expert in software migration validation. Compare the source and target system representations and identify all discrepancies.
-        
-        Focus on validation scope: {comparison_data['scope']}
-        
-        Source System:
-        {json.dumps(comparison_data['source'], indent=2)}
-        
-        Target System:
-        {json.dumps(comparison_data['target'], indent=2)}
-        
-        Initial Analysis Found:
-        {json.dumps(comparison_data['initial_discrepancies'], indent=2)}
-        
-        Please provide enhanced analysis including:
-        1. Additional discrepancies missed by basic analysis
-        2. Severity assessment improvements
-        3. Better recommendations for each issue
-        4. Confidence scores for identified problems
-        5. Overall migration fidelity assessment
-        
-        Return analysis in JSON format with discrepancies array.
+    async def assess_overall_migration_quality(
+        self,
+        source: AbstractRepresentation,
+        target: AbstractRepresentation,
+        discrepancies: List[ValidationDiscrepancy],
+        scope: ValidationScope
+    ) -> Dict[str, Any]:
         """
+        Assess overall migration quality using comprehensive LLM analysis.
 
-    async def _call_llm_for_comparison(self, prompt: str, data: Dict[str, Any]) -> str:
-        """Call LLM for comparison analysis."""
-        if self.llm_service is None:
-            # Fallback to mock response if LLM service not available
-            return await self._mock_llm_comparison_response(data)
+        Returns detailed quality assessment including fidelity scores,
+        risk analysis, and recommendations.
+        """
+        if not self.llm_service:
+            return self._fallback_quality_assessment(discrepancies)
 
         try:
-            messages = [
-                {
-                    "role": "user",
-                    "content": f"{prompt}\n\nData to analyze:\n{json.dumps(data, indent=2)}",
+            # Prepare comprehensive analysis data
+            source_data = self._serialize_representation(source)
+            target_data = self._serialize_representation(target)
+            discrepancies_data = [asdict(disc) for disc in discrepancies]
+
+            # Get comprehensive migration fidelity assessment
+            fidelity_analysis = await self.llm_service.assess_migration_fidelity(
+                source_analysis=source_data,
+                target_analysis=target_data,
+                discrepancies=discrepancies_data,
+                validation_scope=scope.value
+            )
+
+            # Extract and structure the results
+            results = fidelity_analysis.result
+
+            quality_assessment = {
+                "overall_fidelity_score": results.get("overall_fidelity_score", 0.5),
+                "migration_status": results.get("migration_status", "requires_review"),
+                "confidence": fidelity_analysis.confidence,
+                "provider_used": fidelity_analysis.provider_used,
+                "feature_completeness": results.get("feature_completeness", {}),
+                "functional_equivalence": results.get("functional_equivalence", {}),
+                "user_experience": results.get("user_experience", {}),
+                "data_integrity": results.get("data_integrity", {}),
+                "risk_summary": results.get("risk_summary", {}),
+                "recommendations": results.get("recommendations", []),
+                "analysis_metadata": {
+                    "analysis_type": fidelity_analysis.analysis_type.value,
+                    "llm_metadata": fidelity_analysis.metadata
                 }
-            ]
+            }
 
-            response = await self.llm_service.generate_response(messages)
-            return response.content
-
-        except LLMServiceError as e:
-            # Log error and fallback to mock
-            print(f"LLM service error: {e}, falling back to mock response")
-            return await self._mock_llm_comparison_response(data)
-
-    async def _mock_llm_comparison_response(self, data: Dict[str, Any]) -> str:
-        """Mock LLM response for comparison analysis."""
-        # Generate mock enhanced analysis
-        mock_response = {
-            "enhanced_discrepancies": data.get("initial_discrepancies", []),
-            "additional_findings": [
-                {
-                    "type": "semantic_mismatch",
-                    "severity": "warning",
-                    "description": "Business logic validation appears incomplete in target system",
-                    "recommendation": "Review validation rules to ensure data integrity",
-                    "confidence": 0.8,
-                }
-            ],
-            "overall_assessment": {
-                "fidelity_score": 0.85,
-                "migration_status": "approved_with_warnings",
-                "critical_issues": 0,
-                "warnings": 2,
-                "info": 1,
-            },
-        }
-
-        return json.dumps(mock_response, indent=2)
-
-    def _parse_llm_comparison_response(
-        self, llm_response: str, initial_discrepancies: List[ValidationDiscrepancy]
-    ) -> List[ValidationDiscrepancy]:
-        """Parse LLM response and create enhanced discrepancy list."""
-        try:
-            response_data = json.loads(llm_response)
-            enhanced_discrepancies = initial_discrepancies.copy()
-
-            # Add any additional findings from LLM
-            if "additional_findings" in response_data:
-                for finding in response_data["additional_findings"]:
-                    discrepancy = ValidationDiscrepancy(
-                        type=finding.get("type", "llm_finding"),
-                        severity=SeverityLevel(finding.get("severity", "info")),
-                        description=finding.get("description", "LLM identified issue"),
-                        recommendation=finding.get("recommendation"),
-                        confidence=finding.get("confidence", 0.8),
-                    )
-                    enhanced_discrepancies.append(discrepancy)
-
-            return enhanced_discrepancies
+            return quality_assessment
 
         except Exception as e:
-            print(f"Failed to parse LLM response: {e}")
-            return initial_discrepancies
+            print(f"LLM quality assessment failed: {e}")
+            return self._fallback_quality_assessment(discrepancies)
+
+    def _fallback_quality_assessment(self, discrepancies: List[ValidationDiscrepancy]) -> Dict[str, Any]:
+        """Provide fallback quality assessment when LLM analysis fails."""
+        critical_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.CRITICAL)
+        warning_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.WARNING)
+        info_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.INFO)
+
+        # Simple scoring based on discrepancy counts
+        total_issues = critical_count + warning_count + info_count
+        if total_issues == 0:
+            fidelity_score = 1.0
+            status = "approved"
+        elif critical_count > 0:
+            fidelity_score = max(0.1, 0.7 - (critical_count * 0.2))
+            status = "requires_fixes"
+        elif warning_count > 3:
+            fidelity_score = 0.8 - (warning_count * 0.05)
+            status = "approved_with_warnings"
+        else:
+            fidelity_score = 0.9
+            status = "approved_with_warnings"
+
+        return {
+            "overall_fidelity_score": fidelity_score,
+            "migration_status": status,
+            "confidence": 0.6,  # Lower confidence for fallback
+            "provider_used": "fallback_analysis",
+            "feature_completeness": {"score": fidelity_score},
+            "functional_equivalence": {"score": fidelity_score},
+            "user_experience": {"score": fidelity_score},
+            "data_integrity": {"score": fidelity_score},
+            "risk_summary": {
+                "critical_issues": critical_count,
+                "warnings": warning_count,
+                "info_items": info_count,
+                "highest_risk_area": "manual_review_required" if critical_count > 0 else "low_risk"
+            },
+            "recommendations": [
+                {
+                    "priority": "high" if critical_count > 0 else "medium",
+                    "category": "analysis",
+                    "description": "Manual review recommended due to limited analysis capabilities",
+                    "estimated_effort": "high" if critical_count > 0 else "medium"
+                }
+            ]
+        }

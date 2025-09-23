@@ -52,7 +52,34 @@ class TimestampMixin:
     )
 
 
-class ValidationSessionModel(Base, TimestampMixin):
+class SoftDeleteMixin:
+    """Mixin for soft delete functionality with audit trail."""
+
+    deleted_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+    )
+    deleted_by = Column(String(255), nullable=True)
+    deletion_reason = Column(Text, nullable=True)
+    is_deleted = Column(Boolean, default=False, nullable=False, index=True)
+
+    def soft_delete(self, deleted_by: str = "system", reason: str = None):
+        """Mark record as deleted without removing from database."""
+        self.is_deleted = True
+        self.deleted_at = func.now()
+        self.deleted_by = deleted_by
+        self.deletion_reason = reason
+
+    def restore(self):
+        """Restore soft-deleted record."""
+        self.is_deleted = False
+        self.deleted_at = None
+        self.deleted_by = None
+        self.deletion_reason = None
+
+
+class ValidationSessionModel(Base, TimestampMixin, SoftDeleteMixin):
     """
     Validation session database model.
 
@@ -154,7 +181,7 @@ class ValidationSessionModel(Base, TimestampMixin):
         }
 
 
-class ValidationResultModel(Base, TimestampMixin):
+class ValidationResultModel(Base, TimestampMixin, SoftDeleteMixin):
     """
     Validation result database model.
 
@@ -217,7 +244,7 @@ class ValidationResultModel(Base, TimestampMixin):
         }
 
 
-class DiscrepancyModel(Base, TimestampMixin):
+class DiscrepancyModel(Base, TimestampMixin, SoftDeleteMixin):
     """
     Validation discrepancy database model.
 

@@ -21,6 +21,7 @@ from ..core.models import (
     UIElement,
     ValidationScope,
 )
+from ..services.llm_service import AnalysisType, LLMService, create_llm_service
 from .base import (
     BaseAnalyzer,
     ExtractionError,
@@ -46,6 +47,9 @@ class CodeAnalyzer(BaseAnalyzer):
         # Add UI support for frontend technologies
         if self._is_frontend_tech():
             self.supported_scopes.append(ValidationScope.UI_LAYOUT)
+
+        # Initialize LLM service for enhanced analysis
+        self.llm_service: LLMService = create_llm_service(providers="openai,anthropic,google")
 
     def _is_frontend_tech(self) -> bool:
         """Check if technology context is frontend-focused."""
@@ -82,6 +86,10 @@ class CodeAnalyzer(BaseAnalyzer):
 
                 file_analysis = await self._analyze_file(file_path, scope)
                 self._merge_analysis(representation, file_analysis)
+
+            # Enhanced LLM-based post-processing if needed
+            if scope in [ValidationScope.BUSINESS_LOGIC, ValidationScope.FULL_SYSTEM]:
+                representation = await self._enhance_with_llm_analysis(representation, scope)
 
             return representation
 
@@ -140,7 +148,7 @@ class CodeAnalyzer(BaseAnalyzer):
                 representation.api_endpoints.extend(endpoints)
 
         except SyntaxError:
-            # Fall back to regex-based analysis
+            # Fall back to LLM-based analysis
             representation = await self._analyze_generic_file(content, file_path, scope)
 
         return representation
@@ -245,7 +253,7 @@ class CodeAnalyzer(BaseAnalyzer):
 
         # Extract React components if applicable
         if "react" in content.lower() or file_path.endswith((".jsx", ".tsx")):
-            ui_elements = self._extract_react_elements(content)
+            ui_elements = await self._extract_react_elements(content, file_path)
             representation.ui_elements.extend(ui_elements)
 
         # Extract functions
@@ -258,11 +266,11 @@ class CodeAnalyzer(BaseAnalyzer):
 
         return representation
 
-    def _extract_react_elements(self, content: str) -> List[UIElement]:
-        """Extract UI elements from React components."""
+    async def _extract_react_elements(self, content: str, file_path: str) -> List[UIElement]:
+        """Extract UI elements from React components using pattern matching and LLM enhancement."""
         elements = []
 
-        # Extract JSX elements
+        # Basic pattern matching for common elements
         jsx_patterns = [
             r'<input[^>]*(?:id=["\']([^"\']+)["\'])?[^>]*'
             r'(?:placeholder=["\']([^"\']+)["\'])?[^>]*/>',
@@ -287,6 +295,26 @@ class CodeAnalyzer(BaseAnalyzer):
                     element_type = "unknown"
 
                 elements.append(UIElement(type=element_type, id=element_id, text=element_text))
+
+        # Enhance with LLM-based UI relationship analysis for complex components
+        if elements and len(content) > 1000:  # Only for substantial components
+            try:
+                elements_dict = [asdict(elem) for elem in elements]
+                relationship_analysis = await self.llm_service.analyze_ui_element_relationships(
+                    elements_dict, f"React component in {file_path}"
+                )
+
+                # Enhance elements with relationship data
+                if relationship_analysis.result.get("element_relationships"):
+                    for elem in elements:
+                        if elem.attributes is None:
+                            elem.attributes = {}
+                        elem.attributes["llm_analysis"] = True
+                        elem.attributes["confidence"] = relationship_analysis.confidence
+
+            except Exception as e:
+                # Log error but continue with basic extraction
+                print(f"LLM enhancement failed for {file_path}: {e}")
 
         return elements
 
@@ -342,23 +370,20 @@ class CodeAnalyzer(BaseAnalyzer):
     async def _analyze_java_file(
         self, content: str, file_path: str, scope: ValidationScope
     ) -> AbstractRepresentation:
-        """Analyze Java file."""
-        # TODO: Implement Java-specific analysis
-        return await self._analyze_generic_file(content, file_path, scope)
+        """Analyze Java file using LLM-based analysis."""
+        return await self._analyze_generic_file(content, file_path, scope, language="java")
 
     async def _analyze_csharp_file(
         self, content: str, file_path: str, scope: ValidationScope
     ) -> AbstractRepresentation:
-        """Analyze C# file."""
-        # TODO: Implement C#-specific analysis
-        return await self._analyze_generic_file(content, file_path, scope)
+        """Analyze C# file using LLM-based analysis."""
+        return await self._analyze_generic_file(content, file_path, scope, language="csharp")
 
     async def _analyze_php_file(
         self, content: str, file_path: str, scope: ValidationScope
     ) -> AbstractRepresentation:
-        """Analyze PHP file."""
-        # TODO: Implement PHP-specific analysis
-        return await self._analyze_generic_file(content, file_path, scope)
+        """Analyze PHP file using LLM-based analysis."""
+        return await self._analyze_generic_file(content, file_path, scope, language="php")
 
     async def _analyze_html_file(
         self, content: str, file_path: str, scope: ValidationScope
@@ -405,17 +430,97 @@ class CodeAnalyzer(BaseAnalyzer):
         return elements
 
     async def _analyze_generic_file(
-        self, content: str, file_path: str, scope: ValidationScope
+        self, content: str, file_path: str, scope: ValidationScope, language: str = "auto"
     ) -> AbstractRepresentation:
-        """Generic file analysis using LLM (placeholder for now)."""
-        # TODO: Implement LLM-based analysis for unsupported file types
-        return AbstractRepresentation(
-            metadata={
+        """Generic file analysis using LLM for comprehensive code understanding."""
+        representation = AbstractRepresentation()
+
+        try:
+            # Use LLM for semantic code analysis
+            analysis_result = await self.llm_service.analyze_code_semantic_similarity(
+                source_code=content,
+                target_code="",  # Empty for single-file analysis
+                context=f"Analyzing {file_path} for {scope.value} extraction",
+                source_language=language,
+                target_language=""
+            )
+
+            # Extract insights from LLM analysis
+            llm_result = analysis_result.result
+
+            # Parse LLM insights to populate representation
+            if "business_logic_preserved" in llm_result:
+                representation.metadata["llm_analysis"] = {
+                    "confidence": analysis_result.confidence,
+                    "provider": analysis_result.provider_used,
+                    "insights": llm_result
+                }
+
+            # Try to extract structured data from LLM response
+            if "recommendations" in llm_result:
+                for recommendation in llm_result["recommendations"]:
+                    if "function" in recommendation.lower():
+                        # Extract function information
+                        func_name = recommendation.split()[-1] if recommendation else "unknown"
+                        representation.backend_functions.append(
+                            BackendFunction(
+                                name=func_name,
+                                logic_summary=recommendation,
+                                parameters=[]
+                            )
+                        )
+
+        except Exception as e:
+            # Fallback to basic file metadata
+            representation.metadata = {
                 "file_path": file_path,
-                "analysis_method": "generic",
+                "analysis_method": "fallback",
                 "content_length": len(content),
+                "error": str(e)
             }
-        )
+
+        return representation
+
+    async def _enhance_with_llm_analysis(
+        self, representation: AbstractRepresentation, scope: ValidationScope
+    ) -> AbstractRepresentation:
+        """Enhance representation with LLM-based business logic analysis."""
+        if not representation.backend_functions:
+            return representation
+
+        try:
+            # Prepare functions for business logic analysis
+            functions_data = [asdict(func) for func in representation.backend_functions]
+
+            # Analyze business logic using LLM
+            business_logic_result = await self.llm_service.validate_business_logic(
+                source_functions=functions_data,
+                target_functions=[],  # Empty for single-source analysis
+                domain_context=f"Code analysis for {scope.value}"
+            )
+
+            # Enhance representation with business logic insights
+            representation.metadata["business_logic_analysis"] = {
+                "confidence": business_logic_result.confidence,
+                "provider": business_logic_result.provider_used,
+                "validation_results": business_logic_result.result
+            }
+
+            # Update functions with enhanced logic summaries
+            validation_results = business_logic_result.result
+            if "critical_discrepancies" in validation_results:
+                for i, func in enumerate(representation.backend_functions):
+                    if i < len(validation_results.get("critical_discrepancies", [])):
+                        discrepancy = validation_results["critical_discrepancies"][i]
+                        if func.logic_summary:
+                            func.logic_summary += f" | LLM Analysis: {discrepancy.get('description', '')}"
+                        else:
+                            func.logic_summary = f"LLM Analysis: {discrepancy.get('description', '')}"
+
+        except Exception as e:
+            representation.metadata["llm_enhancement_error"] = str(e)
+
+        return representation
 
     def _merge_analysis(self, target: AbstractRepresentation, source: AbstractRepresentation):
         """Merge analysis results from multiple files."""

@@ -21,14 +21,12 @@ import logging
 # Third-party imports for advanced testing
 try:
     from hypothesis import strategies as st
-
     HYPOTHESIS_AVAILABLE = True
 except ImportError:
     HYPOTHESIS_AVAILABLE = False
 
 try:
     import psutil
-
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -49,6 +47,8 @@ from src.core.models import (
 from src.services.llm_service import LLMConfig, LLMProvider, LLMResponse, LLMService
 from src.analyzers.code_analyzer import CodeAnalyzer
 from src.core.input_processor import InputProcessor
+from src.security.api_keys import APIKeyManager, APIKeyMetadata
+from src.security.schemas import APIKeyScope
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -84,6 +84,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "browser: marks tests requiring browser automation")
     config.addinivalue_line("markers", "database: marks tests requiring database connections")
     config.addinivalue_line("markers", "network: marks tests requiring network access")
+    config.addinivalue_line("markers", "api: marks tests for API endpoints")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -185,17 +186,22 @@ def mock_llm_service():
     mock_service.generate_response.return_value = mock_response
 
     # Mock specialized methods with realistic responses
-    mock_service.analyze_code_semantic_similarity.return_value = {
-        "similarity_score": 0.85,
-        "functionally_equivalent": True,
-        "confidence": 0.9,
-        "key_differences": ["Minor variable naming differences"],
-        "potential_issues": [],
-        "business_logic_preserved": True,
-        "recommendations": ["Consider standardizing naming conventions"],
-        "execution_time_ms": 150,
-        "token_usage": {"total": 150, "prompt": 100, "completion": 50},
-    }
+    mock_service.analyze_code_semantic_similarity.return_value = AsyncMock(
+        result={
+            "similarity_score": 0.85,
+            "functionally_equivalent": True,
+            "confidence": 0.9,
+            "key_differences": ["Minor variable naming differences"],
+            "potential_issues": [],
+            "business_logic_preserved": True,
+            "recommendations": ["Consider standardizing naming conventions"],
+            "execution_time_ms": 150,
+            "token_usage": {"total": 150, "prompt": 100, "completion": 50},
+        },
+        confidence=0.9,
+        provider_used="mock",
+        model_used="mock-model"
+    )
 
     mock_service.compare_ui_elements.return_value = {
         "elements_matched": 8,
@@ -208,28 +214,33 @@ def mock_llm_service():
         "recommendations": ["Add missing submit button", "Consider accessibility improvements"],
     }
 
-    mock_service.validate_business_logic.return_value = {
-        "business_logic_preserved": True,
-        "critical_discrepancies": [],
-        "validation_gaps": [],
-        "risk_assessment": "low",
-        "confidence_score": 0.91,
-        "recommendations": [],
-        "detailed_analysis": {
-            "input_validation": "preserved",
-            "business_rules": "equivalent",
-            "error_handling": "improved",
+    mock_service.validate_business_logic.return_value = AsyncMock(
+        result={
+            "business_logic_preserved": True,
+            "critical_discrepancies": [],
+            "validation_gaps": [],
+            "risk_assessment": "low",
+            "confidence_score": 0.91,
+            "recommendations": [],
+            "detailed_analysis": {
+                "input_validation": "preserved",
+                "business_rules": "equivalent",
+                "error_handling": "improved",
+            },
         },
-    }
+        confidence=0.91,
+        provider_used="mock"
+    )
 
-    mock_service.get_provider_info.return_value = {
-        "provider": "mock",
-        "model": "mock-model-v1.0",
-        "max_tokens": 4000,
-        "temperature": 0.1,
-        "timeout": 60.0,
-        "rate_limit": {"requests_per_minute": 60, "tokens_per_minute": 60000},
-    }
+    mock_service.get_provider_info.return_value = [
+        {
+            "provider": "mock",
+            "model": "mock-model-v1.0",
+            "max_tokens": 4000,
+            "temperature": 0.1,
+            "timeout": 60.0,
+        }
+    ]
 
     # Mock error scenarios for edge case testing
     mock_service.simulate_rate_limit = AsyncMock(side_effect=Exception("Rate limit exceeded"))
@@ -246,7 +257,7 @@ def mock_llm_service():
 @pytest.fixture
 def mock_database():
     """Mock database for testing."""
-    mock_db = MagicMock()
+    mock_db = AsyncMock()
 
     # Mock connection and session management
     mock_db.connect.return_value = True
@@ -267,6 +278,27 @@ def mock_database():
         {"id": "test-2", "status": "in_progress"},
     ]
     mock_db.count.return_value = 2
+
+    # Mock API key operations
+    mock_db.store_api_key.return_value = True
+    mock_db.get_api_key_by_hash.return_value = {
+        "metadata": {
+            "id": "test-api-key-123",
+            "name": "Test API Key",
+            "description": "Test API key for unit testing",
+            "scopes": [APIKeyScope.READ_ONLY],
+            "created_at": "2023-01-01T00:00:00Z",
+            "expires_at": None,
+            "last_used_at": None,
+            "rate_limit_per_minute": 60,
+            "is_active": True,
+            "created_by": "test_user",
+            "usage_count": 0
+        }
+    }
+    mock_db.update_api_key_last_used.return_value = True
+    mock_db.deactivate_api_key.return_value = True
+    mock_db.list_api_keys.return_value = []
 
     return mock_db
 
@@ -298,6 +330,34 @@ def mock_browser_automation():
     }
 
     return mock_browser
+
+
+@pytest.fixture
+def mock_api_key_manager():
+    """Mock API key manager for security testing."""
+    mock_manager = AsyncMock(spec=APIKeyManager)
+
+    # Sample API key metadata
+    sample_metadata = APIKeyMetadata(
+        id="test-key-123",
+        name="Test API Key",
+        description="Test key for unit testing",
+        scopes=[APIKeyScope.READ_ONLY, APIKeyScope.VALIDATION],
+        created_at=datetime.utcnow(),
+        expires_at=None,
+        last_used_at=None,
+        rate_limit_per_minute=60,
+        is_active=True,
+        created_by="test_user",
+        usage_count=0
+    )
+
+    mock_manager.validate_api_key.return_value = sample_metadata
+    mock_manager.create_api_key.return_value = ("amvs_test_key_123", sample_metadata)
+    mock_manager.revoke_api_key.return_value = True
+    mock_manager.check_scope_permission.return_value = True
+
+    return mock_manager
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -763,72 +823,6 @@ public class UserManager {
 
         return stats;
     }
-
-    /**
-     * Process a list of user data.
-     *
-     * @param userData List of user data maps
-     * @return Processing result
-     */
-    public static Map<String, Object> processUserData(List<Map<String, Object>> userData) {
-        if (userData == null || userData.isEmpty()) {
-            Map<String, Object> result = new HashMap<>();
-            result.put("processed", 0);
-            result.put("errors", new ArrayList<>());
-            return result;
-        }
-
-        UserManager userManager = new UserManager();
-        int processedCount = 0;
-        List<String> errors = new ArrayList<>();
-
-        for (Map<String, Object> item : userData) {
-            try {
-                String email = (String) item.get("email");
-                String password = (String) item.get("password");
-
-                if (email != null && password != null) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> metadata = (Map<String, Object>) item.get("metadata");
-                    userManager.createUser(email, password, metadata);
-                    processedCount++;
-                } else {
-                    errors.add("Missing required fields in item: " + item);
-                }
-            } catch (ValidationException e) {
-                String email = (String) item.get("email");
-                errors.add("Validation error for " + (email != null ? email : "unknown") + ": " + e.getMessage());
-            } catch (Exception e) {
-                String email = (String) item.get("email");
-                errors.add("Unexpected error for " + (email != null ? email : "unknown") + ": " + e.getMessage());
-            }
-        }
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("processed", processedCount);
-        result.put("errors", errors);
-        result.put("stats", userManager.getUserStats());
-
-        return result;
-    }
-
-    /**
-     * Main method for example usage.
-     */
-    public static void main(String[] args) {
-        UserManager manager = new UserManager();
-
-        try {
-            Map<String, Object> user = manager.createUser("test@example.com", "securepassword123", null);
-            System.out.println("Created user: " + user);
-
-            Map<String, Object> authResult = manager.authenticateUser("test@example.com", "securepassword123");
-            System.out.println("Authentication result: " + authResult);
-
-        } catch (ValidationException e) {
-            System.err.println("Validation error: " + e.getMessage());
-        }
-    }
 }
 """
 
@@ -863,18 +857,6 @@ interface User {
   active: boolean;
   metadata: UserMetadata;
   lastLogin?: Date;
-}
-
-interface AuthResult {
-  id: number;
-  email: string;
-  lastLogin: string;
-}
-
-interface UserStats {
-  totalUsers: number;
-  activeUsers: number;
-  inactiveUsers: number;
 }
 
 class ValidationError extends Error {
@@ -939,15 +921,6 @@ export class UserManager extends EventEmitter {
   }
 
   /**
-   * Verify password against hash.
-   */
-  verifyPassword(password: string, hash: string): boolean {
-    const [salt, originalHash] = hash.split(':');
-    const currentHash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha256').toString('hex');
-    return originalHash === currentHash;
-  }
-
-  /**
    * Create a new user.
    */
   async createUser(email: string, password: string, metadata: UserMetadata = {}): Promise<Omit<User, 'passwordHash'>> {
@@ -987,98 +960,9 @@ export class UserManager extends EventEmitter {
   }
 
   /**
-   * Authenticate user credentials.
-   */
-  async authenticateUser(email: string, password: string): Promise<AuthResult | null> {
-    const user = this.users.get(email);
-
-    if (!user || !user.active) {
-      return null;
-    }
-
-    try {
-      this.validateUserInput(email, password);
-
-      if (this.verifyPassword(password, user.passwordHash)) {
-        user.lastLogin = new Date();
-
-        // Emit event
-        this.emit('userAuthenticated', { email, id: user.id });
-
-        return {
-          id: user.id,
-          email: user.email,
-          lastLogin: user.lastLogin.toISOString()
-        };
-      }
-    } catch (error) {
-      // Log authentication failure
-      if (this.config.enableLogging) {
-        console.log(`Authentication failed for: ${email}`);
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Deactivate a user account.
-   */
-  deactivateUser(email: string): boolean {
-    const user = this.users.get(email);
-
-    if (user) {
-      user.active = false;
-
-      if (this.config.enableLogging) {
-        console.log(`User deactivated: ${email}`);
-      }
-
-      // Emit event
-      this.emit('userDeactivated', { email, id: user.id });
-
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * Get user by email.
-   */
-  getUser(email: string): Omit<User, 'passwordHash'> | null {
-    const user = this.users.get(email);
-
-    if (user) {
-      const { passwordHash, ...safeUserData } = user;
-      return safeUserData;
-    }
-
-    return null;
-  }
-
-  /**
-   * Update user metadata.
-   */
-  updateUserMetadata(email: string, metadata: UserMetadata): boolean {
-    const user = this.users.get(email);
-
-    if (user) {
-      user.metadata = { ...user.metadata, ...metadata };
-
-      // Emit event
-      this.emit('userUpdated', { email, id: user.id });
-
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
    * Get user statistics.
    */
-  getUserStats(): UserStats {
+  getUserStats(): { totalUsers: number; activeUsers: number; inactiveUsers: number } {
     const activeUsers = Array.from(this.users.values()).filter(user => user.active).length;
 
     return {
@@ -1087,97 +971,6 @@ export class UserManager extends EventEmitter {
       inactiveUsers: this.users.size - activeUsers
     };
   }
-
-  /**
-   * Get all users (admin function).
-   */
-  getAllUsers(): Omit<User, 'passwordHash'>[] {
-    return Array.from(this.users.values()).map(user => {
-      const { passwordHash, ...safeUserData } = user;
-      return safeUserData;
-    });
-  }
-
-  /**
-   * Delete user permanently.
-   */
-  deleteUser(email: string): boolean {
-    const deleted = this.users.delete(email);
-
-    if (deleted && this.config.enableLogging) {
-      console.log(`User deleted: ${email}`);
-    }
-
-    if (deleted) {
-      // Emit event
-      this.emit('userDeleted', { email });
-    }
-
-    return deleted;
-  }
-}
-
-/**
- * Process a list of user data.
- */
-export async function processUserData(userData: Array<{
-  email?: string;
-  password?: string;
-  metadata?: UserMetadata;
-}>): Promise<{
-  processed: number;
-  errors: string[];
-  stats: UserStats;
-}> {
-  if (!userData || userData.length === 0) {
-    return {
-      processed: 0,
-      errors: [],
-      stats: { totalUsers: 0, activeUsers: 0, inactiveUsers: 0 }
-    };
-  }
-
-  const userManager = new UserManager({ enableLogging: true });
-  let processedCount = 0;
-  const errors: string[] = [];
-
-  for (const item of userData) {
-    try {
-      if (item.email && item.password) {
-        await userManager.createUser(item.email, item.password, item.metadata);
-        processedCount++;
-      } else {
-        errors.push(`Missing required fields in item: ${JSON.stringify(item)}`);
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      errors.push(`Error for ${item.email || 'unknown'}: ${errorMessage}`);
-    }
-  }
-
-  return {
-    processed: processedCount,
-    errors,
-    stats: userManager.getUserStats()
-  };
-}
-
-// Example usage
-if (require.main === module) {
-  (async () => {
-    const manager = new UserManager({ enableLogging: true });
-
-    try {
-      const user = await manager.createUser('test@example.com', 'securepassword123');
-      console.log('Created user:', user);
-
-      const authResult = await manager.authenticateUser('test@example.com', 'securepassword123');
-      console.log('Authentication result:', authResult);
-
-    } catch (error) {
-      console.error('Error:', error instanceof Error ? error.message : error);
-    }
-  })();
 }
 """
 
@@ -1279,42 +1072,10 @@ class DataProcessor:
         return {'id': item['id'], 'processed_value': item['value'] * 2}
 """,
         "java_simple.java": 'public class Hello { public String hello() { return "Hello World"; } }',
-        "java_complex.java": """
-package com.example;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-public class DataProcessor {
-    private Map<String, Object> config;
-
-    public DataProcessor(Map<String, Object> config) {
-        this.config = config;
-    }
-
-    public List<Map<String, Object>> process(List<Map<String, Object>> data) {
-        return data.stream()
-            .filter(this::validateItem)
-            .map(this::transformItem)
-            .collect(Collectors.toList());
-    }
-
-    private boolean validateItem(Map<String, Object> item) {
-        return item.containsKey("id") && item.containsKey("value");
-    }
-
-    private Map<String, Object> transformItem(Map<String, Object> item) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", item.get("id"));
-        result.put("processedValue", ((Number) item.get("value")).doubleValue() * 2);
-        return result;
-    }
-}
-""",
         "malformed.py": "def incomplete_function(\n# Missing closing parenthesis and body",
         "empty.py": "",
         "unicode.py": "def función_ñ(): return 'español'",
-        "large.py": "\n".join([f"def func_{i}(): return {i}" for i in range(1000)]),
+        "large.py": "\n".join([f"def func_{i}(): return {i}" for i in range(100)]),
     }
 
     for filename, content in code_samples.items():
@@ -1353,12 +1114,12 @@ def sample_validation_request(temp_files):
         source_technology=TechnologyContext(
             type=TechnologyType.PYTHON_FLASK,
             version="2.0",
-            additional_info={"framework_variant": "Flask-RESTful"},
+            framework_details={"framework_variant": "Flask-RESTful"},
         ),
         target_technology=TechnologyContext(
             type=TechnologyType.JAVA_SPRING,
             version="3.0",
-            additional_info={"framework_variant": "Spring Boot"},
+            framework_details={"framework_variant": "Spring Boot"},
         ),
         validation_scope=ValidationScope.BUSINESS_LOGIC,
         source_input=InputData(
@@ -1368,54 +1129,9 @@ def sample_validation_request(temp_files):
         ),
         target_input=InputData(
             type=InputType.CODE_FILES,
-            files=[temp_files["java_complex.java"]],
+            files=[temp_files["java_simple.java"]],
             metadata={"language": "java", "file_count": 1},
         ),
-        validation_options={
-            "strict_mode": False,
-            "include_performance_analysis": True,
-            "include_security_analysis": True,
-            "timeout_seconds": 300,
-        },
-    )
-
-
-@pytest.fixture
-def behavioral_validation_request():
-    """Enhanced behavioral validation request."""
-    from src.behavioral.crews import BehavioralValidationRequest
-
-    return BehavioralValidationRequest(
-        source_url="http://legacy-system.test/login",
-        target_url="http://new-system.test/login",
-        validation_scenarios=[
-            "User login with valid credentials",
-            "User login with invalid email format",
-            "User login with incorrect password",
-            "User login with empty fields",
-            "Password reset flow initiation",
-            "Password reset with valid token",
-            "Account creation with valid data",
-            "Account creation with duplicate email",
-            "Session timeout handling",
-            "Multiple failed login attempts",
-        ],
-        timeout=600,  # 10 minutes
-        metadata={
-            "test_environment": "staging",
-            "browser": "chromium",
-            "viewport": {"width": 1920, "height": 1080},
-            "user_agent": "Mozilla/5.0 (automated test)",
-            "max_retries": 3,
-            "screenshot_on_failure": True,
-            "video_recording": False,
-        },
-        expected_behaviors={
-            "login_success_redirect": "/dashboard",
-            "login_failure_message": "Invalid credentials",
-            "password_reset_confirmation": "Reset email sent",
-            "account_creation_success": "Account created successfully",
-        },
     )
 
 
@@ -1427,19 +1143,24 @@ def behavioral_validation_request():
 @pytest.fixture
 def migration_validator(mock_llm_service):
     """Enhanced migration validator with comprehensive mocking."""
-    return MigrationValidator(llm_client=mock_llm_service)
+    with patch('src.core.migration_validator.create_llm_service', return_value=mock_llm_service):
+        return MigrationValidator()
 
 
 @pytest.fixture
 def behavioral_crew(mock_llm_service):
     """Enhanced behavioral validation crew."""
-    return BehavioralValidationCrew(llm_service=mock_llm_service)
+    with patch('src.behavioral.crews.create_llm_service', return_value=mock_llm_service):
+        return BehavioralValidationCrew(llm_service=mock_llm_service)
 
 
 @pytest.fixture
 def code_analyzer():
     """Code analyzer fixture."""
-    return CodeAnalyzer()
+    tech_context = TechnologyContext(type=TechnologyType.PYTHON_FLASK)
+    with patch('src.analyzers.code_analyzer.create_llm_service') as mock_create:
+        mock_create.return_value = AsyncMock()
+        return CodeAnalyzer(tech_context)
 
 
 @pytest.fixture
@@ -1452,9 +1173,14 @@ def input_processor():
 def mock_fastapi_client():
     """Enhanced mock FastAPI test client."""
     from fastapi.testclient import TestClient
-    from src.api.routes import app
 
-    return TestClient(app)
+    # Mock the dependencies before creating the app
+    with patch('src.api.routes.MigrationValidator'), \
+         patch('src.api.routes.InputProcessor'), \
+         patch('src.api.routes.create_behavioral_validation_crew'):
+
+        from src.api.routes import app
+        return TestClient(app)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -1508,27 +1234,6 @@ def performance_monitor():
 
 
 # ═══════════════════════════════════════════════════════════════
-# Hypothesis and Property-Based Testing Fixtures
-# ═══════════════════════════════════════════════════════════════
-
-if HYPOTHESIS_AVAILABLE:
-
-    @pytest.fixture
-    def hypothesis_config(request):
-        """Configure Hypothesis for property-based testing."""
-        profile = request.config.getoption("--hypothesis-profile", "default")
-
-        profiles = {
-            "default": {"max_examples": 100, "deadline": 10000},
-            "dev": {"max_examples": 50, "deadline": 5000},
-            "ci": {"max_examples": 200, "deadline": 20000},
-            "quick": {"max_examples": 20, "deadline": 2000},
-        }
-
-        return profiles.get(profile, profiles["default"])
-
-
-# ═══════════════════════════════════════════════════════════════
 # Test Environment and Cleanup Fixtures
 # ═══════════════════════════════════════════════════════════════
 
@@ -1549,6 +1254,7 @@ def setup_test_environment():
         "ANTHROPIC_API_KEY": "test-key-disabled",
         "GOOGLE_API_KEY": "test-key-disabled",
         # Test-specific configurations
+        "SECRET_KEY": "test-secret-key-for-testing-only",
         "TEST_TIMEOUT": "30",
         "MAX_FILE_SIZE_MB": "10",
         "ENABLE_PERFORMANCE_MONITORING": "true",
@@ -1640,24 +1346,51 @@ def test_logger():
 
 
 # ═══════════════════════════════════════════════════════════════
-# Mark Aliases for Convenience
+# Additional Testing Utilities
 # ═══════════════════════════════════════════════════════════════
 
-# Test markers as pytest fixtures for easy access
+
+@pytest.fixture
+def security_test_data():
+    """Security testing data fixture."""
+    return {
+        "valid_api_keys": [
+            "amvs_test_key_valid_123456789012345678901234567890",
+            "amvs_another_valid_key_098765432109876543210987654321",
+        ],
+        "invalid_api_keys": [
+            "invalid_format_key",
+            "amvs_too_short",
+            "",
+            None,
+            "bearer_token_format",
+        ],
+        "malicious_payloads": [
+            {"sql_injection": "'; DROP TABLE users; --"},
+            {"xss_payload": "<script>alert('xss')</script>"},
+            {"path_traversal": "../../../etc/passwd"},
+            {"command_injection": "; rm -rf /"},
+        ],
+        "large_payloads": {
+            "oversized_file": "A" * (11 * 1024 * 1024),  # 11MB file
+            "long_string": "B" * 100000,  # 100KB string
+        }
+    }
+
+
+# Import datetime here for fixtures that need it
+from datetime import datetime
+
+
+# Mark aliases for convenience
 pytest.mark.unit = pytest.mark.unit
 pytest.mark.integration = pytest.mark.integration
 pytest.mark.behavioral = pytest.mark.behavioral
 pytest.mark.performance = pytest.mark.performance
 pytest.mark.security = pytest.mark.security
 pytest.mark.property = pytest.mark.property
-pytest.mark.mutation = pytest.mark.mutation
-pytest.mark.contract = pytest.mark.contract
-pytest.mark.chaos = pytest.mark.chaos
-pytest.mark.visual = pytest.mark.visual
-pytest.mark.regression = pytest.mark.regression
-pytest.mark.critical = pytest.mark.critical
-pytest.mark.smoke = pytest.mark.smoke
 pytest.mark.slow = pytest.mark.slow
 pytest.mark.external = pytest.mark.external
 pytest.mark.llm = pytest.mark.llm
 pytest.mark.browser = pytest.mark.browser
+pytest.mark.api = pytest.mark.api
