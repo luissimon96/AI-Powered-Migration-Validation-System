@@ -52,6 +52,8 @@ from .validation import (
     input_validator,
     security_validator,
 )
+from .password_policy import PasswordValidator, password_validator
+from .session_manager import SessionManager, session_manager
 
 __all__ = [
     # API Key Management
@@ -116,4 +118,12 @@ __all__ = [
     "SecurityValidationError",
     "input_validator",
     "security_validator",
+
+    # Password Policy
+    "PasswordValidator",
+    "password_validator",
+
+    # Session Management
+    "SessionManager",
+    "session_manager",
 ]

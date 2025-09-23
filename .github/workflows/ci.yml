@@ -215,7 +215,7 @@ jobs:
         uses: codecov/codecov-action@v5
         if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
         with:
-          file: ./coverage.xml
+          files: ./coverage.xml
           flags: ${{ matrix.test-category }}
           name: ${{ matrix.test-category }}-coverage
           fail_ci_if_error: false
