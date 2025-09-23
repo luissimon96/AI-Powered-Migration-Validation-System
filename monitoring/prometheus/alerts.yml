@@ -1,0 +1,102 @@
+groups:
+  - name: migration-validator-alerts
+    rules:
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status_code=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+
+      # High response time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s"
+
+      # Service down
+      - alert: ServiceDown
+        expr: up{job="migration-validator"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Migration Validator service is down"
+          description: "Migration Validator service has been down for more than 1 minute"
+
+      # High queue size
+      - alert: HighQueueSize
+        expr: celery_queue_size > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High queue size detected"
+          description: "Queue {{ $labels.queue_name }} has {{ $value }} tasks pending"
+
+      # No active workers
+      - alert: NoActiveWorkers
+        expr: sum(celery_worker_active_tasks) == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No active Celery workers"
+          description: "No Celery workers are currently active"
+
+      # High LLM cost
+      - alert: HighLLMCost
+        expr: sum(rate(llm_cost_usd_total[1h])) * 24 > 200
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High LLM API costs"
+          description: "Daily LLM cost projection is ${{ $value }}"
+
+      # Low cache hit rate
+      - alert: LowCacheHitRate
+        expr: rate(cache_operations_total{result="hit"}[10m]) / rate(cache_operations_total{operation="get"}[10m]) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: system_memory_usage_bytes / (system_memory_usage_bytes + available_memory_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: system_cpu_usage_percent > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}%"
+
+      # Redis connection issues
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis has been down for more than 1 minute"

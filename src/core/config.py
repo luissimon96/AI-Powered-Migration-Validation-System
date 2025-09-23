@@ -93,13 +93,25 @@ class SystemSettings(BaseSettings):
     # Database Settings (optional)
     database_url: Optional[str] = None
 
-    # Redis Settings (optional)
-    redis_url: Optional[str] = None
-    redis_enabled: bool = False
+    # Redis Settings for P001 async processing
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_db: int = 0
+    redis_password: Optional[str] = None
+    redis_enabled: bool = True
+    
+    # Celery Settings
+    celery_worker_concurrency: int = 4
+    celery_task_time_limit: int = 1800  # 30 minutes
+    celery_task_soft_time_limit: int = 1500  # 25 minutes
 
     # Performance Settings
     async_concurrency_limit: int = 10
     request_timeout: float = 300.0
+    
+    # Cache Settings
+    cache_ttl: int = 3600  # 1 hour
+    cache_enabled: bool = True
 
     # Logging Settings
     log_level: str = "INFO"
@@ -117,6 +129,32 @@ class ValidationConfig:
     def __init__(self, settings: SystemSettings):
         self.settings = settings
         self.llm_providers = self._initialize_llm_providers()
+
+    # Redis configuration properties
+    @property
+    def redis_host(self) -> str:
+        """Redis host for task queue and caching."""
+        return self.settings.redis_host
+
+    @property 
+    def redis_port(self) -> int:
+        """Redis port."""
+        return self.settings.redis_port
+
+    @property
+    def redis_db(self) -> int:
+        """Redis database number."""
+        return self.settings.redis_db
+
+    @property
+    def celery_broker_url(self) -> str:
+        """Celery broker URL."""
+        return f'redis://{self.redis_host}:{self.redis_port}/{self.redis_db}'
+
+    @property
+    def celery_result_backend(self) -> str:
+        """Celery result backend URL."""
+        return f'redis://{self.redis_host}:{self.redis_port}/{self.redis_db}'
 
     def _initialize_llm_providers(self) -> Dict[str, LLMProviderConfig]:
         """Initialize LLM provider configurations."""

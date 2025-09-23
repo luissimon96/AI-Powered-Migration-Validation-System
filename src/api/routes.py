@@ -50,6 +50,8 @@ validation_sessions: Dict[str, ValidationSession] = {}
 behavioral_validation_sessions: Dict[str, Dict[str, Any]] = {}
 
 
+from src.api.async_routes import router as async_router
+
 def create_app() -> FastAPI:
     """Create and configure FastAPI application."""
 
@@ -783,6 +785,9 @@ def create_app() -> FastAPI:
             )
 
         return {"sessions": sessions_info, "total_count": len(sessions_info)}
+
+    # Include async processing routes
+    app.include_router(async_router)
 
     return app
 

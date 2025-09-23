@@ -1,0 +1,252 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Migration Validation System - Overview",
+    "tags": ["migration-validator", "monitoring"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"migration-validator\"}",
+            "legendFormat": "Service Status"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "DOWN", "color": "red"}}, "type": "value"},
+              {"options": {"1": {"text": "UP", "color": "green"}}, "type": "value"}
+            ]
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{endpoint}}"
+          }
+        ],
+        "yAxes": [
+          {"label": "Requests/sec", "show": true},
+          {"show": false}
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Response Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          }
+        ],
+        "yAxes": [
+          {"label": "Seconds", "show": true},
+          {"show": false}
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status_code=~\"4..|5..\"}[5m]) / rate(http_requests_total[5m])",
+            "legendFormat": "Error Rate"
+          }
+        ],
+        "yAxes": [
+          {"label": "Error Rate", "show": true, "max": 1},
+          {"show": false}
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "Validation Requests",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(validation_requests_total[5m])",
+            "legendFormat": "{{source_tech}} → {{target_tech}}"
+          }
+        ],
+        "yAxes": [
+          {"label": "Validations/sec", "show": true},
+          {"show": false}
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}
+      },
+      {
+        "id": 6,
+        "title": "Validation Fidelity Scores",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "rate(validation_fidelity_score_bucket[5m])",
+            "legendFormat": "{{le}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+      },
+      {
+        "id": 7,
+        "title": "LLM API Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(llm_requests_total[5m])",
+            "legendFormat": "{{provider}} {{model}}"
+          }
+        ],
+        "yAxes": [
+          {"label": "Requests/sec", "show": true},
+          {"show": false}
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+      },
+      {
+        "id": 8,
+        "title": "LLM Token Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(llm_tokens_total[5m])",
+            "legendFormat": "{{provider}} {{type}}"
+          }
+        ],
+        "yAxes": [
+          {"label": "Tokens/sec", "show": true},
+          {"show": false}
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32}
+      },
+      {
+        "id": 9,
+        "title": "LLM Cost",
+        "type": "singlestat",
+        "targets": [
+          {
+            "expr": "sum(rate(llm_cost_usd_total[24h])) * 24 * 3600",
+            "legendFormat": "Daily Cost"
+          }
+        ],
+        "format": "currencyUSD",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32}
+      },
+      {
+        "id": 10,
+        "title": "Celery Queue Size",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "celery_queue_size",
+            "legendFormat": "{{queue_name}}"
+          }
+        ],
+        "yAxes": [
+          {"label": "Tasks", "show": true},
+          {"show": false}
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 40}
+      },
+      {
+        "id": 11,
+        "title": "Active Workers",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "celery_worker_active_tasks",
+            "legendFormat": "{{worker_name}}"
+          }
+        ],
+        "yAxes": [
+          {"label": "Active Tasks", "show": true},
+          {"show": false}
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 40}
+      },
+      {
+        "id": 12,
+        "title": "Cache Hit Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(cache_operations_total{result=\"hit\"}[5m]) / rate(cache_operations_total{operation=\"get\"}[5m])",
+            "legendFormat": "Hit Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 0.5},
+                {"color": "green", "value": 0.8}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 48}
+      },
+      {
+        "id": 13,
+        "title": "System Resources",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "system_cpu_usage_percent",
+            "legendFormat": "CPU %"
+          },
+          {
+            "expr": "(system_memory_usage_bytes / (system_memory_usage_bytes + available_memory_bytes)) * 100",
+            "legendFormat": "Memory %"
+          }
+        ],
+        "yAxes": [
+          {"label": "Percentage", "show": true, "max": 100},
+          {"show": false}
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 48}
+      },
+      {
+        "id": 14,
+        "title": "Error Breakdown",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (error_type) (rate(errors_total[5m]))",
+            "legendFormat": "{{error_type}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 56}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 30,
+    "version": 1
+  }
+}
