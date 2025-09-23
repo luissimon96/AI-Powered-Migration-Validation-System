@@ -6,7 +6,9 @@ authentication, authorization, data access, and security violations.
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from pydantic import BaseModel
 

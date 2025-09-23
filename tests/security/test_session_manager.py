@@ -3,13 +3,15 @@ Ultra-compressed test implementation for T001 completion.
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from unittest.mock import Mock
 
 import pytest
 
-from src.security.session_manager import (SessionData, SessionManager,
-                                          session_manager)
+from src.security.session_manager import SessionData
+from src.security.session_manager import SessionManager
+from src.security.session_manager import session_manager
 
 
 class TestSessionData:

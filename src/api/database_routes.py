@@ -7,45 +7,42 @@ API compatibility with existing clients.
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    File,
-    HTTPException,
-    Query,
-    UploadFile,
-)
+from fastapi import BackgroundTasks
+from fastapi import Depends
+from fastapi import FastAPI
+from fastapi import File
+from fastapi import HTTPException
+from fastapi import Query
+from fastapi import UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, PlainTextResponse
-from pydantic import BaseModel, Field
+from fastapi.responses import JSONResponse
+from fastapi.responses import PlainTextResponse
+from pydantic import BaseModel
+from pydantic import Field
 
-from ..behavioral.crews import (
-    BehavioralValidationRequest,
-    create_behavioral_validation_crew,
-)
+from ..behavioral.crews import BehavioralValidationRequest
+from ..behavioral.crews import create_behavioral_validation_crew
 from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
-from ..core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-    ValidationSession,
-)
-from ..database.integration import (
-    DatabaseIntegration,
-    HybridSessionManager,
-    database_lifespan,
-    get_database_integration,
-    get_db_service,
-    get_hybrid_session_manager,
-)
+from ..core.models import InputData
+from ..core.models import InputType
+from ..core.models import MigrationValidationRequest
+from ..core.models import TechnologyContext
+from ..core.models import TechnologyType
+from ..core.models import ValidationScope
+from ..core.models import ValidationSession
+from ..database.integration import DatabaseIntegration
+from ..database.integration import HybridSessionManager
+from ..database.integration import database_lifespan
+from ..database.integration import get_database_integration
+from ..database.integration import get_db_service
+from ..database.integration import get_hybrid_session_manager
 from ..database.service import ValidationDatabaseService
 from ..reporters.validation_reporter import ValidationReporter
 

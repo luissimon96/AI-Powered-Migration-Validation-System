@@ -6,25 +6,25 @@ pattern with the existing Pydantic models and system architecture.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import (
-    MigrationValidationRequest,
-    TechnologyType,
-    ValidationDiscrepancy,
-    ValidationResult,
-    ValidationSession,
-)
+from ..core.models import MigrationValidationRequest
+from ..core.models import TechnologyType
+from ..core.models import ValidationDiscrepancy
+from ..core.models import ValidationResult
+from ..core.models import ValidationSession
 from .models import ValidationSessionModel
-from .repositories import (
-    BehavioralTestRepository,
-    DiscrepancyRepository,
-    MetricsRepository,
-    ValidationResultRepository,
-    ValidationSessionRepository,
-)
+from .repositories import BehavioralTestRepository
+from .repositories import DiscrepancyRepository
+from .repositories import MetricsRepository
+from .repositories import ValidationResultRepository
+from .repositories import ValidationSessionRepository
 
 logger = logging.getLogger(__name__)
 
@@ -397,11 +397,9 @@ class ValidationDatabaseService:
 
         """
         # Reconstruct the validation request
-        from ..core.models import (
-            InputData,
-            MigrationValidationRequest,
-            TechnologyContext,
-        )
+        from ..core.models import InputData
+        from ..core.models import MigrationValidationRequest
+        from ..core.models import TechnologyContext
 
         source_technology = TechnologyContext(
             type=session_model.source_technology,

@@ -2,13 +2,17 @@
 """
 
 import os
-from unittest.mock import mock_open, patch
+from unittest.mock import mock_open
+from unittest.mock import patch
 
 import pytest
 
-from src.core.config import (BrowserAutomationConfig, LLMProviderConfig,
-                             ValidationConfig, get_validation_config,
-                             load_config_from_file, validate_config)
+from src.core.config import BrowserAutomationConfig
+from src.core.config import LLMProviderConfig
+from src.core.config import ValidationConfig
+from src.core.config import get_validation_config
+from src.core.config import load_config_from_file
+from src.core.config import validate_config
 
 
 @pytest.mark.unit

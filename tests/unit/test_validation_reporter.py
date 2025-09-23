@@ -8,10 +8,15 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.behavioral.crews import BehavioralValidationResult
-from src.core.models import (InputData, InputType, MigrationValidationRequest,
-                             SeverityLevel, TechnologyContext, TechnologyType,
-                             ValidationDiscrepancy, ValidationResult,
-                             ValidationScope)
+from src.core.models import InputData
+from src.core.models import InputType
+from src.core.models import MigrationValidationRequest
+from src.core.models import SeverityLevel
+from src.core.models import TechnologyContext
+from src.core.models import TechnologyType
+from src.core.models import ValidationDiscrepancy
+from src.core.models import ValidationResult
+from src.core.models import ValidationScope
 from src.reporters.validation_reporter import ValidationReporter
 
 

@@ -8,12 +8,18 @@ import os
 import tempfile
 
 import pytest
-from hypothesis import assume, example, given
+from hypothesis import assume
+from hypothesis import example
+from hypothesis import given
 from hypothesis import strategies as st
-from hypothesis.stateful import Bundle, RuleBasedStateMachine, invariant, rule
+from hypothesis.stateful import Bundle
+from hypothesis.stateful import RuleBasedStateMachine
+from hypothesis.stateful import invariant
+from hypothesis.stateful import rule
 
 from src.core.input_processor import InputProcessor
-from src.core.models import InputData, InputType
+from src.core.models import InputData
+from src.core.models import InputType
 
 
 @pytest.mark.unit

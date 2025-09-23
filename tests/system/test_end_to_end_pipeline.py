@@ -6,15 +6,17 @@ Tests the entire workflow from API request to final unified report generation.
 import json
 import tempfile
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from src.api.routes import app
 from src.behavioral.crews import BehavioralValidationResult
-from src.core.models import (SeverityLevel, ValidationDiscrepancy,
-                             ValidationResult)
+from src.core.models import SeverityLevel
+from src.core.models import ValidationDiscrepancy
+from src.core.models import ValidationResult
 
 
 @pytest.mark.system

@@ -4,7 +4,9 @@ Ultra-compressed implementation for S002 completion.
 
 import time
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from fastapi import Request
 from pydantic import BaseModel

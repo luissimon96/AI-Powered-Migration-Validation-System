@@ -7,16 +7,22 @@ with proper scope-based authorization and audit logging.
 import hashlib
 import secrets
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from fastapi import HTTPException, Security, status
+from fastapi import HTTPException
+from fastapi import Security
+from fastapi import status
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 
 from ..core.config import get_settings
 from ..core.logging import logger
 from ..database.service import get_database_service
-from .schemas import APIKeyCreateRequest, APIKeyResponse, APIKeyScope
+from .schemas import APIKeyCreateRequest
+from .schemas import APIKeyResponse
+from .schemas import APIKeyScope
 
 
 class APIKeyMetadata(BaseModel):

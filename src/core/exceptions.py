@@ -9,7 +9,11 @@ import sys
 import traceback
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Type
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Type
 
 import structlog
 

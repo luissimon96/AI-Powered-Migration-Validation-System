@@ -4,9 +4,12 @@ Provides comprehensive security headers configuration for API protection
 against common web vulnerabilities.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from fastapi import Request, Response
+from fastapi import Request
+from fastapi import Response
 
 
 class SecurityHeaders:

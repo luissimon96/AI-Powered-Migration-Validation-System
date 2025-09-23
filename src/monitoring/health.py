@@ -6,7 +6,8 @@ import asyncio
 import time
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
 
 import redis
 

@@ -1,7 +1,10 @@
-from typing import List, Union
+from typing import List
+from typing import Union
 
-from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
+from pydantic_settings import SettingsConfigDict
 
 
 class SecuritySettings(BaseSettings):

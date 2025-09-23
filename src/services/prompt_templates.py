@@ -7,7 +7,9 @@ code comparison, UI analysis, and business logic validation.
 import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
+from typing import Dict
+from typing import List
 
 
 class AnalysisType(Enum):

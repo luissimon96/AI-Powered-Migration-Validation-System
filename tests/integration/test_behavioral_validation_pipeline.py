@@ -5,15 +5,18 @@ Tests the complete workflow from behavioral validation request to final results.
 
 import asyncio
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
 
-from src.behavioral.crews import (BehavioralValidationCrew,
-                                  BehavioralValidationRequest,
-                                  BehavioralValidationResult,
-                                  create_behavioral_validation_crew)
-from src.core.models import SeverityLevel, ValidationDiscrepancy
+from src.behavioral.crews import BehavioralValidationCrew
+from src.behavioral.crews import BehavioralValidationRequest
+from src.behavioral.crews import BehavioralValidationResult
+from src.behavioral.crews import create_behavioral_validation_crew
+from src.core.models import SeverityLevel
+from src.core.models import ValidationDiscrepancy
 
 
 @pytest.mark.integration
