@@ -76,7 +76,7 @@ EXTRAS = {
     # Code Quality & Formatting
     "quality": [
         "flake8>=6.1.0,<7.0.0",
-        "isort>=5.12.0,<6.0.0",
+        "isort==5.13.2",
         "mypy>=1.7.0,<2.0.0",
     ],
     # Security Scanning
