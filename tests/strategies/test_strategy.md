@@ -274,7 +274,7 @@ Blocking Conditions:
 
 ### Quality & Security
 - bandit, safety (security scanning)
-- black, isort, flake8 (code quality)
+- ruff, isort, flake8 (code quality)
 - mypy (type checking)
 - pre-commit (automation)
 

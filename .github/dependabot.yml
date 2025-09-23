@@ -52,7 +52,7 @@ updates:
       # Development tools
       dev-tools:
         patterns:
-          - "black"
+          - "ruff"
           - "flake8"
           - "isort"
           - "mypy"

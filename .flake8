@@ -4,10 +4,10 @@ max-line-length = 88
 max-complexity = 12
 
 # Ignore specific error codes
-ignore = 
-    # E203: whitespace before ':' (conflicts with black)
+ignore =
+    # E203: whitespace before ':' (conflicts with formatters)
     E203,
-    # W503: line break before binary operator (conflicts with black)
+    # W503: line break before binary operator (conflicts with formatters)
     W503,
     # F401: module imported but unused (allow for __init__.py files)
     F401

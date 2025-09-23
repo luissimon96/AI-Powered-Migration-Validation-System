@@ -26,7 +26,6 @@ license = { text = "MIT" }
 dev = [
     "pytest",
     "pytest-asyncio",
-    "black",
     "isort",
     "flake8",
     "mypy",
@@ -40,12 +39,8 @@ dev = [
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
-line-length = 99
-target-version = ['py39']
-
 [tool.isort]
-profile = "black"
+profile = "ruff"
 line_length = 99
 known_first_party = "src"
 

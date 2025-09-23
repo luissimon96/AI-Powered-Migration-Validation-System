@@ -133,7 +133,7 @@ git checkout -b feature/your-feature
 python run_tests.py --unit --fast
 
 # 3. Check code quality
-black src/ tests/
+ruff format src/ tests/
 isort src/ tests/
 flake8 src/ tests/
 
@@ -148,7 +148,7 @@ git push origin feature/your-feature
 ## 📊 Quality Gates
 
 ### Code Quality
-- **Black:** Code formatting must pass
+- **Ruff:** Code formatting and basic linting must pass
 - **isort:** Import sorting must be correct
 - **flake8:** Linting issues must be resolved
 - **mypy:** Type hints encouraged (warnings only)

@@ -11,7 +11,7 @@
 - ✅ Complete migration from setup.py
 - ✅ Modern build system with setuptools-scm
 - ✅ All dependency groups preserved (ai, browser, database, security, etc.)
-- ✅ Comprehensive tool configurations (black, isort, mypy, pytest)
+- ✅ Comprehensive tool configurations (ruff, isort, mypy, pytest)
 - ✅ Production-ready metadata and entry points
 
 **Key Improvements**:
@@ -29,7 +29,7 @@ full-dev = ["dev", "quality", "tools", "types"]
 **File**: `/.pre-commit-config.yaml`
 
 **Security & Quality Pipeline**:
-- ✅ **Code Formatting**: Black, isort with consistency
+- ✅ **Code Formatting**: Ruff, isort with consistency
 - ✅ **Quality Analysis**: Flake8 with extensions, mypy type checking
 - ✅ **Security Scanning**: Bandit, safety vulnerability checks
 - ✅ **Content Validation**: YAML/JSON linting, secrets detection
@@ -114,7 +114,7 @@ pre-commit run --all-files
 
 # Check specific tools
 pre-commit run bandit
-pre-commit run black
+pre-commit run ruff-format
 ```
 
 ### Error Handling in Code

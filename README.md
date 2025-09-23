@@ -112,7 +112,7 @@ REDIS_URL=redis://localhost:6379/0
 
 1. Install development environment: `pip install -e ".[dev,quality,tools]"`
 2. Run tests: `python run_tests.py --coverage`
-3. Check code quality: `black . && flake8 . && mypy src/`
+3. Check code quality: `ruff format . && flake8 . && mypy src/`
 4. Submit pull request
 
 ## 📄 License

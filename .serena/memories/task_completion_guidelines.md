@@ -7,7 +7,7 @@ Run these commands before considering a task complete:
 
 ```bash
 # Format code
-black src/ tests/
+ruff format src/ tests/
 
 # Check linting
 flake8 src/ tests/
@@ -126,7 +126,7 @@ curl http://localhost:8000/api/technologies
 
 ### Automated Checks (Required)
 - All tests pass (`pytest tests/` returns 0)
-- Code formatting (`black --check src/ tests/`)
+- Code formatting (`ruff format --check src/ tests/`)
 - Linting passes (`flake8 src/ tests/`)
 - Type checking passes (`mypy src/`)
 - Security scan clean (`bandit -r src/`)

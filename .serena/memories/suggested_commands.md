@@ -56,8 +56,8 @@ pytest tests/security/ -v -m security
 
 ### Linting and Formatting
 ```bash
-# Format code with Black
-black src/ tests/
+# Format code with Ruff
+ruff format src/ tests/
 
 # Check with flake8
 flake8 src/ tests/

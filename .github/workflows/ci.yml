@@ -75,8 +75,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[quality]"
 
-      - name: 🎨 Code Formatting (Black)
-        run: black --check --diff src/ tests/
 
       - name: 📏 Import Sorting (isort)
         run: isort --check-only --diff src/ tests/

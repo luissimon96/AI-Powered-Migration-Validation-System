@@ -75,7 +75,6 @@ EXTRAS = {
     ],
     # Code Quality & Formatting
     "quality": [
-        "black>=23.11.0,<24.0.0",
         "flake8>=6.1.0,<7.0.0",
         "isort>=5.12.0,<6.0.0",
         "mypy>=1.7.0,<2.0.0",
