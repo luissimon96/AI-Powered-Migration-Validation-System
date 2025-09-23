@@ -10,8 +10,7 @@ from typing import Optional
 from urllib.parse import quote_plus
 
 from sqlalchemy import MetaData
-from sqlalchemy.pool import QueuePool
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import QueuePool, StaticPool
 
 from ..core.config import get_settings
 

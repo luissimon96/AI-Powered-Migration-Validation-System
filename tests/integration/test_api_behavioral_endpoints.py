@@ -4,17 +4,14 @@ Tests the REST API endpoints for behavioral validation functionality.
 """
 
 from datetime import datetime
-from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from src.api.routes import app
 from src.behavioral.crews import BehavioralValidationResult
-from src.core.models import SeverityLevel
-from src.core.models import ValidationDiscrepancy
+from src.core.models import SeverityLevel, ValidationDiscrepancy
 
 
 @pytest.mark.integration

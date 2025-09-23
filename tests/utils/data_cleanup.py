@@ -3,13 +3,11 @@
 
 import asyncio
 import shutil
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List
 
-from src.database.models import User
-from src.database.models import ValidationSession
+from src.database.models import User, ValidationSession
 
 
 class TestDataCleaner:

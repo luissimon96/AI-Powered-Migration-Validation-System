@@ -7,11 +7,7 @@ to prevent injection attacks, malicious file uploads, and other security threats
 import mimetypes
 import re
 from pathlib import Path
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 try:
@@ -19,8 +15,7 @@ try:
 except ImportError:
     magic = None
 from fastapi import UploadFile
-from pydantic import BaseModel
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
 
 
 class SecurityValidationError(Exception):

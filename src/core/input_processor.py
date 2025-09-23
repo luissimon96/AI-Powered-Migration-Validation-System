@@ -9,20 +9,12 @@ Implements the input interface described in the proposal:
 
 import os
 import tempfile
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from .exceptions import resource_error
 from .logging import LoggerMixin
-from .models import InputData
-from .models import InputType
-from .models import MigrationValidationRequest
-from .models import TechnologyContext
-from .models import TechnologyType
-from .models import ValidationScope
+from .models import (InputData, InputType, MigrationValidationRequest,
+                     TechnologyContext, TechnologyType, ValidationScope)
 
 
 class InputProcessor(LoggerMixin):

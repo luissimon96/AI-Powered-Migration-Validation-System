@@ -79,8 +79,7 @@ class TestMigrationValidatorConfiguration:
     def test_validator_initialization_with_config(
             self, mock_get_config, mock_llm_service):
         """Test validator initialization with configuration."""
-        from src.core.config import LLMProviderConfig
-        from src.core.config import ValidationConfig
+        from src.core.config import LLMProviderConfig, ValidationConfig
 
         # Mock configuration
         mock_config = ValidationConfig.__new__(ValidationConfig)

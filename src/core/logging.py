@@ -11,15 +11,10 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
+from typing import Any, Dict, List, Optional, Union
 
 import structlog
-from structlog.types import FilteringBoundLogger
-from structlog.types import WrappedLogger
+from structlog.types import FilteringBoundLogger, WrappedLogger
 
 # Security: Sensitive fields to filter from logs
 SENSITIVE_FIELDS = {

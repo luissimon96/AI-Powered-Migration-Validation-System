@@ -4,8 +4,6 @@ This file is used by Alembic to configure the migration environment,
 including database connection and metadata setup.
 """
 
-from src.database.models import Base
-from src.database.config import get_database_config
 import asyncio
 import os
 import sys
@@ -16,6 +14,8 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
+from src.database.config import get_database_config
+from src.database.models import Base
 
 # Add the project source directory to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))

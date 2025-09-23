@@ -4,31 +4,18 @@ Provides high-level data access methods with business logic
 encapsulation, query optimization, and transaction management.
 """
 
-from datetime import datetime
-from datetime import timedelta
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import and_
-from sqlalchemy import desc
-from sqlalchemy import func
-from sqlalchemy import select
-from sqlalchemy import update
+from sqlalchemy import and_, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..core.models import SeverityLevel
-from ..core.models import TechnologyType
-from ..core.models import ValidationDiscrepancy
-from ..core.models import ValidationScope
-from .models import BehavioralTestResultModel
-from .models import DiscrepancyModel
-from .models import ValidationMetricsModel
-from .models import ValidationResultModel
-from .models import ValidationSessionModel
+from ..core.models import (SeverityLevel, TechnologyType,
+                           ValidationDiscrepancy, ValidationScope)
+from .models import (BehavioralTestResultModel, DiscrepancyModel,
+                     ValidationMetricsModel, ValidationResultModel,
+                     ValidationSessionModel)
 
 
 class BaseRepository:

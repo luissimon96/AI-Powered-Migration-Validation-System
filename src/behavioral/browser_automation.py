@@ -7,24 +7,18 @@ and browser-use for intelligent web interaction and behavioral validation.
 import asyncio
 import tempfile
 import time
-from dataclasses import asdict
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 import structlog
 
 try:
     from browser_use.browser import Browser as BrowserUseAgent
     from browser_use.controller import Controller
-    from playwright.async_api import Browser
-    from playwright.async_api import BrowserContext
-    from playwright.async_api import Page
-    from playwright.async_api import async_playwright
+    from playwright.async_api import (Browser, BrowserContext, Page,
+                                      async_playwright)
 except ImportError:
     # Graceful fallback for environments without browser dependencies
     async_playwright = None
@@ -34,8 +28,7 @@ except ImportError:
     BrowserUseAgent = None
     Controller = None
 
-from ..core.models import SeverityLevel
-from ..core.models import ValidationDiscrepancy
+from ..core.models import SeverityLevel, ValidationDiscrepancy
 
 logger = structlog.get_logger(__name__)
 

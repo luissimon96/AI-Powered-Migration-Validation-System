@@ -5,16 +5,6 @@ Provides command-line interface for database operations including
 initialization, migration, backup, and maintenance tasks.
 """
 
-from src.database.utils import (
-    cleanup_database,
-    export_session_data,
-    get_database_statistics,
-    optimize_database_performance,
-    validate_database_integrity,
-)
-from src.database.session import get_database_manager
-from src.database.migrations import MigrationManager
-from src.database.config import get_database_config
 import argparse
 import asyncio
 import json
@@ -22,6 +12,14 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
+
+from src.database.config import get_database_config
+from src.database.migrations import MigrationManager
+from src.database.session import get_database_manager
+from src.database.utils import (cleanup_database, export_session_data,
+                                get_database_statistics,
+                                optimize_database_performance,
+                                validate_database_integrity)
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))

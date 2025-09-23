@@ -4,14 +4,11 @@ Defines the common interface for all analyzer implementations in the
 migration validation system.
 """
 
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import List
 
-from ..core.models import AbstractRepresentation
-from ..core.models import InputData
-from ..core.models import TechnologyContext
-from ..core.models import ValidationScope
+from ..core.models import (AbstractRepresentation, InputData,
+                           TechnologyContext, ValidationScope)
 
 
 class BaseAnalyzer(ABC):

@@ -11,22 +11,13 @@ import json
 import os
 from datetime import datetime
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import List
+from typing import Any, Dict, List
 
-from fastapi import BackgroundTasks
-from fastapi import Depends
-from fastapi import FastAPI
-from fastapi import File
-from fastapi import Form
-from fastapi import HTTPException
-from fastapi import UploadFile
+from fastapi import (BackgroundTasks, Depends, FastAPI, File, Form,
+                     HTTPException, UploadFile)
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.responses import PlainTextResponse
-from fastapi.security import OAuth2PasswordBearer
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
 from src.api.async_routes import router as async_router

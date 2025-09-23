@@ -6,17 +6,11 @@ Supports per-user, per-IP, and global rate limiting with Redis backing.
 
 import asyncio
 import time
-from collections import defaultdict
-from collections import deque
+from collections import defaultdict, deque
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import Optional
-from typing import Tuple
+from typing import Any, Dict, Optional, Tuple
 
-from fastapi import HTTPException
-from fastapi import Request
-from fastapi import status
+from fastapi import HTTPException, Request, status
 from pydantic import BaseModel
 
 

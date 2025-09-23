@@ -3,14 +3,15 @@
 Production-ready worker management with monitoring.
 """
 
-from src.core.logging import logger
-from src.core.config import get_validation_config
 import os
 import signal
 import subprocess
 import sys
 from pathlib import Path
 from typing import List, Optional
+
+from src.core.config import get_validation_config
+from src.core.logging import logger
 
 # Add project root to Python path
 project_root = Path(__file__).parent.parent

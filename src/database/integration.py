@@ -6,21 +6,14 @@ database persistence layer, allowing for gradual migration and fallback.
 
 import logging
 from contextlib import asynccontextmanager
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import Depends
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.models import ValidationSession
 from .service import ValidationDatabaseService
-from .session import close_database
-from .session import get_db_session
-from .session import initialize_database
+from .session import close_database, get_db_session, initialize_database
 
 logger = logging.getLogger(__name__)
 

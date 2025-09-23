@@ -8,13 +8,9 @@ import gc
 import json
 import statistics
 import time
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
+from typing import Any, Callable, Dict, List
 from unittest.mock import Mock
 
 import psutil
@@ -24,12 +20,9 @@ from memory_profiler import profile
 from src.analyzers.code_analyzer import CodeAnalyzer
 from src.core.input_processor import InputProcessor
 from src.core.migration_validator import MigrationValidator
-from src.core.models import InputData
-from src.core.models import InputType
-from src.core.models import MigrationValidationRequest
-from src.core.models import TechnologyContext
-from src.core.models import TechnologyType
-from src.core.models import ValidationScope
+from src.core.models import (InputData, InputType, MigrationValidationRequest,
+                             TechnologyContext, TechnologyType,
+                             ValidationScope)
 
 # ═══════════════════════════════════════════════════════════════
 # Performance Testing Framework

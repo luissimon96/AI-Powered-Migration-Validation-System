@@ -3,17 +3,14 @@ Ultra-compressed implementation focusing on core database operations.
 """
 
 import asyncio
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from src.core.models import ValidationRequest
-from src.core.models import ValidationScope
+from src.core.models import ValidationRequest, ValidationScope
 from src.database.integration import DatabaseManager
-from src.database.models import ValidationResult
-from src.database.models import ValidationSession
+from src.database.models import ValidationResult, ValidationSession
 
 
 @pytest.mark.integration

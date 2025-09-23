@@ -2,19 +2,12 @@
 Prometheus metrics, health checks, and observability endpoints.
 """
 
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter
-from fastapi import HTTPException
-from fastapi import Query
-from fastapi import Response
+from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import PlainTextResponse
 
-from src.monitoring.health import HealthStatus
-from src.monitoring.health import health_monitor
+from src.monitoring.health import HealthStatus, health_monitor
 from src.monitoring.logging import structured_logger
 from src.monitoring.metrics import metrics_collector
 from src.services.task_queue import async_validation_service

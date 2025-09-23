@@ -3,15 +3,12 @@
 
 import os
 import tempfile
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.core.input_processor import InputProcessor
-from src.core.models import InputData
-from src.core.models import InputType
-from src.core.models import TechnologyType
+from src.core.models import InputData, InputType, TechnologyType
 
 
 @pytest.mark.unit

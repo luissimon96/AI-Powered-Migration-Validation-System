@@ -9,16 +9,6 @@ Provides command-line interface for database operations including:
 - Data validation and cleanup
 """
 
-from src.database.utils import (
-    cleanup_database,
-    export_session_data,
-    get_database_statistics,
-    optimize_database_performance,
-    validate_database_integrity,
-)
-from src.database.session import DatabaseManager
-from src.database.migrations import DataMigrator, MigrationManager
-from src.database.config import get_database_config
 import asyncio
 import json
 import os
@@ -28,6 +18,14 @@ from pathlib import Path
 from typing import Optional
 
 import click
+
+from src.database.config import get_database_config
+from src.database.migrations import DataMigrator, MigrationManager
+from src.database.session import DatabaseManager
+from src.database.utils import (cleanup_database, export_session_data,
+                                get_database_statistics,
+                                optimize_database_performance,
+                                validate_database_integrity)
 
 # Add the project root to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))

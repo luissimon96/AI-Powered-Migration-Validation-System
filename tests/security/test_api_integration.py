@@ -80,8 +80,7 @@ class TestSecurityComponentsMinimal:
 
     def test_session_timeout_logic(self):
         """Test session timeout logic."""
-        from datetime import datetime
-        from datetime import timedelta
+        from datetime import datetime, timedelta
 
         # Session timeout simulation
         created_time = datetime.utcnow()

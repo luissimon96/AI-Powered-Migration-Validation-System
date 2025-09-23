@@ -5,16 +5,10 @@ Comprehensive system and business metrics monitoring.
 import time
 from datetime import datetime
 from functools import wraps
-from typing import Any
-from typing import Dict
-from typing import Optional
+from typing import Any, Dict, Optional
 
-from prometheus_client import CollectorRegistry
-from prometheus_client import Counter
-from prometheus_client import Gauge
-from prometheus_client import Histogram
-from prometheus_client import Info
-from prometheus_client import generate_latest
+from prometheus_client import (CollectorRegistry, Counter, Gauge, Histogram,
+                               Info, generate_latest)
 
 from src.core.logging import logger
 

@@ -10,15 +10,11 @@ import json
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 import structlog
 
-from .prompt_templates import AnalysisType
-from .prompt_templates import prompt_manager
+from .prompt_templates import AnalysisType, prompt_manager
 
 try:
     import openai

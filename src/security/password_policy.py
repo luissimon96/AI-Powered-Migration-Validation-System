@@ -3,8 +3,7 @@ Ultra-compressed implementation with essential security policies.
 """
 
 import re
-from typing import List
-from typing import Tuple
+from typing import List, Tuple
 
 from pydantic import BaseModel
 
