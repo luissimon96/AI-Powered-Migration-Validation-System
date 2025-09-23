@@ -49,8 +49,9 @@ class SlidingWindowCounter:
         self.requests: Dict[str, deque] = defaultdict(deque)
         self.lock = asyncio.Lock()
 
-    async def is_allowed(self, key: str, limit: int,
-                         window: int) -> Tuple[bool, Dict[str, Any]]:
+    async def is_allowed(
+        self, key: str, limit: int, window: int
+    ) -> Tuple[bool, Dict[str, Any]]:
         """Check if request is allowed under sliding window."""
         async with self.lock:
             now = time.time()
@@ -93,7 +94,11 @@ class TokenBucket:
         self.lock = asyncio.Lock()
 
     async def is_allowed(
-        self, key: str, limit: int, window: int, burst_multiplier: float = 1.5,
+        self,
+        key: str,
+        limit: int,
+        window: int,
+        burst_multiplier: float = 1.5,
     ) -> Tuple[bool, Dict[str, Any]]:
         """Check if request is allowed under token bucket."""
         async with self.lock:
@@ -137,8 +142,9 @@ class FixedWindowCounter:
         self.windows: Dict[str, Dict[int, int]] = defaultdict(lambda: defaultdict(int))
         self.lock = asyncio.Lock()
 
-    async def is_allowed(self, key: str, limit: int,
-                         window: int) -> Tuple[bool, Dict[str, Any]]:
+    async def is_allowed(
+        self, key: str, limit: int, window: int
+    ) -> Tuple[bool, Dict[str, Any]]:
         """Check if request is allowed under fixed window."""
         async with self.lock:
             now = time.time()
@@ -196,7 +202,10 @@ class RateLimiter:
         }
 
     def get_rate_limit_key(
-        self, request: Request, config: RateLimitConfig, user_id: Optional[str] = None,
+        self,
+        request: Request,
+        config: RateLimitConfig,
+        user_id: Optional[str] = None,
     ) -> str:
         """Generate rate limit key based on configuration."""
         key_parts = []
@@ -226,7 +235,8 @@ class RateLimiter:
     ) -> Dict[str, Any]:
         """Check if request passes rate limit."""
         config = custom_config or self.default_limits.get(
-            limit_type, self.default_limits["api_general"],
+            limit_type,
+            self.default_limits["api_general"],
         )
 
         key = self.get_rate_limit_key(request, config, user_id)
@@ -234,23 +244,28 @@ class RateLimiter:
         # Choose algorithm
         if config.algorithm == RateLimitAlgorithm.SLIDING_WINDOW:
             allowed, info = await self.sliding_window.is_allowed(
-                key, config.requests, config.window,
+                key,
+                config.requests,
+                config.window,
             )
         elif config.algorithm == RateLimitAlgorithm.TOKEN_BUCKET:
             allowed, info = await self.token_bucket.is_allowed(
-                key, config.requests, config.window, config.burst_multiplier,
+                key,
+                config.requests,
+                config.window,
+                config.burst_multiplier,
             )
         elif config.algorithm == RateLimitAlgorithm.FIXED_WINDOW:
-            allowed, info = await self.fixed_window.is_allowed(key, config.requests, config.window)
+            allowed, info = await self.fixed_window.is_allowed(
+                key, config.requests, config.window
+            )
         else:
             raise ValueError(f"Unknown rate limit algorithm: {config.algorithm}")
 
         if not allowed:
             raise RateLimitExceeded(
                 f"Rate limit exceeded for {limit_type}",
-                retry_after=info.get(
-                    "retry_after",
-                    60),
+                retry_after=info.get("retry_after", 60),
             )
 
         return info
@@ -291,12 +306,16 @@ def rate_limit(limit_type: str, custom_config: Optional[RateLimitConfig] = None)
                 raise ValueError("Request object not found in endpoint parameters")
 
             try:
-                await rate_limiter.check_rate_limit(request, limit_type, user_id, custom_config)
+                await rate_limiter.check_rate_limit(
+                    request, limit_type, user_id, custom_config
+                )
             except RateLimitExceeded as e:
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     detail=e.message,
-                    headers={"Retry-After": str(e.retry_after)} if e.retry_after else {},
+                    headers={"Retry-After": str(e.retry_after)}
+                    if e.retry_after
+                    else {},
                 )
 
             return await func(*args, **kwargs)

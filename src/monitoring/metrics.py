@@ -7,8 +7,14 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, Dict, Optional
 
-from prometheus_client import (CollectorRegistry, Counter, Gauge, Histogram,
-                               Info, generate_latest)
+from prometheus_client import (
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    Info,
+    generate_latest,
+)
 
 from src.core.logging import logger
 
@@ -121,7 +127,10 @@ class MetricsCollector:
         self.cache_operations = Counter(
             "cache_operations_total",
             "Cache operations",
-            ["operation", "result"],  # operation: get/set/delete, result: hit/miss/success
+            [
+                "operation",
+                "result",
+            ],  # operation: get/set/delete, result: hit/miss/success
             registry=self.registry,
         )
 
@@ -187,14 +196,17 @@ class MetricsCollector:
             "Application information",
             registry=self.registry,
         )
-        self.app_info.info({
-            "version": "1.0.0",
-            "environment": "production",
-            "build_date": datetime.utcnow().isoformat(),
-        })
+        self.app_info.info(
+            {
+                "version": "1.0.0",
+                "environment": "production",
+                "build_date": datetime.utcnow().isoformat(),
+            }
+        )
 
     def track_request(self, method: str, endpoint: str):
         """Decorator to track HTTP request metrics."""
+
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -248,10 +260,12 @@ class MetricsCollector:
                     self.active_requests.dec()
 
             return wrapper
+
         return decorator
 
     def track_validation(self, source_tech: str, target_tech: str, scope: str):
         """Track validation request metrics."""
+
         def decorator(func):
             @wraps(func)
             async def async_wrapper(*args, **kwargs):
@@ -262,11 +276,9 @@ class MetricsCollector:
                     result = await func(*args, **kwargs)
 
                     # Track fidelity score if available
-                    if hasattr(
-                            result,
-                            "result") and hasattr(
-                            result.result,
-                            "fidelity_score"):
+                    if hasattr(result, "result") and hasattr(
+                        result.result, "fidelity_score"
+                    ):
                         self.validation_fidelity_score.labels(
                             source_tech=source_tech,
                             target_tech=target_tech,
@@ -299,10 +311,12 @@ class MetricsCollector:
                     ).inc()
 
             return async_wrapper
+
         return decorator
 
     def track_llm_request(self, provider: str, model: str):
         """Track LLM API request metrics."""
+
         def decorator(func):
             @wraps(func)
             async def async_wrapper(*args, **kwargs):
@@ -359,6 +373,7 @@ class MetricsCollector:
                     ).inc()
 
             return async_wrapper
+
         return decorator
 
     def track_cache_operation(self, operation: str, result: str):
@@ -370,6 +385,7 @@ class MetricsCollector:
 
     def track_task_execution(self, task_name: str):
         """Track Celery task execution metrics."""
+
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -395,6 +411,7 @@ class MetricsCollector:
                     ).observe(duration)
 
             return wrapper
+
         return decorator
 
     def update_system_metrics(self):

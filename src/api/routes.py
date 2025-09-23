@@ -21,6 +21,29 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
 from src.api.async_routes import router as async_router
+from ..behavioral.crews import BehavioralValidationRequest, create_behavioral_validation_crew
+from ..core.input_processor import InputProcessor
+from ..core.migration_validator import MigrationValidator
+from ..core.models import ValidationSession
+
+
+# Define missing response models for compatibility
+class TechnologyOptionsResponse(BaseModel):
+    technologies: List[str] = []
+
+
+class CompatibilityCheckRequest(BaseModel):
+    source_technology: str
+    target_technology: str
+    validation_scope: str
+
+
+class CompatibilityCheckResponse(BaseModel):
+    compatible: bool
+    message: str = ""
+
+
+from ..security.auth import create_access_token, decode_access_token, verify_password
 
 
 class UserRole(str, Enum):

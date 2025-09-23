@@ -386,14 +386,18 @@ class DataIntegrityError(BaseValidationError):
 
 # Convenience functions for common error scenarios
 def validation_input_error(
-    message: str, field: Optional[str] = None, **kwargs,
+    message: str,
+    field: Optional[str] = None,
+    **kwargs,
 ) -> ValidationInputError:
     """Create validation input error with proper context."""
     return ValidationInputError(message, field=field, **kwargs)
 
 
 def configuration_error(
-    message: str, config_key: Optional[str] = None, **kwargs,
+    message: str,
+    config_key: Optional[str] = None,
+    **kwargs,
 ) -> ConfigurationError:
     """Create configuration error with proper context."""
     return ConfigurationError(message, config_key=config_key, **kwargs)
@@ -407,16 +411,13 @@ def external_service_error(
 ) -> ExternalServiceError:
     """Create external service error with proper context."""
     return ExternalServiceError(
-        message,
-        service=service,
-        status_code=status_code,
-        **kwargs)
+        message, service=service, status_code=status_code, **kwargs
+    )
 
 
 def security_error(
-        message: str,
-        security_check: Optional[str] = None,
-        **kwargs) -> SecurityError:
+    message: str, security_check: Optional[str] = None, **kwargs
+) -> SecurityError:
     """Create security error with proper context."""
     return SecurityError(message, security_check=security_check, **kwargs)
 
@@ -466,10 +467,8 @@ def data_integrity_error(
 ) -> DataIntegrityError:
     """Create data integrity error with proper context."""
     return DataIntegrityError(
-        message,
-        data_source=data_source,
-        checksum=checksum,
-        **kwargs)
+        message, data_source=data_source, checksum=checksum, **kwargs
+    )
 
 
 # Error recovery utilities
@@ -515,8 +514,9 @@ class ErrorRecoveryManager:
         for attempt in range(self.max_retries + 1):
             try:
                 if attempt > 0:
-                    delay = self.base_delay * \
-                        (2 ** (attempt - 1))  # Exponential backoff
+                    delay = self.base_delay * (
+                        2 ** (attempt - 1)
+                    )  # Exponential backoff
                     await asyncio.sleep(delay)
                     self.logger.info(
                         "Retrying operation",
@@ -542,8 +542,9 @@ class ErrorRecoveryManager:
                 last_exception = e
 
                 # Check if error is recoverable
-                is_recoverable = (isinstance(e, BaseValidationError) and e.recoverable) or any(
-                    isinstance(e, exc_type) for exc_type in recoverable_exceptions)
+                is_recoverable = (
+                    isinstance(e, BaseValidationError) and e.recoverable
+                ) or any(isinstance(e, exc_type) for exc_type in recoverable_exceptions)
 
                 if not is_recoverable or attempt == self.max_retries:
                     self.logger.error(

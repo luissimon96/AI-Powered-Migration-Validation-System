@@ -93,9 +93,8 @@ class SecurityHeaders:
         )
 
     def get_hsts_header(
-            self,
-            max_age: int = 31536000,
-            include_subdomains: bool = True) -> str:
+        self, max_age: int = 31536000, include_subdomains: bool = True
+    ) -> str:
         """Get HTTP Strict Transport Security header."""
         hsts = f"max-age={max_age}"
         if include_subdomains:

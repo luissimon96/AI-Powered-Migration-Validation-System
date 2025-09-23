@@ -49,19 +49,23 @@ class APIKeyCreateRequest(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=100, description="API key name")
     description: Optional[str] = Field(
-        None, max_length=500, description="API key description")
-    scopes: List[APIKeyScope] = Field(..., min_items=1,
-                                      description="API key access scopes")
+        None, max_length=500, description="API key description"
+    )
+    scopes: List[APIKeyScope] = Field(
+        ..., min_items=1, description="API key access scopes"
+    )
     expires_at: Optional[datetime] = Field(None, description="API key expiration date")
     rate_limit_per_minute: int = Field(
-        60, ge=1, le=1000, description="Rate limit per minute")
+        60, ge=1, le=1000, description="Rate limit per minute"
+    )
 
     @validator("name")
     def validate_name(cls, v):
         """Validate API key name."""
         if not re.match(r"^[a-zA-Z0-9_-]+$", v):
             raise ValueError(
-                "API key name can only contain alphanumeric characters, hyphens, and underscores")
+                "API key name can only contain alphanumeric characters, hyphens, and underscores"
+            )
         return v.strip()
 
     @validator("description")
@@ -100,9 +104,11 @@ class FileUploadMetadata(BaseModel):
 
     upload_type: FileUploadType = Field(..., description="Type of file being uploaded")
     description: Optional[str] = Field(
-        None, max_length=500, description="File description")
+        None, max_length=500, description="File description"
+    )
     technology_context: Optional[str] = Field(
-        None, max_length=50, description="Technology context")
+        None, max_length=50, description="Technology context"
+    )
 
     @validator("description")
     def validate_description(cls, v):
@@ -140,27 +146,27 @@ class FileUploadBatchResponse(BaseModel):
 class MigrationValidationRequest(BaseModel):
     """Comprehensive migration validation request schema."""
 
-    source_technology: str = Field(...,
-                                   min_length=1,
-                                   max_length=50,
-                                   description="Source technology")
-    target_technology: str = Field(...,
-                                   min_length=1,
-                                   max_length=50,
-                                   description="Target technology")
-    validation_scope: str = Field(...,
-                                  min_length=1,
-                                  max_length=50,
-                                  description="Validation scope")
+    source_technology: str = Field(
+        ..., min_length=1, max_length=50, description="Source technology"
+    )
+    target_technology: str = Field(
+        ..., min_length=1, max_length=50, description="Target technology"
+    )
+    validation_scope: str = Field(
+        ..., min_length=1, max_length=50, description="Validation scope"
+    )
     source_tech_version: Optional[str] = Field(
-        None, max_length=20, description="Source technology version")
+        None, max_length=20, description="Source technology version"
+    )
     target_tech_version: Optional[str] = Field(
-        None, max_length=20, description="Target technology version")
+        None, max_length=20, description="Target technology version"
+    )
     priority: RequestPriority = Field(
-        RequestPriority.NORMAL,
-        description="Request priority")
+        RequestPriority.NORMAL, description="Request priority"
+    )
     timeout_seconds: int = Field(
-        300, ge=30, le=3600, description="Request timeout in seconds")
+        300, ge=30, le=3600, description="Request timeout in seconds"
+    )
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
 
     @validator("source_technology", "target_technology")
@@ -199,7 +205,8 @@ class MigrationValidationRequest(BaseModel):
             # Version format validation
             if not re.match(r"^[a-zA-Z0-9._-]+$", validated):
                 raise ValueError(
-                    "Version can only contain alphanumeric characters, dots, hyphens, and underscores")
+                    "Version can only contain alphanumeric characters, dots, hyphens, and underscores"
+                )
 
             return validated
         return v
@@ -219,18 +226,19 @@ class BehavioralValidationRequest(BaseModel):
 
     source_url: HttpUrl = Field(..., description="Source application URL")
     target_url: HttpUrl = Field(..., description="Target application URL")
-    validation_scenarios: List[str] = Field(...,
-                                            min_items=1,
-                                            max_items=10,
-                                            description="Validation scenarios")
+    validation_scenarios: List[str] = Field(
+        ..., min_items=1, max_items=10, description="Validation scenarios"
+    )
     credentials: Optional[Dict[str, str]] = Field(
-        None, description="Authentication credentials")
+        None, description="Authentication credentials"
+    )
     timeout_seconds: int = Field(300, ge=30, le=1800, description="Timeout in seconds")
     browser_options: Optional[Dict[str, Any]] = Field(
-        None, description="Browser configuration options")
+        None, description="Browser configuration options"
+    )
     priority: RequestPriority = Field(
-        RequestPriority.NORMAL,
-        description="Request priority")
+        RequestPriority.NORMAL, description="Request priority"
+    )
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
 
     @validator("validation_scenarios")
@@ -265,7 +273,8 @@ class BehavioralValidationRequest(BaseModel):
 
                 security_validator.validate_string_input(key, f"credential_key_{key}")
                 security_validator.validate_string_input(
-                    value, f"credential_value_{key}")
+                    value, f"credential_value_{key}"
+                )
 
             return v
         return v
@@ -356,7 +365,8 @@ class ValidationListQuery(BaseModel):
                 "running",
                 "completed",
                 "failed",
-                "cancelled"]
+                "cancelled",
+            ]
             if validated not in allowed_statuses:
                 raise ValueError(f"Status must be one of: {allowed_statuses}")
 

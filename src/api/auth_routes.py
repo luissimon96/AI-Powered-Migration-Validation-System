@@ -9,8 +9,15 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
-from ..security.auth import (AuthenticationError, User, UserRole, auth_manager,
-                             get_current_user, require_admin, require_viewer)
+from ..security.auth import (
+    AuthenticationError,
+    User,
+    UserRole,
+    auth_manager,
+    get_current_user,
+    require_admin,
+    require_viewer,
+)
 from ..security.rate_limiter import rate_limit
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -81,7 +88,8 @@ async def login(request: Request, login_data: LoginRequest):
 
         # Authenticate user
         user = auth_manager.authenticate_user(
-            validated_data["username"], validated_data["password"],
+            validated_data["username"],
+            validated_data["password"],
         )
 
         if not user:
@@ -119,8 +127,7 @@ async def login(request: Request, login_data: LoginRequest):
 @router.post("/refresh", response_model=LoginResponse)
 @rate_limit("auth")
 async def refresh_token(request: Request, refresh_data: RefreshTokenRequest):
-    """Refresh access token using refresh token.
-    """
+    """Refresh access token using refresh token."""
     try:
         # Verify refresh token
         token_data = auth_manager.jwt_auth.verify_token(refresh_data.refresh_token)
@@ -165,8 +172,7 @@ async def logout(
     request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
 ):
-    """Logout user by revoking token.
-    """
+    """Logout user by revoking token."""
     try:
         # Verify and revoke token
         token_data = auth_manager.jwt_auth.verify_token(credentials.credentials)
@@ -181,8 +187,7 @@ async def logout(
 
 @router.get("/me")
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
-    """Get current user information.
-    """
+    """Get current user information."""
     return {
         "id": current_user.id,
         "username": current_user.username,
@@ -190,7 +195,9 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         "roles": [role.value for role in current_user.roles],
         "is_active": current_user.is_active,
         "created_at": current_user.created_at.isoformat(),
-        "last_login": current_user.last_login.isoformat() if current_user.last_login else None,
+        "last_login": current_user.last_login.isoformat()
+        if current_user.last_login
+        else None,
         "require_password_change": current_user.require_password_change,
     }
 
@@ -201,15 +208,16 @@ async def change_password(
     password_data: ChangePasswordRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Change user password.
-    """
+    """Change user password."""
     # Verify current password
     user = auth_manager.authenticate_user(
-        current_user.username,
-        password_data.current_password)
+        current_user.username, password_data.current_password
+    )
     if not user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Current password is incorrect", )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
 
     # Validate new password strength
     if len(password_data.new_password) < 8:
@@ -230,8 +238,7 @@ async def create_user(
     user_data: CreateUserRequest,
     admin_user: User = Depends(require_admin),
 ):
-    """Create new user (admin only).
-    """
+    """Create new user (admin only)."""
     try:
         # Validate password strength
         if len(user_data.password) < 8:
@@ -263,8 +270,7 @@ async def create_user(
 
 @router.get("/users")
 async def list_users(admin_user: User = Depends(require_admin)):
-    """List all users (admin only).
-    """
+    """List all users (admin only)."""
     # This would fetch from a real user store
     users = []
     for user_data in auth_manager.users.values():
@@ -287,13 +293,12 @@ async def list_users(admin_user: User = Depends(require_admin)):
 
 @router.get("/users/{user_id}")
 async def get_user(user_id: str, admin_user: User = Depends(require_admin)):
-    """Get user by ID (admin only).
-    """
+    """Get user by ID (admin only)."""
     user = auth_manager.get_user_by_id(user_id)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found")
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     return {
         "id": user.id,
@@ -312,13 +317,12 @@ async def update_user(
     update_data: UpdateUserRequest,
     admin_user: User = Depends(require_admin),
 ):
-    """Update user (admin only).
-    """
+    """Update user (admin only)."""
     user = auth_manager.get_user_by_id(user_id)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found")
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     # Update roles
     if update_data.roles is not None:
@@ -333,18 +337,19 @@ async def update_user(
 
 @router.delete("/users/{user_id}")
 async def deactivate_user(user_id: str, admin_user: User = Depends(require_admin)):
-    """Deactivate user (admin only).
-    """
+    """Deactivate user (admin only)."""
     user = auth_manager.get_user_by_id(user_id)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found")
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     # Prevent self-deactivation
     if user_id == admin_user.id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Cannot deactivate your own account", )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot deactivate your own account",
+        )
 
     auth_manager.deactivate_user(user_id)
     return {"message": "User deactivated successfully"}
@@ -353,16 +358,12 @@ async def deactivate_user(user_id: str, admin_user: User = Depends(require_admin
 # System information endpoints
 @router.get("/system/info")
 async def get_auth_system_info(current_user: User = Depends(require_viewer)):
-    """Get authentication system information.
-    """
+    """Get authentication system information."""
     return {
         "auth_enabled": True,
-        "supported_roles": [
-            role.value for role in UserRole],
+        "supported_roles": [role.value for role in UserRole],
         "token_expiry_minutes": auth_manager.jwt_auth.settings.access_token_expire_minutes,
-        "user_count": len(
-            auth_manager.users),
+        "user_count": len(auth_manager.users),
         "failed_attempts_limit": auth_manager.max_failed_attempts,
-        "lockout_duration_minutes": auth_manager.lockout_duration.total_seconds()
-            / 60,
+        "lockout_duration_minutes": auth_manager.lockout_duration.total_seconds() / 60,
     }

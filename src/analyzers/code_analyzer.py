@@ -10,12 +10,23 @@ import re
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
-from ..core.models import (AbstractRepresentation, BackendFunction, DataField,
-                           InputData, InputType, TechnologyContext, UIElement,
-                           ValidationScope)
+from ..core.models import (
+    AbstractRepresentation,
+    BackendFunction,
+    DataField,
+    InputData,
+    InputType,
+    TechnologyContext,
+    UIElement,
+    ValidationScope,
+)
 from ..services.llm_service import LLMService, create_llm_service
-from .base import (BaseAnalyzer, ExtractionError, InvalidInputError,
-                   UnsupportedScopeError)
+from .base import (
+    BaseAnalyzer,
+    ExtractionError,
+    InvalidInputError,
+    UnsupportedScopeError,
+)
 
 
 class CodeAnalyzer(BaseAnalyzer):
@@ -54,7 +65,9 @@ class CodeAnalyzer(BaseAnalyzer):
         return self.technology_context.type.value in frontend_techs
 
     async def analyze(
-        self, input_data: InputData, scope: ValidationScope,
+        self,
+        input_data: InputData,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze code files and extract abstract representation."""
         if not self.supports_scope(scope):
@@ -80,7 +93,8 @@ class CodeAnalyzer(BaseAnalyzer):
             # Enhanced LLM-based post-processing if needed
             if scope in [ValidationScope.BUSINESS_LOGIC, ValidationScope.FULL_SYSTEM]:
                 representation = await self._enhance_with_llm_analysis(
-                    representation, scope,
+                    representation,
+                    scope,
                 )
 
             return representation
@@ -89,7 +103,9 @@ class CodeAnalyzer(BaseAnalyzer):
             raise ExtractionError(f"Failed to analyze code: {e!s}")
 
     async def _analyze_file(
-        self, file_path: str, scope: ValidationScope,
+        self,
+        file_path: str,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze a single code file."""
         with open(file_path, encoding="utf-8") as f:
@@ -113,7 +129,10 @@ class CodeAnalyzer(BaseAnalyzer):
         return await self._analyze_generic_file(content, file_path, scope)
 
     async def _analyze_python_file(
-        self, content: str, file_path: str, scope: ValidationScope,
+        self,
+        content: str,
+        file_path: str,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze Python file using AST and pattern matching."""
         representation = AbstractRepresentation()
@@ -145,7 +164,9 @@ class CodeAnalyzer(BaseAnalyzer):
         return representation
 
     def _extract_python_function(
-        self, node: ast.FunctionDef, content: str,
+        self,
+        node: ast.FunctionDef,
+        content: str,
     ) -> Optional[BackendFunction]:
         """Extract function information from AST node."""
         try:
@@ -218,7 +239,8 @@ class CodeAnalyzer(BaseAnalyzer):
 
         # Flask route patterns
         flask_routes = re.findall(
-            r'@app\.route\(["\']([^"\']+)["\'](?:.*?methods=\[(.*?)\])?\)', content,
+            r'@app\.route\(["\']([^"\']+)["\'](?:.*?methods=\[(.*?)\])?\)',
+            content,
         )
         for route, methods in flask_routes:
             methods_list = (
@@ -244,7 +266,10 @@ class CodeAnalyzer(BaseAnalyzer):
         return endpoints
 
     async def _analyze_javascript_file(
-        self, content: str, file_path: str, scope: ValidationScope,
+        self,
+        content: str,
+        file_path: str,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze JavaScript/TypeScript file."""
         representation = AbstractRepresentation()
@@ -265,7 +290,9 @@ class CodeAnalyzer(BaseAnalyzer):
         return representation
 
     async def _extract_react_elements(
-        self, content: str, file_path: str,
+        self,
+        content: str,
+        file_path: str,
     ) -> List[UIElement]:
         """Extract UI elements from React components using pattern matching and LLM enhancement."""
         elements = []
@@ -304,7 +331,8 @@ class CodeAnalyzer(BaseAnalyzer):
                 elements_dict = [asdict(elem) for elem in elements]
                 relationship_analysis = (
                     await self.llm_service.analyze_ui_element_relationships(
-                        elements_dict, f"React component in {file_path}",
+                        elements_dict,
+                        f"React component in {file_path}",
                     )
                 )
 
@@ -374,31 +402,52 @@ class CodeAnalyzer(BaseAnalyzer):
         return api_calls
 
     async def _analyze_java_file(
-        self, content: str, file_path: str, scope: ValidationScope,
+        self,
+        content: str,
+        file_path: str,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze Java file using LLM-based analysis."""
         return await self._analyze_generic_file(
-            content, file_path, scope, language="java",
+            content,
+            file_path,
+            scope,
+            language="java",
         )
 
     async def _analyze_csharp_file(
-        self, content: str, file_path: str, scope: ValidationScope,
+        self,
+        content: str,
+        file_path: str,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze C# file using LLM-based analysis."""
         return await self._analyze_generic_file(
-            content, file_path, scope, language="csharp",
+            content,
+            file_path,
+            scope,
+            language="csharp",
         )
 
     async def _analyze_php_file(
-        self, content: str, file_path: str, scope: ValidationScope,
+        self,
+        content: str,
+        file_path: str,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze PHP file using LLM-based analysis."""
         return await self._analyze_generic_file(
-            content, file_path, scope, language="php",
+            content,
+            file_path,
+            scope,
+            language="php",
         )
 
     async def _analyze_html_file(
-        self, content: str, file_path: str, scope: ValidationScope,
+        self,
+        content: str,
+        file_path: str,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze HTML file for UI elements."""
         representation = AbstractRepresentation()
@@ -502,7 +551,9 @@ class CodeAnalyzer(BaseAnalyzer):
         return representation
 
     async def _enhance_with_llm_analysis(
-        self, representation: AbstractRepresentation, scope: ValidationScope,
+        self,
+        representation: AbstractRepresentation,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Enhance representation with LLM-based business logic analysis."""
         if not representation.backend_functions:
@@ -547,7 +598,9 @@ class CodeAnalyzer(BaseAnalyzer):
         return representation
 
     def _merge_analysis(
-        self, target: AbstractRepresentation, source: AbstractRepresentation,
+        self,
+        target: AbstractRepresentation,
+        source: AbstractRepresentation,
     ):
         """Merge analysis results from multiple files."""
         target.ui_elements.extend(source.ui_elements)

@@ -7,15 +7,25 @@ with proper relationships, constraints, and indexes.
 from datetime import datetime
 from typing import Any, Dict
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, Enum, Float,
-                        ForeignKey, Index, Integer, String, Text,
-                        UniqueConstraint)
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from ..core.models import (InputType, SeverityLevel, TechnologyType,
-                           ValidationScope)
+from ..core.models import InputType, SeverityLevel, TechnologyType, ValidationScope
 from .config import metadata
 
 # Base class for all models
@@ -84,7 +94,10 @@ class ValidationSessionModel(Base, TimestampMixin, SoftDeleteMixin):
 
     # Session status
     status = Column(
-        String(50), nullable=False, default="pending", index=True,
+        String(50),
+        nullable=False,
+        default="pending",
+        index=True,
     )  # pending, processing, completed, error
 
     # Technology contexts
@@ -141,7 +154,11 @@ class ValidationSessionModel(Base, TimestampMixin, SoftDeleteMixin):
     # Indexes for performance
     __table_args__ = (
         Index("ix_validation_sessions_status_created", "status", "created_at"),
-        Index("ix_validation_sessions_technologies", "source_technology", "target_technology"),
+        Index(
+            "ix_validation_sessions_technologies",
+            "source_technology",
+            "target_technology",
+        ),
         Index("ix_validation_sessions_scope", "validation_scope"),
     )
 
@@ -159,9 +176,15 @@ class ValidationSessionModel(Base, TimestampMixin, SoftDeleteMixin):
             "id": self.id,
             "request_id": self.request_id,
             "status": self.status,
-            "source_technology": self.source_technology.value if self.source_technology else None,
-            "target_technology": self.target_technology.value if self.target_technology else None,
-            "validation_scope": self.validation_scope.value if self.validation_scope else None,
+            "source_technology": self.source_technology.value
+            if self.source_technology
+            else None,
+            "target_technology": self.target_technology.value
+            if self.target_technology
+            else None,
+            "validation_scope": self.validation_scope.value
+            if self.validation_scope
+            else None,
             "execution_time": self.execution_time,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
@@ -190,7 +213,9 @@ class ValidationResultModel(Base, TimestampMixin, SoftDeleteMixin):
 
     # Result details
     overall_status = Column(
-        String(50), nullable=False, index=True,
+        String(50),
+        nullable=False,
+        index=True,
     )  # approved, approved_with_warnings, rejected, error
     fidelity_score = Column(Float, nullable=False, index=True)  # 0.0 to 1.0
     summary = Column(Text, nullable=False)
@@ -260,7 +285,9 @@ class DiscrepancyModel(Base, TimestampMixin, SoftDeleteMixin):
 
     # Discrepancy details
     discrepancy_type = Column(
-        String(100), nullable=False, index=True,
+        String(100),
+        nullable=False,
+        index=True,
     )  # missing_field, type_mismatch, etc.
     severity = Column(Enum(SeverityLevel), nullable=False, index=True)
     description = Column(Text, nullable=False)
@@ -330,9 +357,8 @@ class ValidationMetricsModel(Base, TimestampMixin):
     # Time period
     metric_date = Column(DateTime(timezone=True), nullable=False, index=True)
     metric_period = Column(
-        String(20),
-        nullable=False,
-        index=True)  # daily, weekly, monthly
+        String(20), nullable=False, index=True
+    )  # daily, weekly, monthly
 
     # Session counts
     total_sessions = Column(Integer, default=0)
@@ -415,9 +441,8 @@ class BehavioralTestResultModel(Base, TimestampMixin):
     source_url = Column(String(1000), nullable=False)
     target_url = Column(String(1000), nullable=False)
     execution_status = Column(
-        String(50),
-        nullable=False,
-        index=True)  # passed, failed, error
+        String(50), nullable=False, index=True
+    )  # passed, failed, error
 
     # Results
     source_result = Column(JSON)  # Source system interaction result
@@ -444,13 +469,9 @@ class BehavioralTestResultModel(Base, TimestampMixin):
     # Indexes for performance
     __table_args__ = (
         Index(
-            "ix_behavioral_tests_status_scenario",
-            "execution_status",
-            "scenario_name"),
-        Index(
-            "ix_behavioral_tests_session_created",
-            "session_id",
-            "created_at"),
+            "ix_behavioral_tests_status_scenario", "execution_status", "scenario_name"
+        ),
+        Index("ix_behavioral_tests_session_created", "session_id", "created_at"),
     )
 
     def to_dict(self) -> Dict[str, Any]:

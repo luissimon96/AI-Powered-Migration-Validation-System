@@ -27,8 +27,9 @@ class HealthStatus(str, Enum):
 class HealthCheck:
     """Individual health check definition."""
 
-    def __init__(self, name: str, check_func, timeout: float = 30.0,
-                 critical: bool = True):
+    def __init__(
+        self, name: str, check_func, timeout: float = 30.0, critical: bool = True
+    ):
         self.name = name
         self.check_func = check_func
         self.timeout = timeout
@@ -150,8 +151,9 @@ class SystemHealthMonitor:
             critical=True,
         )
 
-    def register_check(self, name: str, check_func, timeout: float = 30.0,
-                       critical: bool = True):
+    def register_check(
+        self, name: str, check_func, timeout: float = 30.0, critical: bool = True
+    ):
         """Register a new health check."""
         self.health_checks[name] = HealthCheck(
             name=name,
@@ -234,12 +236,14 @@ class SystemHealthMonitor:
 
             # Test connection
             await asyncio.get_event_loop().run_in_executor(
-                None, redis_client.ping,
+                None,
+                redis_client.ping,
             )
 
             # Get info
             info = await asyncio.get_event_loop().run_in_executor(
-                None, redis_client.info,
+                None,
+                redis_client.info,
             )
 
             return {
@@ -309,7 +313,8 @@ class SystemHealthMonitor:
             # Get worker stats
             inspect = celery_app.control.inspect()
             active = await asyncio.get_event_loop().run_in_executor(
-                None, inspect.active,
+                None,
+                inspect.active,
             )
 
             if active:
@@ -409,10 +414,16 @@ class SystemHealthMonitor:
             if not self.config.get_default_llm_config():
                 config_status.append("No LLM provider configured")
 
-            if not self.config.settings.secret_key or self.config.settings.secret_key == "change-me-in-production":
+            if (
+                not self.config.settings.secret_key
+                or self.config.settings.secret_key == "change-me-in-production"
+            ):
                 config_status.append("Default secret key in use")
 
-            if self.config.settings.environment == "production" and self.config.settings.debug:
+            if (
+                self.config.settings.environment == "production"
+                and self.config.settings.debug
+            ):
                 config_status.append("Debug mode enabled in production")
 
             message = "Configuration healthy"
@@ -425,7 +436,8 @@ class SystemHealthMonitor:
                     "environment": self.config.settings.environment,
                     "debug_mode": self.config.settings.debug,
                     "llm_providers_configured": len(
-                        self.config.list_available_providers()),
+                        self.config.list_available_providers()
+                    ),
                     "issues": config_status,
                 },
             }

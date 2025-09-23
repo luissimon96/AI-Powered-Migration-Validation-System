@@ -4,8 +4,17 @@ Defines SQLAlchemy models for API keys, audit logs, and security configurations.
 """
 
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, Index, Integer,
-                        String, Text, UniqueConstraint)
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 
 from .models import Base, TimestampMixin
 

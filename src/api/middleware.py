@@ -186,13 +186,16 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         for param, value in request.query_params.items():
             try:
                 self.security_validator.validate_string_input(
-                    param, f"query_param_{param}")
+                    param, f"query_param_{param}"
+                )
                 if isinstance(value, str):
                     self.security_validator.validate_string_input(
-                        value, f"query_value_{param}")
+                        value, f"query_value_{param}"
+                    )
             except SecurityValidationError as e:
                 raise SecurityValidationError(
-                    f"Query parameter validation failed: {e!s}")
+                    f"Query parameter validation failed: {e!s}"
+                )
 
     async def _validate_headers(self, request: Request):
         """Validate request headers."""
@@ -245,7 +248,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             for field_name, field_value in form.items():
                 # Validate field name
                 self.security_validator.validate_string_input(
-                    field_name, f"form_field_{field_name}")
+                    field_name, f"form_field_{field_name}"
+                )
 
                 # Handle file uploads
                 if hasattr(field_value, "filename") and field_value.filename:
@@ -263,18 +267,20 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
                     if file_size > self.settings.MAX_UPLOAD_FILE_SIZE:
                         raise SecurityValidationError(
-                            f"File {field_value.filename} too large")
+                            f"File {field_value.filename} too large"
+                        )
 
                     if total_size > self.settings.MAX_UPLOAD_FILE_SIZE * 5:
                         raise SecurityValidationError("Total upload size too large")
 
                     # Validate file content
-                    validation_result = await self.security_validator.validate_file_upload(field_value)
+                    validation_result = (
+                        await self.security_validator.validate_file_upload(field_value)
+                    )
                     if not validation_result.is_valid:
                         raise SecurityValidationError(
-                            f"File validation failed: {
-                                ', '.join(
-                                    validation_result.security_issues)}", )
+                            f"File validation failed: {', '.join(validation_result.security_issues)}"
+                        )
 
                 # Handle text fields
                 elif isinstance(field_value, str):
@@ -294,7 +300,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             form = await request.form()
             for field_name, field_value in form.items():
                 self.security_validator.validate_string_input(
-                    field_name, f"form_field_{field_name}")
+                    field_name, f"form_field_{field_name}"
+                )
                 if isinstance(field_value, str):
                     self.security_validator.validate_string_input(
                         field_value,
@@ -332,6 +339,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             for attack_type, patterns in self.attack_patterns.items():
                 for pattern in patterns:
                     import re
+
                     if re.search(pattern, data_item, re.IGNORECASE):
                         await security_audit.log_attack_attempt(
                             attack_type=attack_type,
@@ -355,7 +363,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         start_time: datetime,
     ):
         """Log successful request."""
-        execution_time = (datetime.utcnow() - start_time).total_seconds()
+        # execution_time = (datetime.utcnow() - start_time).total_seconds()  # Unused variable
 
         # Extract user/API key information if available
         user_id = getattr(request.state, "user_id", None)

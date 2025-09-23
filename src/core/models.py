@@ -73,7 +73,8 @@ class InputData:
     urls: List[str] = field(default_factory=list)  # For behavioral validation
     credentials: Optional[Dict[str, str]] = None  # For authenticated systems
     validation_scenarios: List[str] = field(
-        default_factory=list)  # Behavioral test scenarios
+        default_factory=list
+    )  # Behavioral test scenarios
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 

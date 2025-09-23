@@ -9,24 +9,43 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import (BackgroundTasks, Depends, FastAPI, File, HTTPException,
-                     Query, UploadFile)
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
-from ..behavioral.crews import (BehavioralValidationRequest,
-                                create_behavioral_validation_crew)
+from ..behavioral.crews import (
+    BehavioralValidationRequest,
+    create_behavioral_validation_crew,
+)
 from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
-from ..core.models import (InputData, InputType, MigrationValidationRequest,
-                           TechnologyContext, TechnologyType, ValidationScope,
-                           ValidationSession)
-from ..database.integration import (DatabaseIntegration, HybridSessionManager,
-                                    database_lifespan,
-                                    get_database_integration, get_db_service,
-                                    get_hybrid_session_manager)
+from ..core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+    ValidationSession,
+)
+from ..database.integration import (
+    DatabaseIntegration,
+    HybridSessionManager,
+    database_lifespan,
+    get_database_integration,
+    get_db_service,
+    get_hybrid_session_manager,
+)
 from ..database.service import ValidationDatabaseService
 from ..reporters.validation_reporter import ValidationReporter
 
@@ -103,7 +122,7 @@ def create_database_app() -> FastAPI:
 
     # Initialize components
     validator = MigrationValidator()
-    input_processor = InputProcessor()
+    # input_processor = InputProcessor()  # Unused variable removed
     reporter = ValidationReporter()
 
     @app.get("/")
@@ -225,8 +244,8 @@ def create_database_app() -> FastAPI:
             for file in source_screenshots:
                 if file.filename:
                     file_path = os.path.join(
-                        upload_dir, f"source_screenshot_{
-                            file.filename}")
+                        upload_dir, f"source_screenshot_{file.filename}"
+                    )
                     with open(file_path, "wb") as f:
                         content = await file.read()
                         f.write(content)
@@ -236,18 +255,28 @@ def create_database_app() -> FastAPI:
             for file in target_screenshots:
                 if file.filename:
                     file_path = os.path.join(
-                        upload_dir, f"target_screenshot_{
-                            file.filename}")
+                        upload_dir, f"target_screenshot_{file.filename}"
+                    )
                     with open(file_path, "wb") as f:
                         content = await file.read()
                         f.write(content)
                     target_screenshot_paths.append(file_path)
 
             # Determine input types
-            source_input_type = InputType.HYBRID if source_file_paths and source_screenshot_paths else (
-                InputType.CODE_FILES if source_file_paths else InputType.SCREENSHOTS)
-            target_input_type = InputType.HYBRID if target_file_paths and target_screenshot_paths else (
-                InputType.CODE_FILES if target_file_paths else InputType.SCREENSHOTS)
+            source_input_type = (
+                InputType.HYBRID
+                if source_file_paths and source_screenshot_paths
+                else (
+                    InputType.CODE_FILES if source_file_paths else InputType.SCREENSHOTS
+                )
+            )
+            target_input_type = (
+                InputType.HYBRID
+                if target_file_paths and target_screenshot_paths
+                else (
+                    InputType.CODE_FILES if target_file_paths else InputType.SCREENSHOTS
+                )
+            )
 
             # Create validation request
             validation_request = MigrationValidationRequest(
@@ -284,38 +313,48 @@ def create_database_app() -> FastAPI:
                 try:
                     # Update status to processing
                     await hybrid_manager.update_session_status(
-                        validation_request.request_id, "processing",
+                        validation_request.request_id,
+                        "processing",
                     )
                     await hybrid_manager.add_session_log(
-                        validation_request.request_id, "Starting migration validation",
+                        validation_request.request_id,
+                        "Starting migration validation",
                     )
 
                     # Run validation
                     session = await validator.validate_migration(validation_request)
 
                     # Store session with results
-                    await hybrid_manager.store_session(validation_request.request_id, session)
+                    await hybrid_manager.store_session(
+                        validation_request.request_id, session
+                    )
 
                     # Update status to completed
                     await hybrid_manager.update_session_status(
-                        validation_request.request_id, "completed",
+                        validation_request.request_id,
+                        "completed",
                     )
                     await hybrid_manager.add_session_log(
-                        validation_request.request_id, "Migration validation completed",
+                        validation_request.request_id,
+                        "Migration validation completed",
                     )
 
                 except Exception as e:
                     # Update status to error
                     await hybrid_manager.update_session_status(
-                        validation_request.request_id, "error",
+                        validation_request.request_id,
+                        "error",
                     )
                     await hybrid_manager.add_session_log(
-                        validation_request.request_id, f"Validation failed: {e!s}",
+                        validation_request.request_id,
+                        f"Validation failed: {e!s}",
                     )
 
             # Create initial session
             initial_session = ValidationSession(request=validation_request)
-            await hybrid_manager.store_session(validation_request.request_id, initial_session)
+            await hybrid_manager.store_session(
+                validation_request.request_id, initial_session
+            )
 
             # Start background task
             background_tasks.add_task(run_validation)
@@ -342,7 +381,8 @@ def create_database_app() -> FastAPI:
             behavioral_request = BehavioralValidationRequest(
                 source_url=request.source_url,
                 target_url=request.target_url,
-                validation_scenarios=request.validation_scenarios or [
+                validation_scenarios=request.validation_scenarios
+                or [
                     "User login flow",
                     "Form submission and validation",
                     "Error handling scenarios",
@@ -360,7 +400,9 @@ def create_database_app() -> FastAPI:
                 try:
                     # Update status to processing
                     await hybrid_manager.update_session_status(request_id, "processing")
-                    await hybrid_manager.add_session_log(request_id, "Starting behavioral validation")
+                    await hybrid_manager.add_session_log(
+                        request_id, "Starting behavioral validation"
+                    )
 
                     # Run behavioral validation
                     crew = create_behavioral_validation_crew()
@@ -370,20 +412,20 @@ def create_database_app() -> FastAPI:
                     # For behavioral validation, we create a simplified request
                     migration_request = MigrationValidationRequest(
                         source_technology=TechnologyContext(
-                            type=TechnologyType.JAVASCRIPT_REACT),
+                            type=TechnologyType.JAVASCRIPT_REACT
+                        ),
                         target_technology=TechnologyContext(
-                            type=TechnologyType.JAVASCRIPT_REACT),
+                            type=TechnologyType.JAVASCRIPT_REACT
+                        ),
                         validation_scope=ValidationScope.BEHAVIORAL_VALIDATION,
                         source_input=InputData(
                             type=InputType.SCREENSHOTS,
-                            urls=[
-                                request.source_url],
+                            urls=[request.source_url],
                             validation_scenarios=request.validation_scenarios,
                         ),
                         target_input=InputData(
                             type=InputType.SCREENSHOTS,
-                            urls=[
-                                request.target_url],
+                            urls=[request.target_url],
                             validation_scenarios=request.validation_scenarios,
                         ),
                         request_id=request_id,
@@ -397,12 +439,16 @@ def create_database_app() -> FastAPI:
 
                     # Update status to completed
                     await hybrid_manager.update_session_status(request_id, "completed")
-                    await hybrid_manager.add_session_log(request_id, "Behavioral validation completed")
+                    await hybrid_manager.add_session_log(
+                        request_id, "Behavioral validation completed"
+                    )
 
                 except Exception as e:
                     # Update status to error
                     await hybrid_manager.update_session_status(request_id, "error")
-                    await hybrid_manager.add_session_log(request_id, f"Behavioral validation failed: {e!s}")
+                    await hybrid_manager.add_session_log(
+                        request_id, f"Behavioral validation failed: {e!s}"
+                    )
 
             # Start background task
             background_tasks.add_task(run_behavioral_validation)
@@ -437,16 +483,22 @@ def create_database_app() -> FastAPI:
             if status:
                 sessions = [s for s in sessions if s.get("status") == status]
             if source_technology:
-                sessions = [s for s in sessions if s.get(
-                    "source_technology") == source_technology]
+                sessions = [
+                    s
+                    for s in sessions
+                    if s.get("source_technology") == source_technology
+                ]
             if target_technology:
-                sessions = [s for s in sessions if s.get(
-                    "target_technology") == target_technology]
+                sessions = [
+                    s
+                    for s in sessions
+                    if s.get("target_technology") == target_technology
+                ]
 
             total_count = len(sessions)
 
             # Apply pagination
-            paginated_sessions = sessions[offset:offset + limit]
+            paginated_sessions = sessions[offset : offset + limit]
 
             return SessionListResponse(
                 sessions=paginated_sessions,
@@ -481,27 +533,29 @@ def create_database_app() -> FastAPI:
         }
 
         if session.result:
-            response.update({
-                "result": {
-                    "overall_status": session.result.overall_status,
-                    "fidelity_score": session.result.fidelity_score,
-                    "summary": session.result.summary,
-                    "execution_time": session.result.execution_time,
-                    "timestamp": session.result.timestamp.isoformat(),
-                    "discrepancies": [
-                        {
-                            "type": d.type,
-                            "severity": d.severity.value,
-                            "description": d.description,
-                            "source_element": d.source_element,
-                            "target_element": d.target_element,
-                            "recommendation": d.recommendation,
-                            "confidence": d.confidence,
-                        }
-                        for d in session.result.discrepancies
-                    ],
-                },
-            })
+            response.update(
+                {
+                    "result": {
+                        "overall_status": session.result.overall_status,
+                        "fidelity_score": session.result.fidelity_score,
+                        "summary": session.result.summary,
+                        "execution_time": session.result.execution_time,
+                        "timestamp": session.result.timestamp.isoformat(),
+                        "discrepancies": [
+                            {
+                                "type": d.type,
+                                "severity": d.severity.value,
+                                "description": d.description,
+                                "source_element": d.source_element,
+                                "target_element": d.target_element,
+                                "recommendation": d.recommendation,
+                                "confidence": d.confidence,
+                            }
+                            for d in session.result.discrepancies
+                        ],
+                    },
+                }
+            )
 
         return response
 
@@ -558,8 +612,9 @@ def create_database_app() -> FastAPI:
                 return PlainTextResponse(content=report_content, media_type="text/html")
 
         except Exception as e:
-            raise HTTPException(status_code=500,
-                                detail=f"Report generation failed: {e!s}")
+            raise HTTPException(
+                status_code=500, detail=f"Report generation failed: {e!s}"
+            )
 
     @app.get("/api/statistics")
     async def get_statistics(

@@ -361,14 +361,19 @@ class SecurityAuditLogger:
         request_id: Optional[str] = None,
     ):
         """Log file upload event."""
-        severity = AuditSeverity.HIGH if not validation_result.get(
-            "is_valid") else AuditSeverity.LOW
+        severity = (
+            AuditSeverity.HIGH
+            if not validation_result.get("is_valid")
+            else AuditSeverity.LOW
+        )
 
         await self.log_event(
             event_type=AuditEventType.FILE_UPLOAD,
             severity=severity,
             action="file_upload",
-            result="success" if validation_result.get("is_valid") else "validation_failed",
+            result="success"
+            if validation_result.get("is_valid")
+            else "validation_failed",
             user_id=user_id,
             api_key_id=api_key_id,
             source_ip=source_ip,
@@ -529,17 +534,22 @@ class SecurityAuditLogger:
                 severity = event.get("severity")
 
                 # Count by type
-                metrics["events_by_type"][event_type] = metrics["events_by_type"].get(
-                    event_type, 0) + 1
+                metrics["events_by_type"][event_type] = (
+                    metrics["events_by_type"].get(event_type, 0) + 1
+                )
 
                 # Count by severity
-                metrics["events_by_severity"][severity] = metrics["events_by_severity"].get(
-                    severity, 0) + 1
+                metrics["events_by_severity"][severity] = (
+                    metrics["events_by_severity"].get(severity, 0) + 1
+                )
 
                 # Specific metrics
                 if event_type == AuditEventType.LOGIN_FAILURE:
                     metrics["failed_logins"] += 1
-                elif event_type in [AuditEventType.API_KEY_INVALID, AuditEventType.SCOPE_VIOLATION]:
+                elif event_type in [
+                    AuditEventType.API_KEY_INVALID,
+                    AuditEventType.SCOPE_VIOLATION,
+                ]:
                     metrics["api_key_violations"] += 1
                 elif event_type == AuditEventType.INPUT_VALIDATION_FAILURE:
                     metrics["input_validation_failures"] += 1
@@ -557,12 +567,14 @@ class SecurityAuditLogger:
 # Global instance - will be initialized when needed
 security_audit = None
 
+
 def get_security_audit(session=None):
     """Get security audit logger instance with optional session."""
     global security_audit
     if security_audit is None or session:
         security_audit = SecurityAuditLogger(session)
     return security_audit
+
 
 # For backward compatibility
 security_audit = get_security_audit()

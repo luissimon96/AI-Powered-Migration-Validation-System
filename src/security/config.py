@@ -175,7 +175,8 @@ class SecurityConfig(BaseModel):
         environment = values.get("environment", "development")
         if environment == "production" and len(v) < 32:
             raise ValueError(
-                "JWT secret key must be at least 32 characters in production")
+                "JWT secret key must be at least 32 characters in production"
+            )
         return v
 
     @validator("cors_allow_origins")
@@ -312,7 +313,8 @@ class SecurityConstants:
 
 
 def create_security_config(
-    environment: Optional[str] = None, security_level: Optional[SecurityLevel] = None,
+    environment: Optional[str] = None,
+    security_level: Optional[SecurityLevel] = None,
 ) -> SecurityConfig:
     """Factory function to create security configuration."""
     settings = get_settings()

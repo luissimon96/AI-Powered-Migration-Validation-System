@@ -39,7 +39,10 @@ class SecurityFilter:
         self.sensitive_fields = sensitive_fields or SENSITIVE_FIELDS
 
     def __call__(
-        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any],
+        self,
+        logger: WrappedLogger,
+        method_name: str,
+        event_dict: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Filter sensitive data from event dictionary."""
         return self._filter_sensitive_data(event_dict)
@@ -71,7 +74,10 @@ class PerformanceMonitor:
     """Monitor and log performance metrics."""
 
     def __call__(
-        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any],
+        self,
+        logger: WrappedLogger,
+        method_name: str,
+        event_dict: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Add performance context to log events."""
         if "duration" in event_dict or "execution_time" in event_dict:
@@ -96,7 +102,10 @@ class RequestTracker:
         self._context: Dict[str, Any] = {}
 
     def __call__(
-        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any],
+        self,
+        logger: WrappedLogger,
+        method_name: str,
+        event_dict: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Add request context to log events."""
         # Add request context if available
@@ -329,7 +338,11 @@ def log_operation(
                     log_context["kwargs"] = kwargs
 
                 async with OperationLogger(
-                    logger, operation, log_context, log_args, log_result,
+                    logger,
+                    operation,
+                    log_context,
+                    log_args,
+                    log_result,
                 ) as op_logger:
                     result = await func(*args, **kwargs)
 
@@ -349,7 +362,11 @@ def log_operation(
                 log_context["kwargs"] = kwargs
 
             with OperationLogger(
-                logger, operation, log_context, log_args, log_result,
+                logger,
+                operation,
+                log_context,
+                log_args,
+                log_result,
             ) as op_logger:
                 result = func(*args, **kwargs)
 

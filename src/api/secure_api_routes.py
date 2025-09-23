@@ -7,31 +7,51 @@ authorization, rate limiting, and audit logging.
 from datetime import datetime
 from typing import Any, Dict, List
 
-from fastapi import (APIRouter, BackgroundTasks, Depends, File, Form,
-                     HTTPException, Request, UploadFile, status)
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import JSONResponse
 
-from ..behavioral.crews import \
-    BehavioralValidationRequest as CrewBehavioralRequest
+from ..behavioral.crews import BehavioralValidationRequest as CrewBehavioralRequest
 from ..behavioral.crews import create_behavioral_validation_crew
 from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
 from ..core.models import ValidationSession
-from ..security.api_keys import (APIKeyMetadata, api_key_manager,
-                                 api_key_rate_limiter, require_admin_scope,
-                                 require_read_scope, require_validation_scope)
+from ..security.api_keys import (
+    APIKeyMetadata,
+    api_key_manager,
+    api_key_rate_limiter,
+    require_admin_scope,
+    require_read_scope,
+    require_validation_scope,
+)
 from ..security.audit import security_audit
 from ..security.headers import create_security_headers
-from ..security.schemas import (APIKeyCreateRequest, APIKeyListResponse,
-                                APIKeyResponse, BehavioralValidationRequest,
-                                BehavioralValidationResultResponse,
-                                FileUploadBatchResponse, FileUploadMetadata,
-                                FileUploadResponse, HealthCheckResponse,
-                                MigrationValidationRequest,
-                                SystemStatsResponse, ValidationResultResponse,
-                                ValidationStatusResponse,
-                                sanitize_response_data)
+from ..security.schemas import (
+    APIKeyCreateRequest,
+    APIKeyListResponse,
+    APIKeyResponse,
+    BehavioralValidationRequest,
+    BehavioralValidationResultResponse,
+    FileUploadBatchResponse,
+    FileUploadMetadata,
+    FileUploadResponse,
+    HealthCheckResponse,
+    MigrationValidationRequest,
+    SystemStatsResponse,
+    ValidationResultResponse,
+    ValidationStatusResponse,
+    sanitize_response_data,
+)
 from ..security.validation import SecurityValidationError, input_validator
 
 # Initialize components
@@ -207,7 +227,8 @@ async def upload_files(
     metadata: str = Form(...),
     api_key_metadata: APIKeyMetadata = Depends(require_validation_scope),
     rate_limit_check: APIKeyMetadata = Depends(
-        api_key_rate_limiter.require_rate_limit_check),
+        api_key_rate_limiter.require_rate_limit_check
+    ),
 ):
     """Upload files with comprehensive security validation."""
     try:
@@ -215,6 +236,7 @@ async def upload_files(
 
         # Parse and validate metadata
         import json
+
         try:
             metadata_dict = json.loads(metadata)
             upload_metadata = FileUploadMetadata(**metadata_dict)
@@ -248,24 +270,28 @@ async def upload_files(
                     request_id=context["request_id"],
                 )
 
-                uploaded_files.append(FileUploadResponse(
-                    file_id=file_id,
-                    filename=file.filename,
-                    original_filename=file.filename,
-                    file_size=validation_result.file_size,
-                    content_type=validation_result.detected_type,
-                    upload_type=upload_metadata.upload_type,
-                    uploaded_at=datetime.utcnow(),
-                    validation_result=validation_result.dict(),
-                ))
+                uploaded_files.append(
+                    FileUploadResponse(
+                        file_id=file_id,
+                        filename=file.filename,
+                        original_filename=file.filename,
+                        file_size=validation_result.file_size,
+                        content_type=validation_result.detected_type,
+                        upload_type=upload_metadata.upload_type,
+                        uploaded_at=datetime.utcnow(),
+                        validation_result=validation_result.dict(),
+                    )
+                )
 
                 total_size += validation_result.file_size
 
             else:
-                failed_uploads.append({
-                    "filename": file.filename,
-                    "errors": validation_result.security_issues,
-                })
+                failed_uploads.append(
+                    {
+                        "filename": file.filename,
+                        "errors": validation_result.security_issues,
+                    }
+                )
 
         response_data = FileUploadBatchResponse(
             uploaded_files=uploaded_files,
@@ -296,14 +322,17 @@ async def create_migration_validation(
     req: Request,
     api_key_metadata: APIKeyMetadata = Depends(require_validation_scope),
     rate_limit_check: APIKeyMetadata = Depends(
-        api_key_rate_limiter.require_rate_limit_check),
+        api_key_rate_limiter.require_rate_limit_check
+    ),
 ):
     """Create a new migration validation request."""
     try:
         context = get_request_context(req)
 
         # Validate request data
-        validated_data = await input_validator.validate_migration_request(request_data.dict())
+        validated_data = await input_validator.validate_migration_request(
+            request_data.dict()
+        )
 
         # Create validation session
         session_id = f"migration_{datetime.utcnow().isoformat()}"
@@ -370,14 +399,17 @@ async def create_behavioral_validation(
     req: Request,
     api_key_metadata: APIKeyMetadata = Depends(require_validation_scope),
     rate_limit_check: APIKeyMetadata = Depends(
-        api_key_rate_limiter.require_rate_limit_check),
+        api_key_rate_limiter.require_rate_limit_check
+    ),
 ):
     """Create a new behavioral validation request."""
     try:
         context = get_request_context(req)
 
         # Validate request data
-        validated_data = await input_validator.validate_behavioral_request(request_data.dict())
+        validated_data = await input_validator.validate_behavioral_request(
+            request_data.dict()
+        )
 
         # Create validation session
         session_id = f"behavioral_{datetime.utcnow().isoformat()}"
@@ -649,7 +681,8 @@ async def get_system_stats(
 
         response_data = SystemStatsResponse(
             active_validations=len(
-                [s for s in validation_sessions.values() if s.status == "running"]),
+                [s for s in validation_sessions.values() if s.status == "running"]
+            ),
             total_validations_today=len(validation_sessions),
             total_users=1,  # Placeholder
             system_load=psutil.cpu_percent(),
@@ -688,9 +721,13 @@ async def _process_migration_validation(
         session.updated_at = datetime.utcnow()
 
         # Initialize real validation pipeline
-        from ..core.models import (InputData, InputType,
-                                   MigrationValidationRequest,
-                                   TechnologyContext, TechnologyType)
+        from ..core.models import (
+            InputData,
+            InputType,
+            MigrationValidationRequest,
+            TechnologyContext,
+            TechnologyType,
+        )
 
         # Create technology contexts
         source_tech = TechnologyContext(

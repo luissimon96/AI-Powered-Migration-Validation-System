@@ -12,11 +12,21 @@ from typing import Any, Dict, List
 
 from PIL import Image
 
-from ..core.models import (AbstractRepresentation, InputData, InputType,
-                           TechnologyContext, UIElement, ValidationScope)
+from ..core.models import (
+    AbstractRepresentation,
+    InputData,
+    InputType,
+    TechnologyContext,
+    UIElement,
+    ValidationScope,
+)
 from ..services.llm_service import AnalysisType, LLMService, create_llm_service
-from .base import (BaseAnalyzer, ExtractionError, InvalidInputError,
-                   UnsupportedScopeError)
+from .base import (
+    BaseAnalyzer,
+    ExtractionError,
+    InvalidInputError,
+    UnsupportedScopeError,
+)
 
 
 class VisualAnalyzer(BaseAnalyzer):
@@ -28,10 +38,13 @@ class VisualAnalyzer(BaseAnalyzer):
         self.supported_scopes = [ValidationScope.UI_LAYOUT, ValidationScope.FULL_SYSTEM]
         self.supported_image_formats = [".png", ".jpg", ".jpeg", ".bmp", ".gif"]
         self.llm_service: LLMService = create_llm_service(
-            providers="openai,google,anthropic")
+            providers="openai,google,anthropic"
+        )
 
     async def analyze(
-        self, input_data: InputData, scope: ValidationScope,
+        self,
+        input_data: InputData,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze screenshots and extract UI representation."""
         if not self.supports_scope(scope):
@@ -60,7 +73,8 @@ class VisualAnalyzer(BaseAnalyzer):
             # Enhanced analysis with element relationships
             if representation.ui_elements:
                 representation = await self._enhance_with_relationship_analysis(
-                    representation, scope,
+                    representation,
+                    scope,
                 )
 
             return representation
@@ -74,7 +88,9 @@ class VisualAnalyzer(BaseAnalyzer):
         return ext in self.supported_image_formats
 
     async def _analyze_screenshot(
-        self, image_path: str, scope: ValidationScope,
+        self,
+        image_path: str,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze a single screenshot with comprehensive UI element extraction."""
         try:
@@ -111,14 +127,16 @@ class VisualAnalyzer(BaseAnalyzer):
             raise ExtractionError(f"Failed to analyze image {image_path}: {e!s}")
 
     async def _extract_ui_elements_with_llm(
-        self, image: Image.Image, image_path: str,
+        self,
+        image: Image.Image,
+        image_path: str,
     ) -> List[UIElement]:
         """Extract UI elements using advanced multimodal LLM analysis."""
         elements = []
 
         try:
             # Convert image to base64 for LLM processing
-            image_base64 = self._image_to_base64(image)
+            # image_base64 = self._image_to_base64(image)  # Unused variable removed
 
             # Use structured analysis for UI element extraction
             analysis_result = await self.llm_service.structured_analysis(
@@ -171,7 +189,9 @@ class VisualAnalyzer(BaseAnalyzer):
         return elements
 
     async def _analyze_with_multimodal_llm(
-        self, image_base64: str, image_path: str,
+        self,
+        image_base64: str,
+        image_path: str,
     ) -> Dict[str, Any]:
         """Analyze image using the multimodal LLM service with structured prompts."""
         try:
@@ -236,9 +256,8 @@ class VisualAnalyzer(BaseAnalyzer):
         return base64.b64encode(image_data).decode("utf-8")
 
     def _basic_cv_analysis(
-            self,
-            image: Image.Image,
-            image_path: str) -> List[UIElement]:
+        self, image: Image.Image, image_path: str
+    ) -> List[UIElement]:
         """Enhanced basic computer vision analysis as fallback."""
         elements = []
         width, height = image.size
@@ -248,15 +267,17 @@ class VisualAnalyzer(BaseAnalyzer):
 
         for region in regions:
             element = UIElement(
-                type=region.get(
-                    "type", "ui_region"), text=region.get(
-                    "text", f"Region in {
-                        os.path.basename(image_path)}"), position=region.get(
-                    "position", {
-                        "x": 0, "y": 0, "width": width, "height": height}), attributes={
-                            "analysis_method": "basic_cv", "confidence": region.get(
-                                "confidence", 0.3), "region_type": region.get(
-                                    "region_type", "unknown"), }, )
+                type=region.get("type", "ui_region"),
+                text=region.get("text", f"Region in {os.path.basename(image_path)}"),
+                position=region.get(
+                    "position", {"x": 0, "y": 0, "width": width, "height": height}
+                ),
+                attributes={
+                    "analysis_method": "basic_cv",
+                    "confidence": region.get("confidence", 0.3),
+                    "region_type": region.get("region_type", "unknown"),
+                },
+            )
             elements.append(element)
 
         # If no regions detected, create a generic full-image element
@@ -283,14 +304,16 @@ class VisualAnalyzer(BaseAnalyzer):
         # Convert to numpy array for CV operations
         try:
             import numpy as np
+
             img_array = np.array(image)
 
             # Basic edge detection for content regions
-            gray = np.mean(
-                img_array, axis=2) if len(
-                img_array.shape) == 3 else img_array
+            gray = (
+                np.mean(img_array, axis=2) if len(img_array.shape) == 3 else img_array
+            )
             edges = np.abs(np.diff(gray, axis=1)).sum(
-                axis=1)  # Horizontal edge intensity
+                axis=1
+            )  # Horizontal edge intensity
             edge_threshold = np.percentile(edges, 75)  # Top 25% edge density
 
             # Identify content regions by edge density
@@ -313,40 +336,61 @@ class VisualAnalyzer(BaseAnalyzer):
 
         # Top region (potential header)
         if height > 100:
-            regions.append({
-                "type": "header_region",
-                "position": {"x": 0, "y": 0, "width": width, "height": min(80, height // 10)},
-                "confidence": 0.4,
-                "region_type": "navigation",
-            })
+            regions.append(
+                {
+                    "type": "header_region",
+                    "position": {
+                        "x": 0,
+                        "y": 0,
+                        "width": width,
+                        "height": min(80, height // 10),
+                    },
+                    "confidence": 0.4,
+                    "region_type": "navigation",
+                }
+            )
 
         # Main content area
         main_start_y = min(80, height // 10)
         main_height = height - main_start_y - min(60, height // 15)
         if main_height > 0:
-            regions.append({
-                "type": "main_content",
-                "position": {"x": 0, "y": main_start_y, "width": width, "height": main_height},
-                "confidence": 0.5,
-                "region_type": "content",
-            })
+            regions.append(
+                {
+                    "type": "main_content",
+                    "position": {
+                        "x": 0,
+                        "y": main_start_y,
+                        "width": width,
+                        "height": main_height,
+                    },
+                    "confidence": 0.5,
+                    "region_type": "content",
+                }
+            )
 
         # Bottom region (potential footer)
         if height > 150:
             footer_height = min(60, height // 15)
-            regions.append({"type": "footer_region",
-                            "position": {"x": 0,
-                                         "y": height - footer_height,
-                                         "width": width,
-                                         "height": footer_height},
-                            "confidence": 0.3,
-                            "region_type": "navigation",
-                            })
+            regions.append(
+                {
+                    "type": "footer_region",
+                    "position": {
+                        "x": 0,
+                        "y": height - footer_height,
+                        "width": width,
+                        "height": footer_height,
+                    },
+                    "confidence": 0.3,
+                    "region_type": "navigation",
+                }
+            )
 
         return regions
 
     async def _enhance_with_relationship_analysis(
-        self, representation: AbstractRepresentation, scope: ValidationScope,
+        self,
+        representation: AbstractRepresentation,
+        scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Enhance the representation with UI element relationship analysis."""
         if not representation.ui_elements:
@@ -357,9 +401,11 @@ class VisualAnalyzer(BaseAnalyzer):
             elements_data = [asdict(elem) for elem in representation.ui_elements]
 
             # Analyze element relationships using LLM
-            relationship_analysis = await self.llm_service.analyze_ui_element_relationships(
-                elements_data,
-                f"Screenshot analysis for {scope.value} validation",
+            relationship_analysis = (
+                await self.llm_service.analyze_ui_element_relationships(
+                    elements_data,
+                    f"Screenshot analysis for {scope.value} validation",
+                )
             )
 
             # Enhance representation with relationship data
@@ -371,14 +417,17 @@ class VisualAnalyzer(BaseAnalyzer):
 
             # Update elements with relationship information
             relationships = relationship_analysis.result.get(
-                "element_relationships", [])
+                "element_relationships", []
+            )
             workflows = relationship_analysis.result.get("user_workflows", [])
             form_groups = relationship_analysis.result.get("form_groups", [])
 
             # Create a mapping for quick lookup
             element_id_map = {
-                elem.id: i for i, elem in enumerate(
-                    representation.ui_elements) if elem.id}
+                elem.id: i
+                for i, elem in enumerate(representation.ui_elements)
+                if elem.id
+            }
 
             # Enhance elements with relationship data
             for relationship in relationships:
@@ -396,11 +445,13 @@ class VisualAnalyzer(BaseAnalyzer):
                     if "relationships" not in elem.attributes:
                         elem.attributes["relationships"] = []
 
-                    elem.attributes["relationships"].append({
-                        "target": target_id,
-                        "type": rel_type,
-                        "description": relationship.get("description", ""),
-                    })
+                    elem.attributes["relationships"].append(
+                        {
+                            "target": target_id,
+                            "type": rel_type,
+                            "description": relationship.get("description", ""),
+                        }
+                    )
 
             # Add workflow information to relevant elements
             for workflow in workflows:
@@ -408,17 +459,22 @@ class VisualAnalyzer(BaseAnalyzer):
                 for step in workflow_steps:
                     # Try to match workflow steps to elements
                     for elem in representation.ui_elements:
-                        if elem.text and any(word in step.lower()
-                                             for word in elem.text.lower().split()):
+                        if elem.text and any(
+                            word in step.lower() for word in elem.text.lower().split()
+                        ):
                             if elem.attributes is None:
                                 elem.attributes = {}
                             if "workflows" not in elem.attributes:
                                 elem.attributes["workflows"] = []
-                            elem.attributes["workflows"].append({
-                                "name": workflow.get("workflow_name", ""),
-                                "step": step,
-                                "critical_path": workflow.get("critical_path", False),
-                            })
+                            elem.attributes["workflows"].append(
+                                {
+                                    "name": workflow.get("workflow_name", ""),
+                                    "step": step,
+                                    "critical_path": workflow.get(
+                                        "critical_path", False
+                                    ),
+                                }
+                            )
 
             # Add form group information
             for form_group in form_groups:
@@ -444,7 +500,9 @@ class VisualAnalyzer(BaseAnalyzer):
         return representation
 
     def _merge_visual_analysis(
-        self, target: AbstractRepresentation, source: AbstractRepresentation,
+        self,
+        target: AbstractRepresentation,
+        source: AbstractRepresentation,
     ):
         """Merge visual analysis results from multiple images."""
         target.ui_elements.extend(source.ui_elements)
@@ -462,7 +520,8 @@ class VisualAnalyzer(BaseAnalyzer):
             target.metadata["total_elements_count"] = 0
 
         target.metadata["total_elements_count"] += source.metadata.get(
-            "elements_count", 0)
+            "elements_count", 0
+        )
 
     def supports_scope(self, scope: ValidationScope) -> bool:
         """Check if analyzer supports the given validation scope."""

@@ -11,10 +11,13 @@ from typing import Any, Dict, Optional
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import (MigrationValidationRequest, ValidationDiscrepancy,
-                           ValidationResult, ValidationSession)
-from .models import (DiscrepancyModel, ValidationResultModel,
-                     ValidationSessionModel)
+from ..core.models import (
+    MigrationValidationRequest,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationSession,
+)
+from .models import DiscrepancyModel, ValidationResultModel, ValidationSessionModel
 
 logger = logging.getLogger(__name__)
 
@@ -179,17 +182,22 @@ async def migrate_in_memory_sessions_to_db(
         try:
             # Check if session already exists in database
             existing = await session.execute(
-                text("SELECT id FROM validation_sessions WHERE request_id = :request_id"),
+                text(
+                    "SELECT id FROM validation_sessions WHERE request_id = :request_id"
+                ),
                 {"request_id": request_id},
             )
             if existing.scalar():
                 logger.info(
-                    f"Session {request_id} already exists in database, skipping")
+                    f"Session {request_id} already exists in database, skipping"
+                )
                 migration_results[request_id] = True
                 continue
 
             # Convert and save session
-            session_model = await convert_pydantic_to_db_models(validation_session, session)
+            session_model = await convert_pydantic_to_db_models(
+                validation_session, session
+            )
 
             # Save result if available
             if validation_session.result:
@@ -412,7 +420,11 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
             {"week_ago": week_ago},
         )
         stats["popular_technology_pairs"] = [
-            {"source": row.source_technology, "target": row.target_technology, "count": row.count}
+            {
+                "source": row.source_technology,
+                "target": row.target_technology,
+                "count": row.count,
+            }
             for row in result.fetchall()
         ]
 
@@ -433,7 +445,8 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
             {"week_ago": week_ago},
         )
         stats["common_discrepancy_types"] = [
-            {"type": row.discrepancy_type, "count": row.count} for row in result.fetchall()
+            {"type": row.discrepancy_type, "count": row.count}
+            for row in result.fetchall()
         ]
 
         stats["generated_at"] = datetime.utcnow().isoformat()
@@ -566,7 +579,8 @@ async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
         completed_without_results = result.scalar()
         if completed_without_results > 0:
             issues.append(
-                f"{completed_without_results} completed sessions without results")
+                f"{completed_without_results} completed sessions without results"
+            )
 
         # Check for invalid fidelity scores
         result = await session.execute(

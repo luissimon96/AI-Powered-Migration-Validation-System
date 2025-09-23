@@ -11,9 +11,15 @@ from sqlalchemy import and_, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from .security_models import (APIKeyModel, AuditLogModel, ComplianceLogModel,
-                              FileUploadModel, RateLimitModel,
-                              SecurityIncidentModel, SecurityMetricsModel)
+from .security_models import (
+    APIKeyModel,
+    AuditLogModel,
+    ComplianceLogModel,
+    FileUploadModel,
+    RateLimitModel,
+    SecurityIncidentModel,
+    SecurityMetricsModel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -91,9 +97,8 @@ class SecurityDatabaseService:
             return None
 
     async def update_api_key_last_used(
-            self,
-            api_key_id: str,
-            timestamp: datetime) -> bool:
+        self, api_key_id: str, timestamp: datetime
+    ) -> bool:
         """Update API key last used timestamp."""
         try:
             result = await self.session.execute(
@@ -135,7 +140,8 @@ class SecurityDatabaseService:
             return False
 
     async def list_api_keys(
-            self, created_by: Optional[str] = None) -> List[Dict[str, Any]]:
+        self, created_by: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """List API keys with optional filtering."""
         try:
             query = select(APIKeyModel).order_by(desc(APIKeyModel.created_at))
@@ -210,12 +216,16 @@ class SecurityDatabaseService:
     ) -> List[Dict[str, Any]]:
         """Query audit events with filters."""
         try:
-            query = select(AuditLogModel).where(
-                and_(
-                    AuditLogModel.created_at >= start_date,
-                    AuditLogModel.created_at <= end_date,
-                ),
-            ).order_by(desc(AuditLogModel.created_at))
+            query = (
+                select(AuditLogModel)
+                .where(
+                    and_(
+                        AuditLogModel.created_at >= start_date,
+                        AuditLogModel.created_at <= end_date,
+                    ),
+                )
+                .order_by(desc(AuditLogModel.created_at))
+            )
 
             if event_types:
                 query = query.where(AuditLogModel.event_type.in_(event_types))
@@ -367,7 +377,9 @@ class SecurityDatabaseService:
         """Update security incident status."""
         try:
             result = await self.session.execute(
-                select(SecurityIncidentModel).where(SecurityIncidentModel.id == incident_id),
+                select(SecurityIncidentModel).where(
+                    SecurityIncidentModel.id == incident_id
+                ),
             )
             incident = result.scalar_one_or_none()
 
@@ -478,12 +490,16 @@ class SecurityDatabaseService:
     ) -> List[Dict[str, Any]]:
         """Get security metrics for date range."""
         try:
-            query = select(SecurityMetricsModel).where(
-                and_(
-                    SecurityMetricsModel.metric_date >= start_date,
-                    SecurityMetricsModel.metric_date <= end_date,
-                ),
-            ).order_by(SecurityMetricsModel.metric_date)
+            query = (
+                select(SecurityMetricsModel)
+                .where(
+                    and_(
+                        SecurityMetricsModel.metric_date >= start_date,
+                        SecurityMetricsModel.metric_date <= end_date,
+                    ),
+                )
+                .order_by(SecurityMetricsModel.metric_date)
+            )
 
             if metric_type:
                 query = query.where(SecurityMetricsModel.metric_type == metric_type)

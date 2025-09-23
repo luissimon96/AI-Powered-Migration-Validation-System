@@ -11,7 +11,7 @@ class SecuritySettings(BaseSettings):
         env_prefix="SECURITY_",
         # Disable automatic JSON parsing for list fields
         json_schema_serialization_defaults_required=True,
-        json_encoders={}
+        json_encoders={},
     )
 
     SECRET_KEY: str = "super-secret-key"
@@ -27,13 +27,15 @@ class SecuritySettings(BaseSettings):
     def allowed_hosts_list(self) -> List[str]:
         if self.ALLOWED_HOSTS == "*":
             return ["*"]
-        return [host.strip() for host in self.ALLOWED_HOSTS.split(',') if host.strip()]
+        return [host.strip() for host in self.ALLOWED_HOSTS.split(",") if host.strip()]
 
     @property
     def cors_origins_list(self) -> List[str]:
         if self.CORS_ORIGINS == "*":
             return ["*"]
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(',') if origin.strip()]
+        return [
+            origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()
+        ]
 
 
 security_settings = SecuritySettings()

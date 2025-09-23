@@ -27,8 +27,9 @@ class MigrationManager:
     and handling data migrations between system versions.
     """
 
-    def __init__(self, db_manager: DatabaseManager,
-                 alembic_config_path: str = "alembic.ini"):
+    def __init__(
+        self, db_manager: DatabaseManager, alembic_config_path: str = "alembic.ini"
+    ):
         """Initialize migration manager.
 
         Args:
@@ -47,7 +48,8 @@ class MigrationManager:
             self._alembic_config = Config(self.alembic_config_path)
             # Set database URL from our config
             self._alembic_config.set_main_option(
-                "sqlalchemy.url", self.db_manager.config.url)
+                "sqlalchemy.url", self.db_manager.config.url
+            )
         return self._alembic_config
 
     async def get_current_revision(self) -> Optional[str]:
@@ -303,11 +305,31 @@ class DataMigrator:
             async with self.db_manager.get_session() as session:
                 # Set default component_type based on discrepancy_type
                 mappings = [
-                    ("ui", [
-                        "missing_ui_element", "ui_layout_mismatch", "visual_difference"]), ("backend", [
-                            "missing_function", "logic_divergence", "api_mismatch"]), ("data", [
-                                "missing_field", "type_mismatch", "constraint_violation"]), ("behavioral", [
-                                    "interaction_failure", "navigation_error", "form_submission_error"], ), ]
+                    (
+                        "ui",
+                        [
+                            "missing_ui_element",
+                            "ui_layout_mismatch",
+                            "visual_difference",
+                        ],
+                    ),
+                    (
+                        "backend",
+                        ["missing_function", "logic_divergence", "api_mismatch"],
+                    ),
+                    (
+                        "data",
+                        ["missing_field", "type_mismatch", "constraint_violation"],
+                    ),
+                    (
+                        "behavioral",
+                        [
+                            "interaction_failure",
+                            "navigation_error",
+                            "form_submission_error",
+                        ],
+                    ),
+                ]
 
                 for component_type, discrepancy_types in mappings:
                     type_conditions = " OR ".join(
@@ -393,7 +415,8 @@ class DataMigrator:
 
             total_cleaned = sum(cleanup_counts.values())
             logger.info(
-                f"Orphaned records cleanup completed: {total_cleaned} records cleaned")
+                f"Orphaned records cleanup completed: {total_cleaned} records cleaned"
+            )
 
             return cleanup_counts
 

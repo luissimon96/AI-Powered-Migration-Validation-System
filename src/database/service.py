@@ -10,13 +10,21 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import (MigrationValidationRequest, TechnologyType,
-                           ValidationDiscrepancy, ValidationResult,
-                           ValidationSession)
+from ..core.models import (
+    MigrationValidationRequest,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationSession,
+)
 from .models import ValidationSessionModel
-from .repositories import (BehavioralTestRepository, DiscrepancyRepository,
-                           MetricsRepository, ValidationResultRepository,
-                           ValidationSessionRepository)
+from .repositories import (
+    BehavioralTestRepository,
+    DiscrepancyRepository,
+    MetricsRepository,
+    ValidationResultRepository,
+    ValidationSessionRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +103,8 @@ class ValidationDatabaseService:
             raise
 
     async def get_validation_session(
-            self, request_id: str) -> Optional[ValidationSession]:
+        self, request_id: str
+    ) -> Optional[ValidationSession]:
         """Retrieve a validation session by request ID.
 
         Args:
@@ -111,7 +120,9 @@ class ValidationDatabaseService:
                 return None
 
             # Convert database model back to Pydantic model
-            validation_session = await self._convert_session_model_to_pydantic(session_model)
+            validation_session = await self._convert_session_model_to_pydantic(
+                session_model
+            )
             return validation_session
 
         except Exception as e:
@@ -260,7 +271,8 @@ class ValidationDatabaseService:
                     technology_pair = (source_tech, target_tech)
                 except ValueError:
                     logger.warning(
-                        f"Invalid technology types: {source_technology}, {target_technology}", )
+                        f"Invalid technology types: {source_technology}, {target_technology}",
+                    )
 
             sessions, total_count = await self.session_repo.list_sessions(
                 limit=limit,
@@ -385,8 +397,11 @@ class ValidationDatabaseService:
 
         """
         # Reconstruct the validation request
-        from ..core.models import (InputData, MigrationValidationRequest,
-                                   TechnologyContext)
+        from ..core.models import (
+            InputData,
+            MigrationValidationRequest,
+            TechnologyContext,
+        )
 
         source_technology = TechnologyContext(
             type=session_model.source_technology,

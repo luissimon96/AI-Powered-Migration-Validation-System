@@ -51,12 +51,14 @@ class StructuredLogger:
 
     def _add_service_context(self, _, __, event_dict):
         """Add service-level context to all log entries."""
-        event_dict.update({
-            "service": "migration-validator",
-            "version": "1.0.0",
-            "environment": self.config.settings.environment,
-            "hostname": self._get_hostname(),
-        })
+        event_dict.update(
+            {
+                "service": "migration-validator",
+                "version": "1.0.0",
+                "environment": self.config.settings.environment,
+                "hostname": self._get_hostname(),
+            }
+        )
         return event_dict
 
     def _add_request_id(self, _, __, event_dict):
@@ -69,6 +71,7 @@ class StructuredLogger:
     def _get_hostname(self) -> str:
         """Get system hostname."""
         import socket
+
         try:
             return socket.gethostname()
         except BaseException:
@@ -78,6 +81,7 @@ class StructuredLogger:
         """Get current request ID from context."""
         try:
             import contextvars
+
             return getattr(contextvars, "request_id", {}).get()
         except BaseException:
             return None
@@ -90,8 +94,12 @@ class StructuredLogger:
 
         try:
             import contextvars
-            token = contextvars.request_id.set(request_id) if hasattr(
-                contextvars, "request_id") else None
+
+            token = (
+                contextvars.request_id.set(request_id)
+                if hasattr(contextvars, "request_id")
+                else None
+            )
             yield request_id
         finally:
             if token:
@@ -117,8 +125,9 @@ class StructuredLogger:
         """Log critical level message."""
         self.logger.critical(message, **kwargs)
 
-    def log_request(self, method: str, path: str, status_code: int,
-                    duration: float, **kwargs):
+    def log_request(
+        self, method: str, path: str, status_code: int, duration: float, **kwargs
+    ):
         """Log HTTP request with structured format."""
         self.info(
             "HTTP request completed",
@@ -129,8 +138,9 @@ class StructuredLogger:
             **kwargs,
         )
 
-    def log_validation_start(self, source_tech: str, target_tech: str,
-                             scope: str, file_count: int, **kwargs):
+    def log_validation_start(
+        self, source_tech: str, target_tech: str, scope: str, file_count: int, **kwargs
+    ):
         """Log validation start."""
         self.info(
             "Validation started",
@@ -142,9 +152,15 @@ class StructuredLogger:
             **kwargs,
         )
 
-    def log_validation_complete(self, source_tech: str, target_tech: str,
-                                fidelity_score: float, duration: float,
-                                status: str, **kwargs):
+    def log_validation_complete(
+        self,
+        source_tech: str,
+        target_tech: str,
+        fidelity_score: float,
+        duration: float,
+        status: str,
+        **kwargs,
+    ):
         """Log validation completion."""
         self.info(
             "Validation completed",
@@ -157,8 +173,15 @@ class StructuredLogger:
             **kwargs,
         )
 
-    def log_llm_request(self, provider: str, model: str, tokens_used: int,
-                        duration: float, cost: float, **kwargs):
+    def log_llm_request(
+        self,
+        provider: str,
+        model: str,
+        tokens_used: int,
+        duration: float,
+        cost: float,
+        **kwargs,
+    ):
         """Log LLM API request."""
         self.info(
             "LLM request completed",
@@ -171,8 +194,7 @@ class StructuredLogger:
             **kwargs,
         )
 
-    def log_error(self, error: Exception, component: str,
-                  operation: str, **kwargs):
+    def log_error(self, error: Exception, component: str, operation: str, **kwargs):
         """Log error with comprehensive context."""
         self.error(
             "Error occurred",
@@ -184,8 +206,9 @@ class StructuredLogger:
             **kwargs,
         )
 
-    def log_security_event(self, event_type: str, user_id: str,
-                           ip_address: str, **kwargs):
+    def log_security_event(
+        self, event_type: str, user_id: str, ip_address: str, **kwargs
+    ):
         """Log security-related events."""
         self.warning(
             "Security event",
@@ -196,8 +219,9 @@ class StructuredLogger:
             **kwargs,
         )
 
-    def log_performance_alert(self, metric_name: str, current_value: float,
-                              threshold: float, **kwargs):
+    def log_performance_alert(
+        self, metric_name: str, current_value: float, threshold: float, **kwargs
+    ):
         """Log performance alerts."""
         self.warning(
             "Performance alert",
@@ -289,7 +313,7 @@ class AlertManager:
             },
             "error_rate": {
                 "warning": 0.05,  # 5%
-                "critical": 0.10,   # 10%
+                "critical": 0.10,  # 10%
             },
             "queue_size": {
                 "warning": 50,
@@ -297,11 +321,11 @@ class AlertManager:
             },
             "memory_usage": {
                 "warning": 0.80,  # 80%
-                "critical": 0.90,   # 90%
+                "critical": 0.90,  # 90%
             },
             "llm_cost": {
                 "warning": 100.0,  # $100/day
-                "critical": 200.0,   # $200/day
+                "critical": 200.0,  # $200/day
             },
         }
 

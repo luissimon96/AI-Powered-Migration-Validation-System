@@ -92,8 +92,7 @@ async def submit_async_validation(
         logger.error("Failed to submit async validation", error=str(e))
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to submit validation: {
-                e!s}")
+            detail=f"Failed to submit validation: {e!s}")
 
 
 @router.get("/validate/{task_id}/status", response_model=TaskStatusResponse)

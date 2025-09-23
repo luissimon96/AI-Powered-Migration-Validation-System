@@ -158,19 +158,26 @@ Respond ONLY in valid JSON format with precise element descriptions.""",
 
 Identify the purpose and type of each element, providing stable IDs and accurate positioning information.""",
             expected_response_format={
-                "elements": [{
-                    "type": "string (button, input, label, image, text, table, etc.)",
-                    "text": "string or null",
-                    "id": "string (descriptive stable ID)",
-                    "position": {"x": "int", "y": "int", "width": "int", "height": "int"},
-                    "attributes": {
-                        "interactive": "boolean",
-                        "form_element": "boolean",
-                        "navigation": "boolean",
-                        "placeholder": "string or null",
-                        "validation_required": "boolean",
-                    },
-                }],
+                "elements": [
+                    {
+                        "type": "string (button, input, label, image, text, table, etc.)",
+                        "text": "string or null",
+                        "id": "string (descriptive stable ID)",
+                        "position": {
+                            "x": "int",
+                            "y": "int",
+                            "width": "int",
+                            "height": "int",
+                        },
+                        "attributes": {
+                            "interactive": "boolean",
+                            "form_element": "boolean",
+                            "navigation": "boolean",
+                            "placeholder": "string or null",
+                            "validation_required": "boolean",
+                        },
+                    }
+                ],
                 "layout_structure": {
                     "header_elements": ["string"],
                     "main_content_elements": ["string"],
@@ -224,22 +231,28 @@ SCREEN CONTEXT: {screen_context}
 
 Identify element relationships, user workflows, and interaction patterns.""",
             expected_response_format={
-                "element_relationships": [{
-                    "source_element_id": "string",
-                    "target_element_id": "string",
-                    "relationship_type": "string (parent_child, form_validation, navigation, data_binding)",
-                    "description": "string",
-                }],
-                "user_workflows": [{
-                    "workflow_name": "string",
-                    "steps": ["string"],
-                    "critical_path": "boolean",
-                }],
-                "form_groups": [{
-                    "group_name": "string",
-                    "elements": ["string"],
-                    "validation_rules": ["string"],
-                }],
+                "element_relationships": [
+                    {
+                        "source_element_id": "string",
+                        "target_element_id": "string",
+                        "relationship_type": "string (parent_child, form_validation, navigation, data_binding)",
+                        "description": "string",
+                    }
+                ],
+                "user_workflows": [
+                    {
+                        "workflow_name": "string",
+                        "steps": ["string"],
+                        "critical_path": "boolean",
+                    }
+                ],
+                "form_groups": [
+                    {
+                        "group_name": "string",
+                        "elements": ["string"],
+                        "validation_rules": ["string"],
+                    }
+                ],
                 "navigation_structure": {
                     "primary_navigation": ["string"],
                     "secondary_navigation": ["string"],
@@ -298,13 +311,15 @@ TARGET FUNCTIONS:
 Analyze business logic preservation and identify critical discrepancies.""",
             expected_response_format={
                 "business_logic_preserved": "boolean",
-                "critical_discrepancies": [{
-                    "function_name": "string",
-                    "discrepancy_type": "string",
-                    "severity": "string (critical, warning, info)",
-                    "description": "string",
-                    "business_impact": "string",
-                }],
+                "critical_discrepancies": [
+                    {
+                        "function_name": "string",
+                        "discrepancy_type": "string",
+                        "severity": "string (critical, warning, info)",
+                        "description": "string",
+                        "business_impact": "string",
+                    }
+                ],
                 "validation_gaps": ["string"],
                 "workflow_integrity": {
                     "preserved": "boolean",
@@ -327,13 +342,15 @@ Analyze business logic preservation and identify critical discrepancies.""",
             ],
             fallback_response={
                 "business_logic_preserved": False,
-                "critical_discrepancies": [{
-                    "function_name": "unknown",
-                    "discrepancy_type": "analysis_failed",
-                    "severity": "critical",
-                    "description": "Analysis failed",
-                    "business_impact": "unknown",
-                }],
+                "critical_discrepancies": [
+                    {
+                        "function_name": "unknown",
+                        "discrepancy_type": "analysis_failed",
+                        "severity": "critical",
+                        "description": "Analysis failed",
+                        "business_impact": "unknown",
+                    }
+                ],
                 "validation_gaps": ["Manual review required"],
                 "workflow_integrity": {
                     "preserved": False,
@@ -345,7 +362,9 @@ Analyze business logic preservation and identify critical discrepancies.""",
                     "constraint_changes": ["unknown"],
                 },
                 "risk_assessment": "critical",
-                "recommendations": ["Comprehensive manual business logic review required"],
+                "recommendations": [
+                    "Comprehensive manual business logic review required"
+                ],
                 "confidence": 0.1,
             },
         )
@@ -407,12 +426,14 @@ Provide comprehensive fidelity assessment and recommendations.""",
                     "info_items": "int",
                     "highest_risk_area": "string",
                 },
-                "recommendations": [{
-                    "priority": "string (high, medium, low)",
-                    "category": "string",
-                    "description": "string",
-                    "estimated_effort": "string",
-                }],
+                "recommendations": [
+                    {
+                        "priority": "string (high, medium, low)",
+                        "category": "string",
+                        "description": "string",
+                        "estimated_effort": "string",
+                    }
+                ],
                 "confidence": "float (0.0-1.0)",
             },
             confidence_factors=[
@@ -447,12 +468,14 @@ Provide comprehensive fidelity assessment and recommendations.""",
                     "info_items": 0,
                     "highest_risk_area": "analysis_incomplete",
                 },
-                "recommendations": [{
-                    "priority": "high",
-                    "category": "analysis",
-                    "description": "Manual review required due to analysis failure",
-                    "estimated_effort": "unknown",
-                }],
+                "recommendations": [
+                    {
+                        "priority": "high",
+                        "category": "analysis",
+                        "description": "Manual review required due to analysis failure",
+                        "estimated_effort": "unknown",
+                    }
+                ],
                 "confidence": 0.2,
             },
         )
@@ -489,7 +512,8 @@ Provide comprehensive fidelity assessment and recommendations.""",
         enhanced = base_context.copy()
         enhanced["confidence_factors"] = template.confidence_factors
         enhanced["expected_format"] = json.dumps(
-            template.expected_response_format, indent=2)
+            template.expected_response_format, indent=2
+        )
 
         return enhanced
 

@@ -180,8 +180,8 @@ class APIKeyManager:
             return False
 
     async def list_api_keys(
-            self,
-            created_by: Optional[str] = None) -> List[APIKeyResponse]:
+        self, created_by: Optional[str] = None
+    ) -> List[APIKeyResponse]:
         """List API keys with optional filtering."""
         try:
             api_keys_data = await self.db.list_api_keys(created_by=created_by)
@@ -189,17 +189,19 @@ class APIKeyManager:
             api_keys = []
             for data in api_keys_data:
                 metadata = APIKeyMetadata(**data["metadata"])
-                api_keys.append(APIKeyResponse(
-                    id=metadata.id,
-                    name=metadata.name,
-                    description=metadata.description,
-                    scopes=metadata.scopes,
-                    created_at=metadata.created_at,
-                    expires_at=metadata.expires_at,
-                    last_used_at=metadata.last_used_at,
-                    rate_limit_per_minute=metadata.rate_limit_per_minute,
-                    is_active=metadata.is_active,
-                ))
+                api_keys.append(
+                    APIKeyResponse(
+                        id=metadata.id,
+                        name=metadata.name,
+                        description=metadata.description,
+                        scopes=metadata.scopes,
+                        created_at=metadata.created_at,
+                        expires_at=metadata.expires_at,
+                        last_used_at=metadata.last_used_at,
+                        rate_limit_per_minute=metadata.rate_limit_per_minute,
+                        is_active=metadata.is_active,
+                    )
+                )
 
             return api_keys
 
@@ -210,16 +212,20 @@ class APIKeyManager:
                 detail="Failed to list API keys",
             )
 
-    async def check_scope_permission(self,
-                                     api_key_metadata: APIKeyMetadata,
-                                     required_scope: APIKeyScope) -> bool:
+    async def check_scope_permission(
+        self, api_key_metadata: APIKeyMetadata, required_scope: APIKeyScope
+    ) -> bool:
         """Check if API key has required scope permission."""
-        return required_scope in api_key_metadata.scopes or APIKeyScope.ADMIN in api_key_metadata.scopes
+        return (
+            required_scope in api_key_metadata.scopes
+            or APIKeyScope.ADMIN in api_key_metadata.scopes
+        )
 
 
 # Global API key manager instance
 # Global instance - will be initialized with session when needed
 api_key_manager = None
+
 
 def get_api_key_manager(session=None):
     """Get API key manager instance with optional session."""
@@ -228,12 +234,14 @@ def get_api_key_manager(session=None):
         api_key_manager = APIKeyManager(session)
     return api_key_manager
 
+
 # FastAPI security dependency
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 async def get_api_key_metadata(
-        api_key: str = Security(api_key_header)) -> APIKeyMetadata:
+    api_key: str = Security(api_key_header),
+) -> APIKeyMetadata:
     """FastAPI dependency to get and validate API key."""
     if not api_key:
         raise HTTPException(
@@ -248,8 +256,11 @@ def require_api_scope(required_scope: APIKeyScope):
     """Dependency factory for scope-based API authorization."""
 
     async def scope_checker(
-            api_key_metadata: APIKeyMetadata = Security(get_api_key_metadata)):
-        if not await api_key_manager.check_scope_permission(api_key_metadata, required_scope):
+        api_key_metadata: APIKeyMetadata = Security(get_api_key_metadata),
+    ):
+        if not await api_key_manager.check_scope_permission(
+            api_key_metadata, required_scope
+        ):
             logger.warning(
                 "Insufficient API key permissions",
                 api_key_id=api_key_metadata.id,
@@ -314,7 +325,8 @@ class APIKeyRateLimiter:
         return True
 
     async def require_rate_limit_check(
-            self, api_key_metadata: APIKeyMetadata = Security(get_api_key_metadata)):
+        self, api_key_metadata: APIKeyMetadata = Security(get_api_key_metadata)
+    ):
         """FastAPI dependency for rate limit checking."""
         if not await self.check_rate_limit(api_key_metadata):
             raise HTTPException(

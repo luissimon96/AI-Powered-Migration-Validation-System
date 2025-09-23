@@ -30,8 +30,9 @@ class SessionManager:
         self.sessions: Dict[str, SessionData] = {}
         self.session_timeout = 3600  # 1 hour
 
-    async def create_session(self, user_id: str, api_key_id: str,
-                             request: Request, scopes: list[str]) -> str:
+    async def create_session(
+        self, user_id: str, api_key_id: str, request: Request, scopes: list[str]
+    ) -> str:
         """Create new session."""
         session_id = f"sess_{user_id}_{int(time.time())}"
 
@@ -70,7 +71,8 @@ class SessionManager:
     async def cleanup_expired(self):
         """Cleanup expired sessions."""
         expired = [
-            sid for sid, session in self.sessions.items()
+            sid
+            for sid, session in self.sessions.items()
             if (datetime.utcnow() - session.last_access).seconds > self.session_timeout
         ]
         for sid in expired:

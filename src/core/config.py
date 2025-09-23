@@ -178,7 +178,8 @@ class ValidationConfig:
             providers["anthropic"] = LLMProviderConfig(
                 provider="anthropic",
                 model=self.settings.anthropic_model,
-                api_key=self.settings.anthropic_api_key or os.getenv("ANTHROPIC_API_KEY"),
+                api_key=self.settings.anthropic_api_key
+                or os.getenv("ANTHROPIC_API_KEY"),
                 max_tokens=self.settings.llm_max_tokens,
                 temperature=self.settings.llm_temperature,
                 timeout=self.settings.llm_timeout,

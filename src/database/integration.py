@@ -70,12 +70,15 @@ class DatabaseIntegration:
 
                 # Add processing logs
                 for log_entry in validation_session.processing_log:
-                    await service.add_session_log(validation_session.request.request_id, log_entry)
+                    await service.add_session_log(
+                        validation_session.request.request_id, log_entry
+                    )
 
                 # Save result if available
                 if validation_session.result:
                     await service.save_validation_result(
-                        validation_session.request.request_id, validation_session.result,
+                        validation_session.request.request_id,
+                        validation_session.result,
                     )
 
                 return True
@@ -164,7 +167,10 @@ class DatabaseIntegration:
             return False
 
     async def list_sessions(
-        self, limit: int = 50, offset: int = 0, **filters,
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        **filters,
     ) -> Tuple[List[Dict[str, Any]], int]:
         """List validation sessions from database.
 
@@ -184,7 +190,9 @@ class DatabaseIntegration:
             async for session in get_db_session():
                 service = ValidationDatabaseService(session)
                 return await service.list_validation_sessions(
-                    limit=limit, offset=offset, **filters,
+                    limit=limit,
+                    offset=offset,
+                    **filters,
                 )
 
         except Exception as e:
@@ -326,7 +334,8 @@ class HybridSessionManager:
             await self.db_integration.update_session_status(request_id, status)
         except Exception as e:
             logger.warning(
-                f"Failed to update session {request_id} status in database: {e}")
+                f"Failed to update session {request_id} status in database: {e}"
+            )
 
     async def add_session_log(self, request_id: str, message: str) -> None:
         """Add log entry to session in both memory and database.
@@ -345,10 +354,14 @@ class HybridSessionManager:
             await self.db_integration.add_session_log(request_id, message)
         except Exception as e:
             logger.warning(
-                f"Failed to add log to session {request_id} in database: {e}")
+                f"Failed to add log to session {request_id} in database: {e}"
+            )
 
     async def list_sessions(
-        self, include_memory: bool = True, include_database: bool = True, **filters,
+        self,
+        include_memory: bool = True,
+        include_database: bool = True,
+        **filters,
     ) -> List[Dict[str, Any]]:
         """List sessions from both memory and database sources.
 
@@ -373,7 +386,9 @@ class HybridSessionManager:
                     "target_technology": session.request.target_technology.type.value,
                     "validation_scope": session.request.validation_scope.value,
                     "created_at": session.request.created_at.isoformat(),
-                    "fidelity_score": session.result.fidelity_score if session.result else None,
+                    "fidelity_score": session.result.fidelity_score
+                    if session.result
+                    else None,
                     "source": "memory",
                 }
                 sessions.append(session_dict)
@@ -458,7 +473,8 @@ async def database_lifespan(app: FastAPI):
             logger.info("Database initialization completed successfully")
         else:
             logger.warning(
-                "Database initialization completed but database may not be fully available", )
+                "Database initialization completed but database may not be fully available",
+            )
 
         yield
 
