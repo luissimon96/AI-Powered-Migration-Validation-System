@@ -68,6 +68,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[quality]"
 
+      - name: 📦 Install isort
+        run: pip install isort
 
       - name: 📏 Import Sorting (isort)
         run: isort --check-only --diff src/ tests/
