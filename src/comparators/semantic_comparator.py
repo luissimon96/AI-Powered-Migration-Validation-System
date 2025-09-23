@@ -272,8 +272,7 @@ class SemanticComparator:
                 type="ui_position_change",
                 severity=SeverityLevel.WARNING,
                 description=f"UI element position changed from {
-                    source_elem.position} to {
-                    target_elem.position}",
+                    source_elem.position} to {target_elem.position}",
                 source_element=self._describe_ui_element(source_elem),
                 target_element=self._describe_ui_element(target_elem),
                 recommendation="Verify that position change doesn't affect usability",
@@ -304,10 +303,8 @@ class SemanticComparator:
                         description=f"Data field '{
                             source_field.name}' appears to be renamed to '{
                             fuzzy_match.name}'",
-                        source_element=f"field:{
-                            source_field.name}",
-                        target_element=f"field:{
-                            fuzzy_match.name}",
+                        source_element=f"field:{source_field.name}",
+                        target_element=f"field:{fuzzy_match.name}",
                         recommendation="Verify that renamed field maintains the same data semantics",
                         confidence=0.7,
                     )
@@ -318,8 +315,7 @@ class SemanticComparator:
                         description=f"Data field '{
                             source_field.name}' (type: {
                             source_field.type}) is missing in target",
-                        source_element=f"field:{
-                            source_field.name}",
+                        source_element=f"field:{source_field.name}",
                         recommendation="Add the missing data field or ensure data is handled elsewhere",
                     )
                 discrepancies.append(discrepancy)
@@ -335,8 +331,7 @@ class SemanticComparator:
                     description=f"Additional data field '{
                         target_field.name}' (type: {
                         target_field.type}) found in target",
-                    target_element=f"field:{
-                        target_field.name}",
+                    target_element=f"field:{target_field.name}",
                     recommendation="Verify if this field represents new functionality or data requirements",
                 )
                 discrepancies.append(discrepancy)
@@ -368,12 +363,9 @@ class SemanticComparator:
                     type="constraint_change",
                     severity=severity,
                     description=f"Field '{name}' required constraint changed from {
-                        source_field.required} to {
-                        target_field.required}",
-                    source_element=f"field:{
-                        source_field.name}",
-                    target_element=f"field:{
-                        target_field.name}",
+                        source_field.required} to {target_field.required}",
+                    source_element=f"field:{source_field.name}",
+                    target_element=f"field:{target_field.name}",
                     recommendation="Verify that constraint changes don't break data validation",
                 )
                 discrepancies.append(discrepancy)
@@ -433,10 +425,8 @@ class SemanticComparator:
                         description=f"Function '{
                             source_func.name}' appears to be renamed to '{
                             fuzzy_match.name}'",
-                        source_element=f"function:{
-                            source_func.name}",
-                        target_element=f"function:{
-                            fuzzy_match.name}",
+                        source_element=f"function:{source_func.name}",
+                        target_element=f"function:{fuzzy_match.name}",
                         recommendation="Verify that renamed function maintains the same business logic",
                         confidence=0.7,
                     )
@@ -446,8 +436,7 @@ class SemanticComparator:
                         severity=SeverityLevel.CRITICAL,
                         description=f"Function '{
                             source_func.name}' is missing in target",
-                        source_element=f"function:{
-                            source_func.name}",
+                        source_element=f"function:{source_func.name}",
                         recommendation="Implement the missing function or ensure functionality is preserved elsewhere",
                     )
                 discrepancies.append(discrepancy)
@@ -501,10 +490,7 @@ class SemanticComparator:
             discrepancy = ValidationDiscrepancy(
                 type="function_signature_change", severity=SeverityLevel.WARNING, description=f"Function '{
                     source_func.name}' parameters changed from {
-                    source_func.parameters} to {
-                    target_func.parameters}", source_element=f"function:{
-                    source_func.name}", target_element=f"function:{
-                        target_func.name}", recommendation="Verify that parameter changes don't break calling code", )
+                    source_func.parameters} to {target_func.parameters}", source_element=f"function:{source_func.name}", target_element=f"function:{target_func.name}", recommendation="Verify that parameter changes don't break calling code", )
             discrepancies.append(discrepancy)
 
         # Enhanced LLM-based logic comparison if both functions have logic summaries
@@ -537,10 +523,8 @@ class SemanticComparator:
                         description=f"Function '{
                             source_func.name}' business logic has changed significantly (similarity: {
                             similarity_score:.2f})",
-                        source_element=f"function:{
-                            source_func.name}",
-                        target_element=f"function:{
-                            target_func.name}",
+                        source_element=f"function:{source_func.name}",
+                        target_element=f"function:{target_func.name}",
                         recommendation=logic_analysis.result.get(
                             "recommendations",
                             ["Review logic changes carefully"])[0] if logic_analysis.result.get("recommendations") else "Review logic changes to ensure business requirements are still met",
@@ -557,10 +541,8 @@ class SemanticComparator:
                         severity=SeverityLevel.WARNING,
                         description=f"Function '{
                             source_func.name}' logic appears to have changed",
-                        source_element=f"function:{
-                            source_func.name}",
-                        target_element=f"function:{
-                            target_func.name}",
+                        source_element=f"function:{source_func.name}",
+                        target_element=f"function:{target_func.name}",
                         recommendation="Review logic changes to ensure business requirements are still met",
                     )
                     discrepancies.append(discrepancy)
@@ -576,10 +558,8 @@ class SemanticComparator:
                 severity=SeverityLevel.WARNING,
                 description=f"Function '{
                     source_func.name}' logic appears to have changed",
-                source_element=f"function:{
-                    source_func.name}",
-                target_element=f"function:{
-                    target_func.name}",
+                source_element=f"function:{source_func.name}",
+                target_element=f"function:{target_func.name}",
                 recommendation="Review logic changes to ensure business requirements are still met",
             )
             discrepancies.append(discrepancy)

@@ -15,7 +15,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
     from src.security.auth import AuthManager
-    from src.security.config import SecurityLevel, get_security_config
+    from src.security.config import SecurityLevel
+    from src.security.config import get_security_config
     from src.security.encryption import EncryptionManager
 except ImportError as e:
     print(f"Error importing security modules: {e}")
@@ -35,14 +36,14 @@ def generate_secure_keys():
 
     # Generate API keys (examples)
     api_keys = {
-        'internal_api': secrets.token_urlsafe(32),
-        'monitoring_key': secrets.token_urlsafe(16),
+        "internal_api": secrets.token_urlsafe(32),
+        "monitoring_key": secrets.token_urlsafe(16),
     }
 
     return {
-        'JWT_SECRET_KEY': jwt_secret,
-        'MASTER_ENCRYPTION_KEY': encryption_key,
-        **{f'API_KEY_{k.upper()}': v for k, v in api_keys.items()}
+        "JWT_SECRET_KEY": jwt_secret,
+        "MASTER_ENCRYPTION_KEY": encryption_key,
+        **{f"API_KEY_{k.upper()}": v for k, v in api_keys.items()},
     }
 
 
@@ -111,13 +112,13 @@ ENABLE_RATE_LIMITING=true
 # CORS_ORIGINS=["https://yourdomain.com"]
 # HTTPS_ONLY=true
 """.format(
-        jwt_secret=keys['JWT_SECRET_KEY'],
-        encryption_key=keys['MASTER_ENCRYPTION_KEY'],
+        jwt_secret=keys["JWT_SECRET_KEY"],
+        encryption_key=keys["MASTER_ENCRYPTION_KEY"],
         api_key_internal=f"API_KEY_INTERNAL={keys['API_KEY_INTERNAL']}",
-        api_key_monitoring=f"API_KEY_MONITORING={keys['API_KEY_MONITORING']}"
+        api_key_monitoring=f"API_KEY_MONITORING={keys['API_KEY_MONITORING']}",
     )
 
-    with open(env_path, 'w') as f:
+    with open(env_path, "w") as f:
         f.write(env_content)
 
     # Set secure permissions
@@ -266,7 +267,7 @@ Generated: {timestamp}
 
     from datetime import datetime
 
-    with open(checklist_path, 'w') as f:
+    with open(checklist_path, "w") as f:
         f.write(checklist_content.format(timestamp=datetime.now().isoformat()))
 
     print(f"✅ Security checklist created: {checklist_path}")

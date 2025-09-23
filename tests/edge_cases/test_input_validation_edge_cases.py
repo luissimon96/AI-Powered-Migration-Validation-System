@@ -86,9 +86,9 @@ class TestInputValidationEdgeCases:
                 self.processor.process_input(input_data)
 
             assert (
-                "binary" in str(
-                    exc_info.value).lower() or "invalid" in str(
-                    exc_info.value).lower())
+                "binary" in str(exc_info.value).lower()
+                or "invalid" in str(exc_info.value).lower()
+            )
         finally:
             os.unlink(f.name)
 
@@ -195,9 +195,9 @@ class TestInputValidationEdgeCases:
             self.processor.process_input(input_data, timeout=1)
 
         assert (
-            "timeout" in str(
-                exc_info.value).lower() or "connection" in str(
-                exc_info.value).lower())
+            "timeout" in str(exc_info.value).lower()
+            or "connection" in str(exc_info.value).lower()
+        )
 
     # ═══════════════════════════════════════════════════════════════
     # Text Input Edge Cases
@@ -230,9 +230,9 @@ class TestInputValidationEdgeCases:
             self.processor.process_input(input_data)
 
         assert (
-            "too large" in str(
-                exc_info.value).lower() or "memory" in str(
-                exc_info.value).lower())
+            "too large" in str(exc_info.value).lower()
+            or "memory" in str(exc_info.value).lower()
+        )
 
     def test_special_character_handling(self):
         """Test handling of text with special characters."""
@@ -282,11 +282,18 @@ class TestInputValidationEdgeCases:
 
         except (ValueError, MemoryError):
             # These exceptions are acceptable for certain inputs
-            assert len(text_input.encode("utf-8")) > 10 * \
-                1024 * 1024 or not text_input.strip()
+            assert (
+                len(text_input.encode("utf-8")) > 10 * 1024 * 1024
+                or not text_input.strip()
+            )
 
-    @given(st.lists(st.text(min_size=1, max_size=100).filter(lambda x: "/" in x),
-                    min_size=1, max_size=10, ), )
+    @given(
+        st.lists(
+            st.text(min_size=1, max_size=100).filter(lambda x: "/" in x),
+            min_size=1,
+            max_size=10,
+        ),
+    )
     def test_file_list_property_based(self, file_paths):
         """Property-based test for file list handling."""
         # Create temporary files based on generated paths
@@ -294,7 +301,9 @@ class TestInputValidationEdgeCases:
 
         try:
             for i, path_part in enumerate(file_paths):
-                with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=f"_{i}.py") as f:
+                with tempfile.NamedTemporaryFile(
+                    mode="w", delete=False, suffix=f"_{i}.py"
+                ) as f:
                     f.write(f"# Generated file {i}\ndef function_{i}(): pass")
                     temp_files.append(f.name)
 
@@ -440,7 +449,9 @@ class TestBoundaryValues:
 
         try:
             for i in range(num_files):
-                with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=f"_{i}.py") as f:
+                with tempfile.NamedTemporaryFile(
+                    mode="w", delete=False, suffix=f"_{i}.py"
+                ) as f:
                     f.write(f"# File {i}\n")
                     temp_files.append(f.name)
 

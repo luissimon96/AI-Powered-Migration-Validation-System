@@ -23,12 +23,14 @@ import pytest
 # Third-party imports for advanced testing
 try:
     from hypothesis import strategies as st
+
     HYPOTHESIS_AVAILABLE = True
 except ImportError:
     HYPOTHESIS_AVAILABLE = False
 
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -59,21 +61,22 @@ def pytest_configure(config):
     """Configure pytest with custom markers and settings."""
     # Register custom markers
     config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+        "markers",
+        "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     )
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
     config.addinivalue_line(
-        "markers",
-        "behavioral: marks tests as behavioral validation tests")
+        "markers", "behavioral: marks tests as behavioral validation tests"
+    )
     config.addinivalue_line("markers", "performance: marks tests as performance tests")
     config.addinivalue_line("markers", "benchmark: marks tests as benchmark tests")
     config.addinivalue_line("markers", "memory: marks tests as memory profiling tests")
     config.addinivalue_line("markers", "security: marks tests as security tests")
     config.addinivalue_line("markers", "property: marks tests as property-based tests")
     config.addinivalue_line(
-        "markers",
-        "mutation: marks tests as mutation testing targets")
+        "markers", "mutation: marks tests as mutation testing targets"
+    )
     config.addinivalue_line("markers", "contract: marks tests as contract tests")
     config.addinivalue_line("markers", "chaos: marks tests as chaos engineering tests")
     config.addinivalue_line("markers", "visual: marks tests as visual regression tests")
@@ -83,15 +86,15 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "fuzz: marks tests as fuzzing tests")
     config.addinivalue_line("markers", "penetration: marks tests as penetration tests")
     config.addinivalue_line(
-        "markers",
-        "external: marks tests requiring external services")
+        "markers", "external: marks tests requiring external services"
+    )
     config.addinivalue_line("markers", "llm: marks tests requiring LLM API access")
     config.addinivalue_line(
-        "markers",
-        "browser: marks tests requiring browser automation")
+        "markers", "browser: marks tests requiring browser automation"
+    )
     config.addinivalue_line(
-        "markers",
-        "database: marks tests requiring database connections")
+        "markers", "database: marks tests requiring database connections"
+    )
     config.addinivalue_line("markers", "network: marks tests requiring network access")
     config.addinivalue_line("markers", "api: marks tests for API endpoints")
 
@@ -116,10 +119,8 @@ def pytest_collection_modifyitems(config, items):
 def pytest_addoption(parser):
     """Add custom command line options."""
     parser.addoption(
-        "--fast",
-        action="store_true",
-        default=False,
-        help="Skip slow tests")
+        "--fast", action="store_true", default=False, help="Skip slow tests"
+    )
     parser.addoption(
         "--hypothesis-profile",
         action="store",
@@ -194,10 +195,7 @@ def mock_llm_service():
         content='{"similarity_score": 0.85, "functionally_equivalent": true, "confidence": 0.9}',
         model="mock-model",
         provider="mock",
-        usage={
-            "total_tokens": 150,
-            "prompt_tokens": 100,
-            "completion_tokens": 50},
+        usage={"total_tokens": 150, "prompt_tokens": 100, "completion_tokens": 50},
     )
     mock_service.generate_response.return_value = mock_response
 
@@ -229,7 +227,8 @@ def mock_llm_service():
         "accessibility_score": 0.92,
         "recommendations": [
             "Add missing submit button",
-            "Consider accessibility improvements"],
+            "Consider accessibility improvements",
+        ],
     }
 
     mock_service.validate_business_logic.return_value = AsyncMock(
@@ -262,12 +261,17 @@ def mock_llm_service():
 
     # Mock error scenarios for edge case testing
     mock_service.simulate_rate_limit = AsyncMock(
-        side_effect=Exception("Rate limit exceeded"))
+        side_effect=Exception("Rate limit exceeded")
+    )
     mock_service.simulate_timeout = AsyncMock(
-        side_effect=asyncio.TimeoutError("Request timeout"))
+        side_effect=asyncio.TimeoutError("Request timeout")
+    )
     mock_service.simulate_invalid_response = AsyncMock(
         return_value=LLMResponse(
-            content="Invalid JSON response", model="mock-model", provider="mock", usage={},
+            content="Invalid JSON response",
+            model="mock-model",
+            provider="mock",
+            usage={},
         ),
     )
 
@@ -289,7 +293,8 @@ def mock_database():
     # Mock CRUD operations
     mock_db.create.return_value = {
         "id": "test-123",
-        "created_at": "2023-01-01T00:00:00Z"}
+        "created_at": "2023-01-01T00:00:00Z",
+    }
     mock_db.read.return_value = {"id": "test-123", "status": "completed"}
     mock_db.update.return_value = True
     mock_db.delete.return_value = True
@@ -1165,14 +1170,18 @@ def sample_validation_request(temp_files):
 @pytest.fixture
 def migration_validator(mock_llm_service):
     """Enhanced migration validator with comprehensive mocking."""
-    with patch("src.core.migration_validator.create_llm_service", return_value=mock_llm_service):
+    with patch(
+        "src.core.migration_validator.create_llm_service", return_value=mock_llm_service
+    ):
         return MigrationValidator()
 
 
 @pytest.fixture
 def behavioral_crew(mock_llm_service):
     """Enhanced behavioral validation crew."""
-    with patch("src.behavioral.crews.create_llm_service", return_value=mock_llm_service):
+    with patch(
+        "src.behavioral.crews.create_llm_service", return_value=mock_llm_service
+    ):
         return BehavioralValidationCrew(llm_service=mock_llm_service)
 
 
@@ -1197,11 +1206,11 @@ def mock_fastapi_client():
     from fastapi.testclient import TestClient
 
     # Mock the dependencies before creating the app
-    with patch("src.api.routes.MigrationValidator"), \
-            patch("src.api.routes.InputProcessor"), \
-            patch("src.api.routes.create_behavioral_validation_crew"):
-
+    with patch("src.api.routes.MigrationValidator"), patch(
+        "src.api.routes.InputProcessor"
+    ), patch("src.api.routes.create_behavioral_validation_crew"):
         from src.api.routes import app
+
         return TestClient(app)
 
 
@@ -1361,7 +1370,8 @@ def test_logger():
     # Add test-specific handler
     handler = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 

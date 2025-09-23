@@ -31,7 +31,8 @@ class AsyncValidationResponse(BaseModel):
     status: str = "accepted"
     message: str = "Validation task submitted"
     estimated_duration: Optional[int] = Field(
-        None, description="Estimated duration in seconds")
+        None, description="Estimated duration in seconds"
+    )
     progress_url: str
     websocket_url: Optional[str] = None
 
@@ -49,7 +50,8 @@ class TaskStatusResponse(BaseModel):
     error: Optional[str] = None
     cached: bool = False
     estimated_remaining: Optional[int] = Field(
-        None, description="Estimated remaining seconds")
+        None, description="Estimated remaining seconds"
+    )
 
 
 class QueueStatsResponse(BaseModel):
@@ -71,7 +73,8 @@ router = APIRouter(prefix="/api/async", tags=["async-validation"])
 async def submit_async_validation(
     request: ValidationRequest,
     validation_service: AsyncValidationService = Depends(
-        lambda: async_validation_service),
+        lambda: async_validation_service
+    ),
 ):
     """Submit validation request for async processing."""
     try:
@@ -97,15 +100,16 @@ async def submit_async_validation(
     except Exception as e:
         logger.error("Failed to submit async validation", error=str(e))
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to submit validation: {e!s}")
+            status_code=500, detail=f"Failed to submit validation: {e!s}"
+        )
 
 
 @router.get("/validate/{task_id}/status", response_model=TaskStatusResponse)
 async def get_task_status(
     task_id: str,
     validation_service: AsyncValidationService = Depends(
-        lambda: async_validation_service),
+        lambda: async_validation_service
+    ),
 ):
     """Get current status of validation task."""
     try:
@@ -116,8 +120,10 @@ async def get_task_status(
 
         # Estimate remaining time
         estimated_remaining = None
-        if status_info["status"] in ["PENDING",
-                                     "STARTED"] and status_info["progress"] > 0:
+        if (
+            status_info["status"] in ["PENDING", "STARTED"]
+            and status_info["progress"] > 0
+        ):
             estimated_remaining = _estimate_remaining_time(status_info["progress"])
 
         response = TaskStatusResponse(
@@ -138,7 +144,8 @@ async def get_task_status(
 async def cancel_task(
     task_id: str,
     validation_service: AsyncValidationService = Depends(
-        lambda: async_validation_service),
+        lambda: async_validation_service
+    ),
 ):
     """Cancel a running validation task."""
     try:
@@ -159,7 +166,8 @@ async def cancel_task(
 @router.get("/queue/stats", response_model=QueueStatsResponse)
 async def get_queue_stats(
     validation_service: AsyncValidationService = Depends(
-        lambda: async_validation_service),
+        lambda: async_validation_service
+    ),
 ):
     """Get queue statistics and health information."""
     try:
@@ -197,7 +205,8 @@ async def websocket_task_progress(
     websocket: WebSocket,
     task_id: str,
     validation_service: AsyncValidationService = Depends(
-        lambda: async_validation_service),
+        lambda: async_validation_service
+    ),
 ):
     """WebSocket endpoint for real-time task progress."""
     await websocket.accept()
@@ -211,38 +220,44 @@ async def websocket_task_progress(
                 status_info = validation_service.get_task_status(task_id)
 
                 if not status_info:
-                    await websocket.send_json({
-                        "error": "Task not found",
-                        "code": "TASK_NOT_FOUND",
-                    })
+                    await websocket.send_json(
+                        {
+                            "error": "Task not found",
+                            "code": "TASK_NOT_FOUND",
+                        }
+                    )
                     break
 
                 # Only send update if progress changed
                 current_progress = status_info.get("progress", 0)
                 if current_progress != last_progress:
-                    await websocket.send_json({
-                        "task_id": task_id,
-                        "progress": current_progress,
-                        "stage": status_info.get("stage", ""),
-                        "message": status_info.get("message", ""),
-                        "status": status_info.get("status", ""),
-                        "timestamp": datetime.utcnow().isoformat(),
-                        "cached": status_info.get("cached", False),
-                    })
+                    await websocket.send_json(
+                        {
+                            "task_id": task_id,
+                            "progress": current_progress,
+                            "stage": status_info.get("stage", ""),
+                            "message": status_info.get("message", ""),
+                            "status": status_info.get("status", ""),
+                            "timestamp": datetime.utcnow().isoformat(),
+                            "cached": status_info.get("cached", False),
+                        }
+                    )
                     last_progress = current_progress
 
                 # Check if task is complete
                 if status_info.get("status") in ["SUCCESS", "FAILURE", "REVOKED"]:
                     if status_info.get("status") == "SUCCESS":
-                        await websocket.send_json({
-                            "task_id": task_id,
-                            "progress": 100,
-                            "stage": "completed",
-                            "message": "Validation completed successfully",
-                            "status": "SUCCESS",
-                            "result": status_info.get("result"),
-                            "timestamp": datetime.utcnow().isoformat(),
-                        })
+                        await websocket.send_json(
+                            {
+                                "task_id": task_id,
+                                "progress": 100,
+                                "stage": "completed",
+                                "message": "Validation completed successfully",
+                                "status": "SUCCESS",
+                                "result": status_info.get("result"),
+                                "timestamp": datetime.utcnow().isoformat(),
+                            }
+                        )
                     break
 
                 # Wait before next check
@@ -253,10 +268,12 @@ async def websocket_task_progress(
                 break
             except Exception as e:
                 logger.error("WebSocket error", task_id=task_id, error=str(e))
-                await websocket.send_json({
-                    "error": "Internal error",
-                    "message": str(e),
-                })
+                await websocket.send_json(
+                    {
+                        "error": "Internal error",
+                        "message": str(e),
+                    }
+                )
                 break
 
     except Exception as e:
@@ -272,7 +289,8 @@ async def websocket_task_progress(
 async def invalidate_cache(
     pattern: str = "validation_cache:*",
     validation_service: AsyncValidationService = Depends(
-        lambda: async_validation_service),
+        lambda: async_validation_service
+    ),
 ):
     """Invalidate cache entries."""
     try:
@@ -283,9 +301,8 @@ async def invalidate_cache(
     except Exception as e:
         logger.error("Failed to invalidate cache", pattern=pattern, error=str(e))
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to invalidate cache: {
-                e!s}")
+            status_code=500, detail=f"Failed to invalidate cache: {e!s}"
+        )
 
 
 # Helper functions
@@ -309,10 +326,14 @@ def _estimate_validation_duration(request: ValidationRequest) -> int:
 
     # Factor in technology complexity
     complex_techs = ["java-spring", "dotnet-core", "python-django"]
-    complexity_factor = 1.2 if (
-        request.source_technology in complex_techs
-        or request.target_technology in complex_techs
-    ) else 1.0
+    complexity_factor = (
+        1.2
+        if (
+            request.source_technology in complex_techs
+            or request.target_technology in complex_techs
+        )
+        else 1.0
+    )
 
     total_duration = int(base_duration * scope_factor * complexity_factor) + file_factor
     return min(total_duration, 300)  # Cap at 5 minutes
@@ -335,6 +356,7 @@ def _get_cache_statistics() -> Dict[str, Any]:
     """Get cache statistics."""
     try:
         from src.services.task_queue import result_cache
+
         redis_client = result_cache.redis
 
         # Get Redis info

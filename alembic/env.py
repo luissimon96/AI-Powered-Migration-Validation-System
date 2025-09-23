@@ -18,7 +18,7 @@ from src.database.config import get_database_config
 from src.database.models import Base
 
 # Add the project source directory to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 # Import the models and configuration
 

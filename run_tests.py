@@ -225,8 +225,8 @@ def main():
         overall_success = all(code == 0 for code in exit_codes)
         print("-" * 80)
         print(
-            f"Overall Result: {
-                '✅ ALL TESTS PASSED' if overall_success else '❌ SOME TESTS FAILED'}")
+            f"Overall Result: {'✅ ALL TESTS PASSED' if overall_success else '❌ SOME TESTS FAILED'}"
+        )
 
         if args.coverage:
             print("\n📈 Coverage report generated:")
@@ -242,8 +242,9 @@ def main():
     else:
         # Run specific test category
         exit_code = run_command(
-            pytest_cmd, f"Running tests with markers: {
-                ' and '.join(markers) if markers else 'all'}", )
+            pytest_cmd,
+            f"Running tests with markers: {' and '.join(markers) if markers else 'all'}",
+        )
 
         if args.coverage:
             print("\n📈 Coverage report generated:")
@@ -268,10 +269,8 @@ def validate_test_setup():
         return False
 
     print(
-        f"✅ Python version: {
-            python_version.major}.{
-            python_version.minor}.{
-                python_version.micro}")
+        f"✅ Python version: {python_version.major}.{python_version.minor}.{python_version.micro}"
+    )
 
     # Check required packages
     required_packages = [
@@ -323,9 +322,7 @@ if __name__ == "__main__":
 
     # Validate environment
     if not validate_test_setup():
-        print(
-            "\n❌ Environment validation failed. Please install missing dependencies."
-        )
+        print("\n❌ Environment validation failed. Please install missing dependencies.")
         sys.exit(1)
 
     # Run tests

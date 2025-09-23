@@ -126,7 +126,8 @@ class LLMService:
                     if not api_key:
                         raise LLMProviderNotAvailable("OpenAI API key not found")
                     self._clients[config.provider] = AsyncOpenAI(
-                        api_key=api_key, timeout=config.timeout,
+                        api_key=api_key,
+                        timeout=config.timeout,
                     )
 
                 elif config.provider == LLMProvider.ANTHROPIC:
@@ -136,13 +137,15 @@ class LLMService:
                     if not api_key:
                         raise LLMProviderNotAvailable("Anthropic API key not found")
                     self._clients[config.provider] = AsyncAnthropic(
-                        api_key=api_key, timeout=config.timeout,
+                        api_key=api_key,
+                        timeout=config.timeout,
                     )
 
                 elif config.provider == LLMProvider.GOOGLE:
                     if genai is None:
                         raise LLMProviderNotAvailable(
-                            "Google GenAI package not installed")
+                            "Google GenAI package not installed"
+                        )
                     api_key = config.api_key or os.getenv("GOOGLE_API_KEY")
                     if not api_key:
                         raise LLMProviderNotAvailable("Google API key not found")
@@ -189,7 +192,8 @@ class LLMService:
         for config in self.configs:
             if config.provider not in self._clients:
                 self.logger.warning(
-                    "Skipping uninitialized provider", provider=config.provider.value,
+                    "Skipping uninitialized provider",
+                    provider=config.provider.value,
                 )
                 continue
 
@@ -200,16 +204,23 @@ class LLMService:
                     model=config.model,
                 )
                 if config.provider == LLMProvider.OPENAI:
-                    return await self._openai_generate(config, messages, system_prompt, **kwargs)
+                    return await self._openai_generate(
+                        config, messages, system_prompt, **kwargs
+                    )
                 if config.provider == LLMProvider.ANTHROPIC:
                     return await self._anthropic_generate(
-                        config, messages, system_prompt, **kwargs,
+                        config,
+                        messages,
+                        system_prompt,
+                        **kwargs,
                     )
                 if config.provider == LLMProvider.GOOGLE:
-                    return await self._google_generate(config, messages, system_prompt, **kwargs)
+                    return await self._google_generate(
+                        config, messages, system_prompt, **kwargs
+                    )
                 self.logger.warning(
-                    f"Unsupported provider configured: {
-                        config.provider}")
+                    f"Unsupported provider configured: {config.provider}"
+                )
                 continue
 
             except Exception as e:
@@ -243,7 +254,8 @@ class LLMService:
         """
         # Get formatted prompts
         system_prompt, user_prompt = prompt_manager.format_prompt(
-            analysis_type, context)
+            analysis_type, context
+        )
 
         # Enhance user prompt with format expectations
         enhanced_user_prompt = f"""{user_prompt}
@@ -271,7 +283,9 @@ Do not include any text before or after the JSON response."""
                 )
 
                 response = await self.generate_response(
-                    messages, system_prompt, max_tokens=config.max_tokens,
+                    messages,
+                    system_prompt,
+                    max_tokens=config.max_tokens,
                 )
 
                 used_provider = response.provider
@@ -399,15 +413,15 @@ Do not include any text before or after the JSON response."""
 
         # Check for empty or default values
         non_empty_values = sum(
-            1 for value in result.values()
-            if value not in [None, "", [], {}, 0]
+            1 for value in result.values() if value not in [None, "", [], {}, 0]
         )
         value_quality = non_empty_values / len(result) if result else 0
         quality_factors.append(value_quality)
 
         # Calculate weighted confidence
-        quality_score = sum(quality_factors) / \
-            len(quality_factors) if quality_factors else 0.5
+        quality_score = (
+            sum(quality_factors) / len(quality_factors) if quality_factors else 0.5
+        )
 
         return min(base_confidence * quality_score, 1.0)
 
@@ -430,7 +444,11 @@ Do not include any text before or after the JSON response."""
             messages=openai_messages,
             max_tokens=kwargs.get("max_tokens", config.max_tokens),
             temperature=kwargs.get("temperature", config.temperature),
-            **{k: v for k, v in kwargs.items() if k not in ["max_tokens", "temperature"]},
+            **{
+                k: v
+                for k, v in kwargs.items()
+                if k not in ["max_tokens", "temperature"]
+            },
         )
 
         return LLMResponse(
@@ -450,8 +468,9 @@ Do not include any text before or after the JSON response."""
     ) -> LLMResponse:
         """Generate response using Anthropic Claude."""
         client = self._clients[LLMProvider.ANTHROPIC]
-        anthropic_messages = [{"role": msg["role"],
-                               "content": msg["content"]} for msg in messages]
+        anthropic_messages = [
+            {"role": msg["role"], "content": msg["content"]} for msg in messages
+        ]
 
         response = await client.messages.create(
             model=config.model,
@@ -504,8 +523,12 @@ Do not include any text before or after the JSON response."""
         )
 
     async def analyze_code_semantic_similarity(
-        self, source_code: str, target_code: str, context: str = "",
-        source_language: str = "auto", target_language: str = "auto",
+        self,
+        source_code: str,
+        target_code: str,
+        context: str = "",
+        source_language: str = "auto",
+        target_language: str = "auto",
     ) -> AnalysisResult:
         """Analyze semantic similarity between source and target code using structured prompts.
 
@@ -615,7 +638,10 @@ Provide comprehensive UI comparison analysis.""",
         )
 
     async def analyze_ui_screenshot(
-        self, image_base64: str, prompt: str, detail: str = "auto",
+        self,
+        image_base64: str,
+        prompt: str,
+        detail: str = "auto",
     ) -> AnalysisResult:
         """Analyze a UI screenshot using a multimodal LLM with structured output.
 
@@ -682,9 +708,11 @@ Provide comprehensive UI comparison analysis.""",
                     vision_client = genai.GenerativeModel(vision_model)
                     img_blob = {
                         "mime_type": "image/png",
-                        "data": base64.b64decode(image_base64)}
+                        "data": base64.b64decode(image_base64),
+                    }
                     response = await asyncio.to_thread(
-                        vision_client.generate_content, [prompt, img_blob],
+                        vision_client.generate_content,
+                        [prompt, img_blob],
                     )
                     content = response.text
 
@@ -819,7 +847,9 @@ Provide comprehensive UI comparison analysis.""",
 
 
 def create_llm_service(
-    providers: str = "openai", models: Optional[str] = None, **kwargs,
+    providers: str = "openai",
+    models: Optional[str] = None,
+    **kwargs,
 ) -> LLMService:
     """Factory function to create LLM service with failover support.
 
@@ -837,7 +867,8 @@ def create_llm_service(
 
     if model_names and len(provider_names) != len(model_names):
         raise LLMServiceError(
-            "The number of models must match the number of providers.")
+            "The number of models must match the number of providers."
+        )
 
     configs: List[LLMConfig] = []
     for i, provider_name in enumerate(provider_names):

@@ -67,9 +67,8 @@ class TestLLMService:
         mock_openai.AsyncOpenAI.return_value = MagicMock()
 
         config = LLMConfig(
-            provider=LLMProvider.OPENAI,
-            model="gpt-4",
-            api_key="test-key")
+            provider=LLMProvider.OPENAI, model="gpt-4", api_key="test-key"
+        )
 
         service = LLMService(config)
         assert service.config.provider == LLMProvider.OPENAI
@@ -100,9 +99,8 @@ class TestLLMService:
         mock_client.chat.completions.create.return_value = mock_response
 
         config = LLMConfig(
-            provider=LLMProvider.OPENAI,
-            model="gpt-4",
-            api_key="test-key")
+            provider=LLMProvider.OPENAI, model="gpt-4", api_key="test-key"
+        )
 
         service = LLMService(config)
 
@@ -142,9 +140,8 @@ class TestLLMService:
         mock_client.chat.completions.create.return_value = mock_response
 
         config = LLMConfig(
-            provider=LLMProvider.OPENAI,
-            model="gpt-4",
-            api_key="test-key")
+            provider=LLMProvider.OPENAI, model="gpt-4", api_key="test-key"
+        )
 
         service = LLMService(config)
 
@@ -163,11 +160,15 @@ class TestLLMService:
         """Test handling of invalid JSON response."""
         # Mock invalid JSON response
         mock_llm_service.generate_response.return_value = LLMResponse(
-            content="Invalid JSON response", model="mock-model", provider="mock",
+            content="Invalid JSON response",
+            model="mock-model",
+            provider="mock",
         )
 
         result = await mock_llm_service.analyze_code_semantic_similarity(
-            "code1", "code2", "context",
+            "code1",
+            "code2",
+            "context",
         )
 
         # Should return fallback result

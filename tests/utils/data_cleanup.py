@@ -44,9 +44,13 @@ class DatabaseTestCleaner:
         cleaned_count = 0
 
         # Delete validation sessions
-        sessions = self.db_session.query(ValidationSession).filter(
-            ValidationSession.user_id == user_id,
-        ).all()
+        sessions = (
+            self.db_session.query(ValidationSession)
+            .filter(
+                ValidationSession.user_id == user_id,
+            )
+            .all()
+        )
 
         for session in sessions:
             self.db_session.delete(session)

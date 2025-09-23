@@ -209,15 +209,23 @@ class TestDatabaseMigrations:
         db_session.commit()
 
         # Verify not in active queries
-        active_sessions = db_session.query(ValidationSession).filter(
-            ValidationSession.deleted_at.is_(None),
-        ).all()
+        active_sessions = (
+            db_session.query(ValidationSession)
+            .filter(
+                ValidationSession.deleted_at.is_(None),
+            )
+            .all()
+        )
         assert session not in active_sessions
 
         # Verify still in database with deleted_at
-        all_sessions = db_session.query(ValidationSession).filter(
-            ValidationSession.id == session.id,
-        ).all()
+        all_sessions = (
+            db_session.query(ValidationSession)
+            .filter(
+                ValidationSession.id == session.id,
+            )
+            .all()
+        )
         assert len(all_sessions) == 1
         assert all_sessions[0].deleted_at is not None
 

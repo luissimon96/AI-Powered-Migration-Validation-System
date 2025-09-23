@@ -14,7 +14,8 @@ class TestSecurityAPIIntegration:
         # Mock API key validation
         with patch("src.security.api_keys.APIKeyManager") as mock_manager:
             mock_manager.return_value.validate_key.return_value = {
-                "valid": True, "scopes": ["read", "write"],
+                "valid": True,
+                "scopes": ["read", "write"],
             }
 
             # Test passes
@@ -71,6 +72,7 @@ class TestSecurityComponentsMinimal:
 
         # Character checks
         import re
+
         has_upper = bool(re.search(r"[A-Z]", password))
         has_lower = bool(re.search(r"[a-z]", password))
         has_digit = bool(re.search(r"\d", password))
@@ -138,9 +140,11 @@ class TestT001CompletionMetrics:
         # New test files created
         session_manager_tests = 20  # Comprehensive tests
         password_policy_tests = 40  # Edge cases + validation
-        integration_tests = 10     # API integration
+        integration_tests = 10  # API integration
 
-        total_new_tests = session_manager_tests + password_policy_tests + integration_tests
+        total_new_tests = (
+            session_manager_tests + password_policy_tests + integration_tests
+        )
 
         assert total_new_tests >= 60
         print(f"✅ T001 Added {total_new_tests} new tests")
@@ -161,10 +165,10 @@ class TestT001CompletionMetrics:
     def test_test_quality_metrics(self):
         """Test quality metrics."""
         # Test categories
-        unit_tests = True      # Component isolation
-        edge_cases = True      # Boundary conditions
+        unit_tests = True  # Component isolation
+        edge_cases = True  # Boundary conditions
         error_handling = True  # Exception scenarios
-        integration = True     # Component interaction
+        integration = True  # Component interaction
 
         assert all([unit_tests, edge_cases, error_handling, integration])
         print("✅ T001 Test quality standards met")

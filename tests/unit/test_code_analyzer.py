@@ -22,7 +22,8 @@ class TestCodeAnalyzer:
         analyzer = CodeAnalyzer()
 
         analysis = analyzer.analyze_code(
-            code=sample_python_code, technology=TechnologyType.PYTHON_FLASK,
+            code=sample_python_code,
+            technology=TechnologyType.PYTHON_FLASK,
         )
 
         assert analysis is not None
@@ -36,7 +37,8 @@ class TestCodeAnalyzer:
         analyzer = CodeAnalyzer()
 
         analysis = analyzer.analyze_code(
-            code=sample_java_code, technology=TechnologyType.JAVA_SPRING,
+            code=sample_java_code,
+            technology=TechnologyType.JAVA_SPRING,
         )
 
         assert analysis is not None
@@ -90,7 +92,8 @@ class TestCodeAnalyzer:
         analyzer = CodeAnalyzer()
 
         patterns = analyzer.detect_patterns(
-            sample_python_code, TechnologyType.PYTHON_FLASK)
+            sample_python_code, TechnologyType.PYTHON_FLASK
+        )
 
         assert patterns is not None
         assert "design_patterns" in patterns
@@ -179,9 +182,11 @@ class TestCodeAnalyzer:
         analyzer = CodeAnalyzer()
 
         python_structure = analyzer.analyze_code(
-            sample_python_code, TechnologyType.PYTHON_FLASK)
+            sample_python_code, TechnologyType.PYTHON_FLASK
+        )
         java_structure = analyzer.analyze_code(
-            sample_java_code, TechnologyType.JAVA_SPRING)
+            sample_java_code, TechnologyType.JAVA_SPRING
+        )
 
         comparison = analyzer.compare_structures(python_structure, java_structure)
 
@@ -256,7 +261,8 @@ class TestCodeAnalyzerPerformance:
 
         # Generate large code file
         large_code = "\n".join(
-            [f"def function_{i}():\n    return {i}" for i in range(1000)])
+            [f"def function_{i}():\n    return {i}" for i in range(1000)]
+        )
 
         import time
 

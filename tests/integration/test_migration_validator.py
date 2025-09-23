@@ -15,7 +15,8 @@ class TestMigrationValidatorIntegration:
     """Integration tests for migration validator."""
 
     async def test_complete_validation_pipeline(
-            self, sample_validation_request, mock_llm_service):
+        self, sample_validation_request, mock_llm_service
+    ):
         """Test complete validation pipeline."""
         validator = MigrationValidator(llm_client=mock_llm_service)
 
@@ -41,7 +42,9 @@ class TestMigrationValidatorIntegration:
         mock_llm_service.generate_response.assert_called()
 
     async def test_validation_with_different_scopes(
-        self, sample_validation_request, mock_llm_service,
+        self,
+        sample_validation_request,
+        mock_llm_service,
     ):
         """Test validation with different validation scopes."""
         validator = MigrationValidator(llm_client=mock_llm_service)
@@ -77,7 +80,8 @@ class TestMigrationValidatorConfiguration:
 
     @patch("src.core.migration_validator.get_validation_config")
     def test_validator_initialization_with_config(
-            self, mock_get_config, mock_llm_service):
+        self, mock_get_config, mock_llm_service
+    ):
         """Test validator initialization with configuration."""
         from src.core.config import LLMProviderConfig
         from src.core.config import ValidationConfig
@@ -85,7 +89,10 @@ class TestMigrationValidatorConfiguration:
         # Mock configuration
         mock_config = ValidationConfig.__new__(ValidationConfig)
         mock_config.get_default_llm_config = lambda: LLMProviderConfig(
-            provider="openai", model="gpt-4", api_key="test-key", enabled=True,
+            provider="openai",
+            model="gpt-4",
+            api_key="test-key",
+            enabled=True,
         )
         mock_get_config.return_value = mock_config
 
@@ -99,7 +106,9 @@ class TestMigrationValidatorConfiguration:
 
     def test_validator_initialization_without_llm(self):
         """Test validator initialization without LLM service."""
-        with patch("src.core.migration_validator.get_validation_config") as mock_get_config:
+        with patch(
+            "src.core.migration_validator.get_validation_config"
+        ) as mock_get_config:
             mock_config = ValidationConfig.__new__(ValidationConfig)
             mock_config.get_default_llm_config = lambda: None
             mock_get_config.return_value = mock_config

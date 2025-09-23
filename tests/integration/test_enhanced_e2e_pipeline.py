@@ -22,7 +22,8 @@ class TestEnhancedE2EPipeline:
     """Enhanced end-to-end pipeline tests."""
 
     async def test_complete_migration_validation_workflow(
-            self, sample_files, mock_llm_service):
+        self, sample_files, mock_llm_service
+    ):
         """Test complete migration validation workflow with real components."""
         validator = MigrationValidator(llm_client=mock_llm_service)
 
@@ -86,7 +87,9 @@ class TestEnhancedE2EPipeline:
                 target_technology=target_tech,
                 validation_scope=ValidationScope.BUSINESS_LOGIC,
                 source_files=[{"name": "test.py", "content": "def test(): pass"}],
-                target_files=[{"name": "Test.java", "content": "public void test() {}"}],
+                target_files=[
+                    {"name": "Test.java", "content": "public void test() {}"}
+                ],
             )
 
             session = await validator.validate_migration(request)
@@ -104,14 +107,18 @@ class TestEnhancedE2EPipeline:
         target_files = []
 
         for i in range(20):
-            source_files.append({
-                "name": f"module_{i}.py",
-                "content": f"def function_{i}(): return {i}",
-            })
-            target_files.append({
-                "name": f"Module{i}.java",
-                "content": f"public int function{i}() {{ return {i}; }}",
-            })
+            source_files.append(
+                {
+                    "name": f"module_{i}.py",
+                    "content": f"def function_{i}(): return {i}",
+                }
+            )
+            target_files.append(
+                {
+                    "name": f"Module{i}.java",
+                    "content": f"public int function{i}() {{ return {i}; }}",
+                }
+            )
 
         request = ValidationRequest(
             source_technology="python-flask",
@@ -140,7 +147,8 @@ class TestEnhancedE2EPipeline:
         # Test with failing LLM service
         failing_llm = Mock()
         failing_llm.generate_response = AsyncMock(
-            side_effect=Exception("LLM service unavailable"))
+            side_effect=Exception("LLM service unavailable")
+        )
 
         validator = MigrationValidator(llm_client=failing_llm)
 
@@ -176,8 +184,15 @@ class TestEnhancedE2EPipeline:
                 source_technology="python-flask",
                 target_technology="java-spring",
                 validation_scope=ValidationScope.BUSINESS_LOGIC,
-                source_files=[{"name": f"test{i}.py", "content": f"def test{i}(): return {i}"}],
-                target_files=[{"name": f"Test{i}.java", "content": f"public int test{i}() {{ return {i}; }}"}],
+                source_files=[
+                    {"name": f"test{i}.py", "content": f"def test{i}(): return {i}"}
+                ],
+                target_files=[
+                    {
+                        "name": f"Test{i}.java",
+                        "content": f"public int test{i}() {{ return {i}; }}",
+                    }
+                ],
             )
             requests.append(request)
 
@@ -205,12 +220,21 @@ class TestEnhancedE2EPipeline:
             source_technology="javascript-react",
             target_technology="typescript-angular",
             validation_scope=ValidationScope.USER_INTERFACE,
-            source_files=[{"name": "App.jsx", "content": "function App() { return <div>Hello</div>; }"}],
-            target_files=[{"name": "app.component.ts", "content": "export class AppComponent { }"}],
+            source_files=[
+                {
+                    "name": "App.jsx",
+                    "content": "function App() { return <div>Hello</div>; }",
+                }
+            ],
+            target_files=[
+                {"name": "app.component.ts", "content": "export class AppComponent { }"}
+            ],
             screenshots=screenshot_files,
         )
 
-        with patch("src.analyzers.visual_analyzer.VisualAnalyzer.analyze_screenshots") as mock_visual:
+        with patch(
+            "src.analyzers.visual_analyzer.VisualAnalyzer.analyze_screenshots"
+        ) as mock_visual:
             mock_visual.return_value = {
                 "ui_elements": ["button", "form", "navigation"],
                 "layout_similarity": 0.85,
@@ -234,11 +258,20 @@ class TestEnhancedE2EPipeline:
             source_technology="python-flask",
             target_technology="java-spring",
             validation_scope=ValidationScope.BEHAVIORAL_VALIDATION,
-            source_files=[{"name": "api.py", "content": "def get_users(): return users"}],
-            target_files=[{"name": "UserController.java", "content": "public List<User> getUsers() { return users; }"}],
+            source_files=[
+                {"name": "api.py", "content": "def get_users(): return users"}
+            ],
+            target_files=[
+                {
+                    "name": "UserController.java",
+                    "content": "public List<User> getUsers() { return users; }",
+                }
+            ],
         )
 
-        with patch("src.services.crew_service.CrewService.execute_behavioral_validation") as mock_crew:
+        with patch(
+            "src.services.crew_service.CrewService.execute_behavioral_validation"
+        ) as mock_crew:
             mock_crew.return_value = {
                 "behavioral_match": True,
                 "confidence": 0.92,
@@ -261,10 +294,12 @@ class TestEnhancedE2EPipeline:
         large_files = []
         for i in range(100):
             large_content = "# Large file content\n" + "def function(): pass\n" * 1000
-            large_files.append({
-                "name": f"large_file_{i}.py",
-                "content": large_content,
-            })
+            large_files.append(
+                {
+                    "name": f"large_file_{i}.py",
+                    "content": large_content,
+                }
+            )
 
         request = ValidationRequest(
             source_technology="python-flask",
@@ -304,8 +339,9 @@ class TestPipelineErrorScenarios:
             source_technology="python-flask",
             target_technology="java-spring",
             validation_scope=ValidationScope.BUSINESS_LOGIC,
-            source_files=[{"name": "malformed.py",
-                           "content": "def incomplete_function("}],  # Malformed
+            source_files=[
+                {"name": "malformed.py", "content": "def incomplete_function("}
+            ],  # Malformed
             target_files=[{"name": "Valid.java", "content": "public void valid() {}"}],
         )
 
@@ -315,11 +351,13 @@ class TestPipelineErrorScenarios:
         assert session.result is not None
         assert session.result.overall_status in [
             ValidationStatus.REJECTED,
-            ValidationStatus.APPROVED_WITH_WARNINGS]
+            ValidationStatus.APPROVED_WITH_WARNINGS,
+        ]
 
         # Should have error logs
         error_logs = [
-            log for log in session.processing_log if "malformed" in log.message.lower()]
+            log for log in session.processing_log if "malformed" in log.message.lower()
+        ]
         assert len(error_logs) > 0
 
     async def test_timeout_handling(self, mock_llm_service):
@@ -327,7 +365,8 @@ class TestPipelineErrorScenarios:
         # Mock slow LLM service
         slow_llm = Mock()
         slow_llm.generate_response = AsyncMock(
-            side_effect=asyncio.TimeoutError("Operation timed out"))
+            side_effect=asyncio.TimeoutError("Operation timed out")
+        )
 
         validator = MigrationValidator(llm_client=slow_llm)
 
@@ -344,7 +383,8 @@ class TestPipelineErrorScenarios:
         # Should complete with timeout handling
         assert session.result is not None
         timeout_logs = [
-            log for log in session.processing_log if "timeout" in log.message.lower()]
+            log for log in session.processing_log if "timeout" in log.message.lower()
+        ]
         assert len(timeout_logs) > 0
 
     async def test_resource_exhaustion_recovery(self, mock_llm_service):
@@ -360,7 +400,9 @@ class TestPipelineErrorScenarios:
                 target_technology="java-spring",
                 validation_scope=ValidationScope.BUSINESS_LOGIC,
                 source_files=[{"name": "test.py", "content": "def test(): pass"}],
-                target_files=[{"name": "Test.java", "content": "public void test() {}"}],
+                target_files=[
+                    {"name": "Test.java", "content": "public void test() {}"}
+                ],
             )
 
             session = await validator.validate_migration(request)
@@ -370,5 +412,6 @@ class TestPipelineErrorScenarios:
             assert session.result.overall_status == ValidationStatus.ERROR
 
             memory_logs = [
-                log for log in session.processing_log if "memory" in log.message.lower()]
+                log for log in session.processing_log if "memory" in log.message.lower()
+            ]
             assert len(memory_logs) > 0

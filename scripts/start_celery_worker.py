@@ -8,7 +8,8 @@ import signal
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
 from src.core.config import get_validation_config
 from src.core.logging import logger
@@ -30,44 +31,50 @@ class CeleryWorkerManager:
         self,
         worker_count: Optional[int] = None,
         concurrency: Optional[int] = None,
-        queues: Optional[List[str]] = None
+        queues: Optional[List[str]] = None,
     ) -> None:
         """Start Celery workers."""
         worker_count = worker_count or self._get_optimal_worker_count()
         concurrency = concurrency or self.config.settings.celery_worker_concurrency
-        queues = queues or ['default', 'validation', 'analysis', 'comparison']
+        queues = queues or ["default", "validation", "analysis", "comparison"]
 
         logger.info(
             "Starting Celery workers",
             worker_count=worker_count,
             concurrency=concurrency,
-            queues=queues
+            queues=queues,
         )
 
         # Start multiple worker processes
         for i in range(worker_count):
             worker_name = f"worker_{i + 1}"
-            queue_list = ','.join(queues)
+            queue_list = ",".join(queues)
 
             cmd = [
-                sys.executable, "-m", "celery",
-                "-A", "src.services.task_queue.celery_app",
+                sys.executable,
+                "-m",
+                "celery",
+                "-A",
+                "src.services.task_queue.celery_app",
                 "worker",
-                "--hostname", f"{worker_name}@%h",
-                "--queues", queue_list,
-                "--concurrency", str(concurrency),
-                "--loglevel", "info",
+                "--hostname",
+                f"{worker_name}@%h",
+                "--queues",
+                queue_list,
+                "--concurrency",
+                str(concurrency),
+                "--loglevel",
+                "info",
                 "--without-gossip",
                 "--without-mingle",
-                "--without-heartbeat"
+                "--without-heartbeat",
             ]
 
             # Add environment variables
             env = os.environ.copy()
-            env.update({
-                'PYTHONPATH': str(project_root),
-                'CELERY_WORKER_NAME': worker_name
-            })
+            env.update(
+                {"PYTHONPATH": str(project_root), "CELERY_WORKER_NAME": worker_name}
+            )
 
             try:
                 process = subprocess.Popen(
@@ -75,7 +82,7 @@ class CeleryWorkerManager:
                     env=env,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
-                    universal_newlines=True
+                    universal_newlines=True,
                 )
 
                 self.workers.append(process)
@@ -124,10 +131,10 @@ class CeleryWorkerManager:
 
         for i, worker in enumerate(self.workers):
             worker_status = {
-                'name': f'worker_{i + 1}',
-                'pid': worker.pid,
-                'running': worker.poll() is None,
-                'return_code': worker.returncode
+                "name": f"worker_{i + 1}",
+                "pid": worker.pid,
+                "running": worker.poll() is None,
+                "return_code": worker.returncode,
             }
             status.append(worker_status)
 
@@ -146,8 +153,9 @@ class CeleryWorkerManager:
 
                 for i, worker in enumerate(self.workers):
                     if worker.poll() is not None:  # Worker died
-                        logger.error(f"Worker {i + 1} died",
-                                     return_code=worker.returncode)
+                        logger.error(
+                            f"Worker {i + 1} died", return_code=worker.returncode
+                        )
                         dead_workers.append(i)
 
                 # Restart dead workers
@@ -188,20 +196,26 @@ class CeleryWorkerManager:
             # Start new worker
             worker_name = f"worker_{worker_idx + 1}"
             cmd = [
-                sys.executable, "-m", "celery",
-                "-A", "src.services.task_queue.celery_app",
+                sys.executable,
+                "-m",
+                "celery",
+                "-A",
+                "src.services.task_queue.celery_app",
                 "worker",
-                "--hostname", f"{worker_name}@%h",
-                "--queues", "default,validation,analysis,comparison",
-                "--concurrency", str(self.config.settings.celery_worker_concurrency),
-                "--loglevel", "info"
+                "--hostname",
+                f"{worker_name}@%h",
+                "--queues",
+                "default,validation,analysis,comparison",
+                "--concurrency",
+                str(self.config.settings.celery_worker_concurrency),
+                "--loglevel",
+                "info",
             ]
 
             env = os.environ.copy()
-            env.update({
-                'PYTHONPATH': str(project_root),
-                'CELERY_WORKER_NAME': worker_name
-            })
+            env.update(
+                {"PYTHONPATH": str(project_root), "CELERY_WORKER_NAME": worker_name}
+            )
 
             try:
                 new_worker = subprocess.Popen(cmd, env=env)
@@ -212,6 +226,7 @@ class CeleryWorkerManager:
 
     def _setup_signal_handlers(self) -> None:
         """Setup signal handlers for graceful shutdown."""
+
         def signal_handler(signum, frame):
             logger.info(f"Received signal {signum}, shutting down workers")
             self.stop_workers()
@@ -225,16 +240,14 @@ def main():
     """Main entry point for worker management."""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Celery Worker Manager')
-    parser.add_argument('--workers', '-w', type=int, help='Number of worker processes')
-    parser.add_argument('--concurrency', '-c', type=int, help='Concurrency per worker')
-    parser.add_argument('--queues', '-q', nargs='+', help='Queues to process')
+    parser = argparse.ArgumentParser(description="Celery Worker Manager")
+    parser.add_argument("--workers", "-w", type=int, help="Number of worker processes")
+    parser.add_argument("--concurrency", "-c", type=int, help="Concurrency per worker")
+    parser.add_argument("--queues", "-q", nargs="+", help="Queues to process")
     parser.add_argument(
-        '--monitor',
-        '-m',
-        action='store_true',
-        help='Enable worker monitoring')
-    parser.add_argument('--daemon', '-d', action='store_true', help='Run as daemon')
+        "--monitor", "-m", action="store_true", help="Enable worker monitoring"
+    )
+    parser.add_argument("--daemon", "-d", action="store_true", help="Run as daemon")
 
     args = parser.parse_args()
 
@@ -244,9 +257,7 @@ def main():
     try:
         # Start workers
         manager.start_workers(
-            worker_count=args.workers,
-            concurrency=args.concurrency,
-            queues=args.queues
+            worker_count=args.workers, concurrency=args.concurrency, queues=args.queues
         )
 
         if args.monitor:
@@ -259,6 +270,7 @@ def main():
             try:
                 # Keep main process alive
                 import time
+
                 while manager.running:
                     time.sleep(1)
             except KeyboardInterrupt:
@@ -271,5 +283,5 @@ def main():
         manager.stop_workers()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -73,7 +73,10 @@ class TestSessionManager:
         """Test getting valid session."""
         # Create session
         session_id = await manager.create_session(
-            "user123", "key456", mock_request, ["read"],
+            "user123",
+            "key456",
+            mock_request,
+            ["read"],
         )
 
         # Get session
@@ -92,7 +95,10 @@ class TestSessionManager:
         """Test session timeout behavior."""
         # Create session
         session_id = await manager.create_session(
-            "user123", "key456", mock_request, ["read"],
+            "user123",
+            "key456",
+            mock_request,
+            ["read"],
         )
 
         # Simulate timeout
@@ -109,7 +115,10 @@ class TestSessionManager:
         """Test session invalidation."""
         # Create session
         session_id = await manager.create_session(
-            "user123", "key456", mock_request, ["read"],
+            "user123",
+            "key456",
+            mock_request,
+            ["read"],
         )
 
         # Invalidate
@@ -125,7 +134,10 @@ class TestSessionManager:
     async def test_access_time_update(self, manager, mock_request):
         """Test last access time updates."""
         session_id = await manager.create_session(
-            "user123", "key456", mock_request, ["read"],
+            "user123",
+            "key456",
+            mock_request,
+            ["read"],
         )
 
         original_time = manager.sessions[session_id].last_access
@@ -161,8 +173,12 @@ class TestSessionManager:
     @pytest.mark.asyncio
     async def test_multiple_sessions_same_user(self, manager, mock_request):
         """Test multiple sessions for same user."""
-        session1 = await manager.create_session("user123", "key1", mock_request, ["read"])
-        session2 = await manager.create_session("user123", "key2", mock_request, ["write"])
+        session1 = await manager.create_session(
+            "user123", "key1", mock_request, ["read"]
+        )
+        session2 = await manager.create_session(
+            "user123", "key2", mock_request, ["write"]
+        )
 
         assert session1 != session2
         assert len(manager.sessions) == 2
@@ -191,7 +207,10 @@ class TestGlobalSessionManager:
         request.headers = {"user-agent": "pytest"}
 
         session_id = await session_manager.create_session(
-            "test_user", "test_key", request, ["test"],
+            "test_user",
+            "test_key",
+            request,
+            ["test"],
         )
 
         assert session_id is not None

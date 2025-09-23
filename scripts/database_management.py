@@ -20,12 +20,14 @@ from typing import Optional
 import click
 
 from src.database.config import get_database_config
-from src.database.migrations import DataMigrator, MigrationManager
+from src.database.migrations import DataMigrator
+from src.database.migrations import MigrationManager
 from src.database.session import DatabaseManager
-from src.database.utils import (cleanup_database, export_session_data,
-                                get_database_statistics,
-                                optimize_database_performance,
-                                validate_database_integrity)
+from src.database.utils import cleanup_database
+from src.database.utils import export_session_data
+from src.database.utils import get_database_statistics
+from src.database.utils import optimize_database_performance
+from src.database.utils import validate_database_integrity
 
 # Add the project root to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -118,8 +120,9 @@ async def migrate(target: str, verbose: bool):
 
 @cli.command()
 @click.option("--message", "-m", required=True, help="Migration message")
-@click.option("--autogenerate", is_flag=True,
-              default=True, help="Auto-generate migration")
+@click.option(
+    "--autogenerate", is_flag=True, default=True, help="Auto-generate migration"
+)
 @click.option("--verbose", is_flag=True, help="Enable verbose output")
 async def create_migration(message: str, autogenerate: bool, verbose: bool):
     """Create a new migration."""
@@ -203,10 +206,12 @@ async def backup(include_data: bool, output: Optional[str], verbose: bool):
 
 @cli.command()
 @click.option("--days-old", default=30, help="Delete sessions older than N days")
-@click.option("--include-failed", is_flag=True,
-              help="Include failed sessions in cleanup")
-@click.option("--dry-run", is_flag=True,
-              help="Show what would be deleted without deleting")
+@click.option(
+    "--include-failed", is_flag=True, help="Include failed sessions in cleanup"
+)
+@click.option(
+    "--dry-run", is_flag=True, help="Show what would be deleted without deleting"
+)
 @click.option("--verbose", is_flag=True, help="Enable verbose output")
 async def cleanup(days_old: int, include_failed: bool, dry_run: bool, verbose: bool):
     """Clean up old database records."""
@@ -225,26 +230,22 @@ async def cleanup(days_old: int, include_failed: bool, dry_run: bool, verbose: b
 
         async with db_manager.get_session() as session:
             if not dry_run:
-                cleanup_results = await cleanup_database(session, days_old, include_failed)
+                cleanup_results = await cleanup_database(
+                    session, days_old, include_failed
+                )
             else:
                 # For dry run, just show statistics
                 stats = await get_database_statistics(session)
                 click.echo("Current database statistics:")
                 click.echo(
-                    f"  Total sessions: {
-                        stats.get(
-                            'validation_sessions_count',
-                            0)}")
+                    f"  Total sessions: {stats.get('validation_sessions_count', 0)}"
+                )
                 click.echo(
-                    f"  Total results: {
-                        stats.get(
-                            'validation_results_count',
-                            0)}")
+                    f"  Total results: {stats.get('validation_results_count', 0)}"
+                )
                 click.echo(
-                    f"  Total discrepancies: {
-                        stats.get(
-                            'validation_discrepancies_count',
-                            0)}")
+                    f"  Total discrepancies: {stats.get('validation_discrepancies_count', 0)}"
+                )
                 click.echo("Use --verbose for detailed statistics")
                 return
 
@@ -252,8 +253,11 @@ async def cleanup(days_old: int, include_failed: bool, dry_run: bool, verbose: b
                 click.echo(f"❌ Cleanup failed: {cleanup_results['error']}")
                 sys.exit(1)
 
-            total_cleaned = sum(v for k, v in cleanup_results.items()
-                                if k != "error" and isinstance(v, int))
+            total_cleaned = sum(
+                v
+                for k, v in cleanup_results.items()
+                if k != "error" and isinstance(v, int)
+            )
             click.echo(f"✅ Cleanup completed: {total_cleaned} records removed")
 
             if verbose:
@@ -326,10 +330,8 @@ async def validate(verbose: bool):
             if verbose:
                 click.echo(f"Issues found: {validation_results.get('issues_count', 0)}")
                 click.echo(
-                    f"Checked at: {
-                        validation_results.get(
-                            'checked_at',
-                            'Unknown')}")
+                    f"Checked at: {validation_results.get('checked_at', 'Unknown')}"
+                )
 
     except Exception as e:
         click.echo(f"❌ Database validation failed: {e}")
@@ -356,15 +358,11 @@ async def stats(verbose: bool):
             click.echo(f"  Sessions: {stats.get('validation_sessions_count', 0)}")
             click.echo(f"  Results: {stats.get('validation_results_count', 0)}")
             click.echo(
-                f"  Discrepancies: {
-                    stats.get(
-                        'validation_discrepancies_count',
-                        0)}")
+                f"  Discrepancies: {stats.get('validation_discrepancies_count', 0)}"
+            )
             click.echo(
-                f"  Behavioral Tests: {
-                    stats.get(
-                        'behavioral_test_results_count',
-                        0)}")
+                f"  Behavioral Tests: {stats.get('behavioral_test_results_count', 0)}"
+            )
             click.echo(f"  Sessions (last week): {stats.get('sessions_last_week', 0)}")
             click.echo(f"  Success Rate: {stats.get('success_rate', 0)}%")
             click.echo(f"  Avg Fidelity Score: {stats.get('avg_fidelity_score', 0)}")
@@ -379,7 +377,8 @@ async def stats(verbose: bool):
                         "behavioral_test_results_count",
                         "sessions_last_week",
                         "success_rate",
-                            "avg_fidelity_score"]:
+                        "avg_fidelity_score",
+                    ]:
                         click.echo(f"  {key}: {value}")
 
     except Exception as e:
@@ -390,14 +389,15 @@ async def stats(verbose: bool):
 @cli.command()
 @click.argument("request_id")
 @click.option("--output", "-o", help="Output file for exported data")
-@click.option("--include-representations", is_flag=True,
-              help="Include source/target representations")
+@click.option(
+    "--include-representations",
+    is_flag=True,
+    help="Include source/target representations",
+)
 @click.option("--verbose", is_flag=True, help="Enable verbose output")
 async def export(
-        request_id: str,
-        output: Optional[str],
-        include_representations: bool,
-        verbose: bool):
+    request_id: str, output: Optional[str], include_representations: bool, verbose: bool
+):
     """Export session data for backup or analysis."""
     try:
         db_config = get_database_config()
@@ -408,15 +408,16 @@ async def export(
             click.echo(f"Exporting session data for: {request_id}")
 
         async with db_manager.get_session() as session:
-            session_data = await export_session_data(session, request_id, include_representations)
+            session_data = await export_session_data(
+                session, request_id, include_representations
+            )
 
             if not session_data:
                 click.echo(f"❌ Session not found: {request_id}")
                 sys.exit(1)
 
             if not output:
-                output = f"session_{request_id}_{
-                    datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                output = f"session_{request_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
             with open(output, "w") as f:
                 json.dump(session_data, f, indent=2, default=str)
@@ -426,9 +427,11 @@ async def export(
             if verbose:
                 click.echo(f"  Results: {len(session_data.get('results', []))}")
                 click.echo(
-                    f"  Discrepancies: {len(session_data.get('discrepancies', []))}")
+                    f"  Discrepancies: {len(session_data.get('discrepancies', []))}"
+                )
                 click.echo(
-                    f"  Behavioral Tests: {len(session_data.get('behavioral_tests', []))}")
+                    f"  Behavioral Tests: {len(session_data.get('behavioral_tests', []))}"
+                )
 
     except Exception as e:
         click.echo(f"❌ Export failed: {e}")
@@ -463,23 +466,26 @@ async def reset(confirm: bool, verbose: bool):
 
 def run_async_command(func):
     """Decorator to run async commands."""
+
     def wrapper(*args, **kwargs):
         return asyncio.run(func(*args, **kwargs))
+
     return wrapper
 
 
 # Apply async decorator to all commands
 for command in [
-        init,
-        migrate,
-        create_migration,
-        backup,
-        cleanup,
-        optimize,
-        validate,
-        stats,
-        export,
-        reset]:
+    init,
+    migrate,
+    create_migration,
+    backup,
+    cleanup,
+    optimize,
+    validate,
+    stats,
+    export,
+    reset,
+]:
     command.callback = run_async_command(command.callback)
 
 

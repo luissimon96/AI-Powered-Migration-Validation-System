@@ -28,7 +28,10 @@ class TestSemanticComparator:
 
     @pytest.mark.asyncio
     async def test_compare_code_semantics(
-        self, mock_llm_service, sample_python_code, sample_java_code,
+        self,
+        mock_llm_service,
+        sample_python_code,
+        sample_java_code,
     ):
         """Test comparing code semantics."""
         comparator = SemanticComparator(llm_service=mock_llm_service)
@@ -69,7 +72,8 @@ class TestSemanticComparator:
         comparator = SemanticComparator()
 
         features = comparator.extract_semantic_features(
-            sample_python_code, TechnologyType.PYTHON_FLASK,
+            sample_python_code,
+            TechnologyType.PYTHON_FLASK,
         )
 
         assert features is not None
@@ -84,7 +88,8 @@ class TestSemanticComparator:
         comparator = SemanticComparator()
 
         features = comparator.extract_semantic_features(
-            sample_java_code, TechnologyType.JAVA_SPRING,
+            sample_java_code,
+            TechnologyType.JAVA_SPRING,
         )
 
         assert features is not None
@@ -93,19 +98,23 @@ class TestSemanticComparator:
         assert "business_logic" in features
 
     def test_calculate_structural_similarity(
-            self, sample_python_code, sample_java_code):
+        self, sample_python_code, sample_java_code
+    ):
         """Test calculating structural similarity."""
         comparator = SemanticComparator()
 
         python_features = comparator.extract_semantic_features(
-            sample_python_code, TechnologyType.PYTHON_FLASK,
+            sample_python_code,
+            TechnologyType.PYTHON_FLASK,
         )
         java_features = comparator.extract_semantic_features(
-            sample_java_code, TechnologyType.JAVA_SPRING,
+            sample_java_code,
+            TechnologyType.JAVA_SPRING,
         )
 
         similarity = comparator.calculate_structural_similarity(
-            python_features, java_features)
+            python_features, java_features
+        )
 
         assert similarity is not None
         assert "overall_similarity" in similarity
@@ -131,13 +140,16 @@ class TestSemanticComparator:
         """
 
         python_features = comparator.extract_semantic_features(
-            python_func, TechnologyType.PYTHON_FLASK,
+            python_func,
+            TechnologyType.PYTHON_FLASK,
         )
         java_features = comparator.extract_semantic_features(
-            java_func, TechnologyType.JAVA_SPRING)
+            java_func, TechnologyType.JAVA_SPRING
+        )
 
         equivalence = comparator.identify_functional_equivalence(
-            python_features, java_features)
+            python_features, java_features
+        )
 
         assert equivalence is not None
         assert "is_equivalent" in equivalence
@@ -161,7 +173,8 @@ class TestSemanticComparator:
         }
 
         preservation = comparator.analyze_business_logic_preservation(
-            source_logic, target_logic)
+            source_logic, target_logic
+        )
 
         assert preservation is not None
         assert "preserved_rules" in preservation
@@ -184,11 +197,16 @@ class TestSemanticComparator:
             "business_logic": ["tax_calculation"],
         }
 
-        target_features = {"functions": [{"name": "calculateTax", "parameters": [
-            "amount"], "returns": "double"}], "business_logic": ["tax_calculation"], }
+        target_features = {
+            "functions": [
+                {"name": "calculateTax", "parameters": ["amount"], "returns": "double"}
+            ],
+            "business_logic": ["tax_calculation"],
+        }
 
         discrepancies = comparator.detect_discrepancies(
-            source_features, target_features)
+            source_features, target_features
+        )
 
         assert discrepancies is not None
         assert len(discrepancies) > 0
@@ -202,7 +220,8 @@ class TestSemanticComparator:
         target_elements = ["get_user_data", "validate_input", "process_order"]
 
         mappings = comparator.generate_mapping_suggestions(
-            source_elements, target_elements)
+            source_elements, target_elements
+        )
 
         assert mappings is not None
         assert len(mappings) == 3
@@ -227,7 +246,8 @@ class TestSemanticComparator:
         }
 
         flow_similarity = comparator.analyze_data_flow_similarity(
-            source_flow, target_flow)
+            source_flow, target_flow
+        )
 
         assert flow_similarity is not None
         assert "similarity_score" in flow_similarity
@@ -249,7 +269,8 @@ class TestSemanticComparator:
         }
 
         enhanced_comparison = await comparator.llm_enhanced_comparison(
-            source_features, target_features,
+            source_features,
+            target_features,
         )
 
         assert enhanced_comparison is not None
@@ -282,12 +303,14 @@ class TestSemanticComparator:
 
         # Empty code
         features_empty = comparator.extract_semantic_features(
-            "", TechnologyType.PYTHON_FLASK)
+            "", TechnologyType.PYTHON_FLASK
+        )
         assert features_empty is not None
 
         # Invalid syntax
         features_invalid = comparator.extract_semantic_features(
-            "invalid syntax {{{", TechnologyType.PYTHON_FLASK,
+            "invalid syntax {{{",
+            TechnologyType.PYTHON_FLASK,
         )
         assert features_invalid is not None
         assert "syntax_errors" in features_invalid
@@ -295,7 +318,8 @@ class TestSemanticComparator:
         # Very large code
         large_code = "\n".join([f"def func_{i}(): pass" for i in range(1000)])
         features_large = comparator.extract_semantic_features(
-            large_code, TechnologyType.PYTHON_FLASK,
+            large_code,
+            TechnologyType.PYTHON_FLASK,
         )
         assert features_large is not None
 
@@ -310,8 +334,10 @@ class TestSemanticComparatorUtils:
 
         # Test camelCase to snake_case
         assert comparator.normalize_identifier("getUserData") == "get_user_data"
-        assert comparator.normalize_identifier(
-            "validateUserInput") == "validate_user_input"
+        assert (
+            comparator.normalize_identifier("validateUserInput")
+            == "validate_user_input"
+        )
 
         # Test snake_case to camelCase
         assert (

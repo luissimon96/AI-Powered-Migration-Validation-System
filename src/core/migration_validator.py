@@ -87,8 +87,7 @@ class MigrationValidator(LoggerMixin):
             except Exception as e:
                 self.logger.error("Failed to initialize LLM service", error=str(e))
                 raise configuration_error(
-                    f"Failed to initialize LLM service: {
-                        e!s}", config_key="llm_config", cause=e, )
+                    f"Failed to initialize LLM service: {e!s}", config_key="llm_config", cause=e, )
         else:
             self.llm_service = llm_client
             self.logger.info("LLM service provided externally")
@@ -447,8 +446,7 @@ class MigrationValidator(LoggerMixin):
             if not source_analyzer.supports_scope(request.validation_scope):
                 issues.append(
                     f"Source technology {
-                        request.source_technology.type.value} " f"doesn't support validation scope {
-                        request.validation_scope.value}", )
+                        request.source_technology.type.value} " f"doesn't support validation scope {request.validation_scope.value}", )
         except AnalyzerError as e:
             issues.append(f"Source technology not supported: {e!s}")
 
@@ -459,8 +457,7 @@ class MigrationValidator(LoggerMixin):
             if not target_analyzer.supports_scope(request.validation_scope):
                 issues.append(
                     f"Target technology {
-                        request.target_technology.type.value} " f"doesn't support validation scope {
-                        request.validation_scope.value}", )
+                        request.target_technology.type.value} " f"doesn't support validation scope {request.validation_scope.value}", )
         except AnalyzerError as e:
             issues.append(f"Target technology not supported: {e!s}")
 

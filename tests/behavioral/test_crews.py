@@ -94,7 +94,9 @@ class TestBehavioralValidationAgents:
         """Test target executor task creation."""
         agent = TargetExecutorAgent(mock_llm_service)
 
-        source_log = '{"scenario": "login", "steps": ["navigate", "fill_form", "submit"]}'
+        source_log = (
+            '{"scenario": "login", "steps": ["navigate", "fill_form", "submit"]}'
+        )
         task = agent.create_execution_task("http://target.test", source_log)
 
         assert task is not None
@@ -190,7 +192,8 @@ class TestBehavioralValidationCrew:
 
     @patch("src.behavioral.crews.Crew")
     async def test_validate_migration_with_errors(
-            self, mock_crew_class, mock_llm_service):
+        self, mock_crew_class, mock_llm_service
+    ):
         """Test migration validation with errors."""
         # Mock crew execution with error
         mock_crew_instance = MagicMock()
@@ -217,9 +220,7 @@ class TestBehavioralValidationCrew:
         """Test parsing valid JSON results."""
         crew = BehavioralValidationCrew(mock_llm_service)
 
-        json_content = (
-            '{"overall_status": "approved", "fidelity_score": 0.92, "discrepancies": []}'
-        )
+        json_content = '{"overall_status": "approved", "fidelity_score": 0.92, "discrepancies": []}'
         result = crew._parse_validation_results(json_content)
 
         assert result["overall_status"] == "approved"

@@ -880,8 +880,7 @@ class BehavioralValidationCrew:
                                     ValidationDiscrepancy(
                                         type="parsing_error",
                                         severity=SeverityLevel.WARNING,
-                                        description=f"Failed to parse discrepancy: {
-                                            e!s}",
+                                        description=f"Failed to parse discrepancy: {e!s}",
                                         recommendation="Manual review required",
                                     ),
                                 )

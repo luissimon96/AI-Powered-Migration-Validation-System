@@ -715,8 +715,7 @@ class BrowserAutomationEngine:
                         type="form_count_mismatch",
                         severity=SeverityLevel.WARNING,
                         description=f"Different number of forms: {
-                            len(forms1)} vs {
-                            len(forms2)}",
+                            len(forms1)} vs {len(forms2)}",
                         recommendation="Verify all forms were migrated correctly",
                     ),
                 )
@@ -732,8 +731,7 @@ class BrowserAutomationEngine:
                             type="form_elements_mismatch",
                             severity=SeverityLevel.WARNING,
                             description=f"Form {i} has different element count: {
-                                len(elements1)} vs {
-                                len(elements2)}",
+                                len(elements1)} vs {len(elements2)}",
                             recommendation="Check form field migration",
                         ),
                     )

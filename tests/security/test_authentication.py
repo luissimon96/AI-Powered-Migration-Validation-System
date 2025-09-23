@@ -346,7 +346,8 @@ class TestAuthenticationAPI:
         """Test login endpoint security."""
         # Test with invalid credentials
         response = client.post(
-            "/api/auth/login", json={"username": "invalid", "password": "wrong"},
+            "/api/auth/login",
+            json={"username": "invalid", "password": "wrong"},
         )
         assert response.status_code == 401
 
@@ -359,7 +360,8 @@ class TestAuthenticationAPI:
         # Make multiple rapid requests
         for _ in range(10):
             response = client.post(
-                "/api/auth/login", json={"username": "test", "password": "wrong"},
+                "/api/auth/login",
+                json={"username": "test", "password": "wrong"},
             )
 
         # Should eventually get rate limited
@@ -369,10 +371,8 @@ class TestAuthenticationAPI:
     def test_security_headers_on_auth(self, client):
         """Test security headers on authentication responses."""
         response = client.post(
-            "/api/auth/login",
-            json={
-                "username": "test",
-                "password": "wrong"})
+            "/api/auth/login", json={"username": "test", "password": "wrong"}
+        )
 
         # Check for security headers
         assert "X-Content-Type-Options" in response.headers

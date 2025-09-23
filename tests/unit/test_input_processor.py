@@ -28,8 +28,8 @@ class TestInputProcessor:
         processor = InputProcessor()
 
         input_data = InputData(
-            type=InputType.CODE_FILES, files=[
-                temp_files["source_file"]])
+            type=InputType.CODE_FILES, files=[temp_files["source_file"]]
+        )
 
         result = processor.process_input(input_data)
 
@@ -57,8 +57,8 @@ class TestInputProcessor:
 
         try:
             input_data = InputData(
-                type=InputType.SCREENSHOTS,
-                screenshots=[screenshot_path])
+                type=InputType.SCREENSHOTS, screenshots=[screenshot_path]
+            )
 
             result = processor.process_input(input_data)
 
@@ -113,7 +113,8 @@ class TestInputProcessor:
         processor = InputProcessor()
 
         metadata = processor.extract_code_metadata(
-            sample_python_code, TechnologyType.PYTHON_FLASK)
+            sample_python_code, TechnologyType.PYTHON_FLASK
+        )
 
         assert metadata is not None
         assert "functions" in metadata
@@ -173,7 +174,8 @@ class TestInputProcessor:
 
             # Should handle large files gracefully
             result = processor.process_input(
-                input_data, max_file_size=5 * 1024 * 1024,
+                input_data,
+                max_file_size=5 * 1024 * 1024,
             )  # 5MB limit
 
             assert "size_warning" in result

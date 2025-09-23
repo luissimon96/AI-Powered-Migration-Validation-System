@@ -625,8 +625,7 @@ class ValidationReporter:
     ) -> Dict[str, Any]:
         """Generate unified metadata section."""
         metadata = {
-            "report_id": f"unified_validation_{
-                datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "report_id": f"unified_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             "generated_at": datetime.now().isoformat(),
             "validation_types": {
                 "static_analysis": static_result is not None,

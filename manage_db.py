@@ -16,18 +16,18 @@ from pathlib import Path
 from src.database.config import get_database_config
 from src.database.migrations import MigrationManager
 from src.database.session import get_database_manager
-from src.database.utils import (cleanup_database, export_session_data,
-                                get_database_statistics,
-                                optimize_database_performance,
-                                validate_database_integrity)
+from src.database.utils import cleanup_database
+from src.database.utils import export_session_data
+from src.database.utils import get_database_statistics
+from src.database.utils import optimize_database_performance
+from src.database.utils import validate_database_integrity
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -136,9 +136,7 @@ async def cleanup_old_data(days: int = 30, include_failed: bool = True):
 
         async with db_manager.get_session() as session:
             cleanup_counts = await cleanup_database(
-                session,
-                days_old=days,
-                include_failed=include_failed
+                session, days_old=days, include_failed=include_failed
             )
 
             if "error" in cleanup_counts:
@@ -184,14 +182,14 @@ async def show_statistics():
             print(f"Success rate: {stats.get('success_rate', 0)}%")
             print(f"Average fidelity: {stats.get('avg_fidelity_score', 0)}")
 
-            if stats.get('popular_technology_pairs'):
+            if stats.get("popular_technology_pairs"):
                 print("\nPopular technology pairs:")
-                for pair in stats['popular_technology_pairs']:
+                for pair in stats["popular_technology_pairs"]:
                     print(f"  {pair['source']} → {pair['target']}: {pair['count']}")
 
-            if stats.get('common_discrepancy_types'):
+            if stats.get("common_discrepancy_types"):
                 print("\nCommon discrepancy types:")
-                for disc_type in stats['common_discrepancy_types']:
+                for disc_type in stats["common_discrepancy_types"]:
                     print(f"  {disc_type['type']}: {disc_type['count']}")
 
             return True
@@ -256,9 +254,8 @@ async def validate_integrity():
 
 
 async def export_session(
-        request_id: str,
-        output_file: str = None,
-        include_representations: bool = False):
+    request_id: str, output_file: str = None, include_representations: bool = False
+):
     """Export session data."""
     logger.info(f"Exporting session: {request_id}")
 
@@ -268,9 +265,7 @@ async def export_session(
 
         async with db_manager.get_session() as session:
             session_data = await export_session_data(
-                session,
-                request_id,
-                include_representations=include_representations
+                session, request_id, include_representations=include_representations
             )
 
             if not session_data:
@@ -283,7 +278,7 @@ async def export_session(
                 output_file = f"session_export_{request_id}_{timestamp}.json"
 
             # Write to file
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 json.dump(session_data, f, indent=2, default=str)
 
             logger.info(f"Session data exported to: {output_file}")
@@ -319,11 +314,12 @@ async def backup_database(output_file: str = None):
                 f"--dbname={url.path[1:]}",  # Remove leading slash
                 f"--file={output_file}",
                 "--verbose",
-                "--no-password"
+                "--no-password",
             ]
 
             if url.password:
                 import os
+
                 os.environ["PGPASSWORD"] = url.password
 
             result = subprocess.run(cmd, capture_output=True, text=True)
@@ -339,11 +335,9 @@ async def backup_database(output_file: str = None):
             # SQLite backup
             import shutil
 
-            db_file = db_config.url.replace(
-                "sqlite:///",
-                "").replace(
-                "sqlite+aiosqlite:///",
-                "")
+            db_file = db_config.url.replace("sqlite:///", "").replace(
+                "sqlite+aiosqlite:///", ""
+            )
             shutil.copy2(db_file, output_file)
             logger.info(f"Database backup created: {output_file}")
             return True
@@ -395,9 +389,8 @@ def main():
     # Migration commands
     migrate_parser = subparsers.add_parser("migrate", help="Run database migrations")
     migrate_parser.add_argument(
-        "--revision",
-        default="head",
-        help="Target revision (default: head)")
+        "--revision", default="head", help="Target revision (default: head)"
+    )
 
     subparsers.add_parser("migration-status", help="Check migration status")
     subparsers.add_parser("validate-schema", help="Validate database schema")
@@ -405,14 +398,13 @@ def main():
     # Maintenance commands
     cleanup_parser = subparsers.add_parser("cleanup", help="Clean up old data")
     cleanup_parser.add_argument(
-        "--days",
-        type=int,
-        default=30,
-        help="Delete data older than N days")
+        "--days", type=int, default=30, help="Delete data older than N days"
+    )
     cleanup_parser.add_argument(
         "--exclude-failed",
         action="store_true",
-        help="Exclude failed sessions from cleanup")
+        help="Exclude failed sessions from cleanup",
+    )
 
     subparsers.add_parser("stats", help="Show database statistics")
     subparsers.add_parser("optimize", help="Optimize database performance")
@@ -422,8 +414,11 @@ def main():
     export_parser = subparsers.add_parser("export", help="Export session data")
     export_parser.add_argument("request_id", help="Request ID to export")
     export_parser.add_argument("--output", help="Output file path")
-    export_parser.add_argument("--include-representations", action="store_true",
-                               help="Include source/target representations")
+    export_parser.add_argument(
+        "--include-representations",
+        action="store_true",
+        help="Include source/target representations",
+    )
 
     backup_parser = subparsers.add_parser("backup", help="Create database backup")
     backup_parser.add_argument("--output", help="Output file path")
@@ -448,10 +443,9 @@ def main():
         elif args.command == "validate-schema":
             success = asyncio.run(validate_schema())
         elif args.command == "cleanup":
-            success = asyncio.run(cleanup_old_data(
-                days=args.days,
-                include_failed=not args.exclude_failed
-            ))
+            success = asyncio.run(
+                cleanup_old_data(days=args.days, include_failed=not args.exclude_failed)
+            )
         elif args.command == "stats":
             success = asyncio.run(show_statistics())
         elif args.command == "optimize":
@@ -459,11 +453,11 @@ def main():
         elif args.command == "validate":
             success = asyncio.run(validate_integrity())
         elif args.command == "export":
-            success = asyncio.run(export_session(
-                args.request_id,
-                args.output,
-                args.include_representations
-            ))
+            success = asyncio.run(
+                export_session(
+                    args.request_id, args.output, args.include_representations
+                )
+            )
         elif args.command == "backup":
             success = asyncio.run(backup_database(args.output))
         elif args.command == "reset":

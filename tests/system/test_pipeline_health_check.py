@@ -151,7 +151,8 @@ class TestSystemHealthCheck:
 
         for endpoint in expected_endpoints:
             assert any(
-                endpoint in route for route in routes), f"Missing endpoint: {endpoint}"
+                endpoint in route for route in routes
+            ), f"Missing endpoint: {endpoint}"
 
 
 @pytest.mark.system
@@ -179,18 +180,14 @@ class TestSystemIntegrationHealth:
         # Create minimal test request
         request = MigrationValidationRequest(
             source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK,
-                version="2.0"),
+                type=TechnologyType.PYTHON_FLASK, version="2.0"
+            ),
             target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING,
-                version="3.0"),
+                type=TechnologyType.JAVA_SPRING, version="3.0"
+            ),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
-            source_input=InputData(
-                type=InputType.CODE_FILES,
-                files=[]),
-            target_input=InputData(
-                type=InputType.CODE_FILES,
-                files=[]),
+            source_input=InputData(type=InputType.CODE_FILES, files=[]),
+            target_input=InputData(type=InputType.CODE_FILES, files=[]),
         )
 
         # Test validation request validation
@@ -262,30 +259,36 @@ class TestSystemIntegrationHealth:
 
         # Test unified report generation
         unified_report = reporter.generate_unified_report(
-            static_result=static_result, behavioral_result=behavioral_result,
+            static_result=static_result,
+            behavioral_result=behavioral_result,
         )
 
         assert "metadata" in unified_report
         assert "executive_summary" in unified_report
         assert "fidelity_assessment" in unified_report
         assert unified_report["metadata"]["validation_types"]["static_analysis"] is True
-        assert unified_report["metadata"]["validation_types"]["behavioral_testing"] is True
+        assert (
+            unified_report["metadata"]["validation_types"]["behavioral_testing"] is True
+        )
 
         # Test different report formats
         json_report = reporter.generate_unified_json_report(
-            static_result=static_result, behavioral_result=behavioral_result,
+            static_result=static_result,
+            behavioral_result=behavioral_result,
         )
         assert json_report is not None
         assert len(json_report) > 0
 
         html_report = reporter.generate_unified_html_report(
-            static_result=static_result, behavioral_result=behavioral_result,
+            static_result=static_result,
+            behavioral_result=behavioral_result,
         )
         assert html_report is not None
         assert html_report.startswith("<!DOCTYPE html>")
 
         markdown_report = reporter.generate_unified_markdown_report(
-            static_result=static_result, behavioral_result=behavioral_result,
+            static_result=static_result,
+            behavioral_result=behavioral_result,
         )
         assert markdown_report is not None
         assert markdown_report.startswith("#")
@@ -344,8 +347,8 @@ class TestSystemPerformanceHealth:
         # Create multiple system components
         mock_llm_service = MagicMock()
         validators = [
-            MigrationValidator(
-                llm_client=mock_llm_service) for _ in range(10)]
+            MigrationValidator(llm_client=mock_llm_service) for _ in range(10)
+        ]
         crews = [create_behavioral_validation_crew(mock_llm_service) for _ in range(5)]
         reporters = [ValidationReporter() for _ in range(5)]
 
@@ -507,7 +510,9 @@ class TestExternalDependencyHealth:
         service = LLMService(config)
 
         try:
-            response = await service.generate_response("Hello, this is a connectivity test.")
+            response = await service.generate_response(
+                "Hello, this is a connectivity test."
+            )
             assert response is not None
             assert hasattr(response, "content")
         except Exception as e:

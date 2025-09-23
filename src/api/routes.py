@@ -589,12 +589,7 @@ def create_app() -> FastAPI:
         """
         try:
             # Generate unique request ID
-            request_id = f"behavioral_{
-                datetime.now().strftime('%Y%m%d_%H%M%S')}_{
-                hash(
-                    request.source_url
-                    + request.target_url) %
-                10000:04d}"
+            request_id = f"behavioral_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(request.source_url + request.target_url) % 10000:04d}"
 
             # Create behavioral validation request
             behavioral_request = BehavioralValidationRequest(
@@ -725,8 +720,7 @@ def create_app() -> FastAPI:
 
             # Generate unique request ID for hybrid validation
             request_id = f"hybrid_{
-                datetime.now().strftime('%Y%m%d_%H%M%S')}_{
-                hash(
+                datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(
                     str(
                         hybrid_request.dict())) %
                 10000:04d}"
@@ -902,8 +896,7 @@ async def run_behavioral_validation_background(
             ] = "Behavioral validation completed"
             behavioral_validation_sessions[request_id]["result"] = result
             behavioral_validation_sessions[request_id]["logs"].append(
-                f"Behavioral validation completed with fidelity score: {
-                    result.fidelity_score:.2f}", )
+                f"Behavioral validation completed with fidelity score: {result.fidelity_score:.2f}", )
 
     except Exception as e:
         # Update session with error
@@ -926,14 +919,12 @@ async def run_behavioral_validation_background(
                     ValidationDiscrepancy(
                         type="behavioral_validation_error",
                         severity=SeverityLevel.CRITICAL,
-                        description=f"Behavioral validation failed: {
-                            e!s}",
+                        description=f"Behavioral validation failed: {e!s}",
                         recommendation="Review system configuration and retry validation",
                     ),
                 ],
                 execution_log=[
-                    f"Error: {
-                        e!s}"],
+                    f"Error: {e!s}"],
                 execution_time=0.0,
                 timestamp=datetime.now(),
             )
@@ -1040,8 +1031,7 @@ async def run_hybrid_validation_background(
             static_session = await validator.validate_migration(migration_request)
             static_result = static_session.result
             session.add_log(
-                f"Static validation completed with fidelity score: {
-                    static_result.fidelity_score:.2f}", )
+                f"Static validation completed with fidelity score: {static_result.fidelity_score:.2f}", )
 
         # Perform behavioral validation if URLs were provided
         if perform_behavioral:
@@ -1061,8 +1051,7 @@ async def run_hybrid_validation_background(
             crew = create_behavioral_validation_crew()
             behavioral_result = await crew.validate_migration(behavioral_request)
             session.add_log(
-                f"Behavioral validation completed with fidelity score: {
-                    behavioral_result.fidelity_score:.2f}", )
+                f"Behavioral validation completed with fidelity score: {behavioral_result.fidelity_score:.2f}", )
 
         # Combine results
         session.add_log("Combining static and behavioral validation results")
@@ -1081,8 +1070,7 @@ async def run_hybrid_validation_background(
                 fidelity_score=combined_fidelity,
                 summary=f"Hybrid validation completed. Static fidelity: {
                     static_result.fidelity_score:.2f}, Behavioral fidelity: {
-                    behavioral_result.fidelity_score:.2f}, Combined: {
-                    combined_fidelity:.2f}",
+                    behavioral_result.fidelity_score:.2f}, Combined: {combined_fidelity:.2f}",
                 discrepancies=combined_discrepancies,
                 execution_time=(
                     static_result.execution_time or 0) + (
@@ -1093,8 +1081,7 @@ async def run_hybrid_validation_background(
             # Static-only result
             session.result = static_result
             session.result.summary = (
-                f"Static validation completed. Fidelity score: {
-                    static_result.fidelity_score:.2f}")
+                f"Static validation completed. Fidelity score: {static_result.fidelity_score:.2f}")
 
         elif behavioral_result:
             # Behavioral-only result (convert from BehavioralValidationResult to
@@ -1102,8 +1089,7 @@ async def run_hybrid_validation_background(
             session.result = ValidationResult(
                 overall_status=behavioral_result.overall_status,
                 fidelity_score=behavioral_result.fidelity_score,
-                summary=f"Behavioral validation completed. Fidelity score: {
-                    behavioral_result.fidelity_score:.2f}",
+                summary=f"Behavioral validation completed. Fidelity score: {behavioral_result.fidelity_score:.2f}",
                 discrepancies=behavioral_result.discrepancies,
                 execution_time=behavioral_result.execution_time,
             )
@@ -1119,14 +1105,12 @@ async def run_hybrid_validation_background(
             session.result = ValidationResult(
                 overall_status="error",
                 fidelity_score=0.0,
-                summary=f"Hybrid validation failed: {
-                    e!s}",
+                summary=f"Hybrid validation failed: {e!s}",
                 discrepancies=[
                     ValidationDiscrepancy(
                         type="hybrid_validation_error",
                         severity=SeverityLevel.CRITICAL,
-                        description=f"Hybrid validation failed: {
-                            e!s}",
+                        description=f"Hybrid validation failed: {e!s}",
                         recommendation="Review system configuration and retry validation",
                     ),
                 ],

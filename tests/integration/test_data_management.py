@@ -44,6 +44,7 @@ class TestDataManagement:
 
         # Test cleanup mechanism
         from tests.utils.data_cleanup import TestDataCleaner
+
         cleaner = TestDataCleaner(self.test_data_dir)
         cleaned_count = cleaner.cleanup_temp_files()
 
@@ -76,13 +77,18 @@ class TestDataManagement:
         db_session.commit()
 
         # Verify sessions created
-        created_sessions = db_session.query(ValidationSession).filter(
-            ValidationSession.user_id == test_user.id,
-        ).all()
+        created_sessions = (
+            db_session.query(ValidationSession)
+            .filter(
+                ValidationSession.user_id == test_user.id,
+            )
+            .all()
+        )
         assert len(created_sessions) == 3
 
         # Test cleanup
         from tests.utils.data_cleanup import DatabaseTestCleaner
+
         cleaner = DatabaseTestCleaner(db_session)
 
         # Cleanup test user and related data
@@ -90,9 +96,13 @@ class TestDataManagement:
         assert cleanup_count >= 3  # User + 3 sessions
 
         # Verify cleanup
-        remaining_sessions = db_session.query(ValidationSession).filter(
-            ValidationSession.user_id == test_user.id,
-        ).all()
+        remaining_sessions = (
+            db_session.query(ValidationSession)
+            .filter(
+                ValidationSession.user_id == test_user.id,
+            )
+            .all()
+        )
         assert len(remaining_sessions) == 0
 
     def test_mock_data_generation(self):
