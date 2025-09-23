@@ -5,18 +5,24 @@ Redis-based Celery task queue with progress tracking.
 import asyncio
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 from uuid import uuid4
 
 import redis
 from celery import Celery
 from celery.result import AsyncResult
-from celery.signals import task_failure, task_postrun, task_prerun
+from celery.signals import task_failure
+from celery.signals import task_postrun
+from celery.signals import task_prerun
 from kombu import Queue
 
 from src.core.config import get_validation_config
 from src.core.migration_validator import MigrationValidator
-from src.core.models import ValidationRequest, ValidationSession
+from src.core.models import ValidationRequest
+from src.core.models import ValidationSession
 from src.services.llm_service import LLMService
 
 # Celery app configuration

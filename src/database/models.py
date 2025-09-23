@@ -5,27 +5,29 @@ with proper relationships, constraints, and indexes.
 """
 
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
 
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-    Enum,
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    String,
-    Text,
-    UniqueConstraint,
-)
+from sqlalchemy import JSON
+from sqlalchemy import Boolean
+from sqlalchemy import Column
+from sqlalchemy import DateTime
+from sqlalchemy import Enum
+from sqlalchemy import Float
+from sqlalchemy import ForeignKey
+from sqlalchemy import Index
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import Text
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from ..core.models import InputType, SeverityLevel, TechnologyType, ValidationScope
+from ..core.models import InputType
+from ..core.models import SeverityLevel
+from ..core.models import TechnologyType
+from ..core.models import ValidationScope
 from .config import metadata
 
 # Base class for all models

@@ -9,16 +9,24 @@ import asyncio
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
 import structlog
-from crewai import Agent, Crew, Process, Task
+from crewai import Agent
+from crewai import Crew
+from crewai import Process
+from crewai import Task
 
 # BaseTool not available in this version, will create custom tool base
 # from crewai_tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
 
-from ..core.models import SeverityLevel, ValidationDiscrepancy
+from ..core.models import SeverityLevel
+from ..core.models import ValidationDiscrepancy
 from ..services.llm_service import LLMService
 
 logger = structlog.get_logger(__name__)
@@ -132,11 +140,9 @@ class BrowserTool(BaseModel):
         action_data = action_parts[2] if len(action_parts) > 2 else data
 
         try:
-            from .browser_automation import (
-                BrowserAction,
-                create_form_submission_scenario,
-                create_login_scenario,
-            )
+            from .browser_automation import BrowserAction
+            from .browser_automation import create_form_submission_scenario
+            from .browser_automation import create_login_scenario
 
             if action_type == "navigate":
                 browser_action = BrowserAction(

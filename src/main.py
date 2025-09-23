@@ -11,20 +11,18 @@ from pathlib import Path
 import click
 import uvicorn
 
-from .behavioral.crews import (
-    BehavioralValidationRequest,
-    create_behavioral_validation_crew,
-)
-from .core.config import get_settings, get_validation_config, is_development
+from .behavioral.crews import BehavioralValidationRequest
+from .behavioral.crews import create_behavioral_validation_crew
+from .core.config import get_settings
+from .core.config import get_validation_config
+from .core.config import is_development
 from .core.migration_validator import MigrationValidator
-from .core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-)
+from .core.models import InputData
+from .core.models import InputType
+from .core.models import MigrationValidationRequest
+from .core.models import TechnologyContext
+from .core.models import TechnologyType
+from .core.models import ValidationScope
 
 
 @click.group()
@@ -448,7 +446,8 @@ def db_cleanup(days_old: int, dry_run: bool, verbose: bool):
     try:
         from .database.config import get_database_config
         from .database.session import DatabaseManager
-        from .database.utils import cleanup_database, get_database_statistics
+        from .database.utils import cleanup_database
+        from .database.utils import get_database_statistics
 
         async def cleanup_db():
             db_config = get_database_config()

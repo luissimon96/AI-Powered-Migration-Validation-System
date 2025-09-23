@@ -1,18 +1,18 @@
 """Unit tests for LLM service.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
 
-from src.services.llm_service import (
-    LLMConfig,
-    LLMProvider,
-    LLMProviderNotAvailable,
-    LLMResponse,
-    LLMService,
-    create_llm_service,
-)
+from src.services.llm_service import LLMConfig
+from src.services.llm_service import LLMProvider
+from src.services.llm_service import LLMProviderNotAvailable
+from src.services.llm_service import LLMResponse
+from src.services.llm_service import LLMService
+from src.services.llm_service import create_llm_service
 
 
 class TestLLMConfig:

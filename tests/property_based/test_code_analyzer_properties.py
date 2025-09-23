@@ -7,9 +7,16 @@ and validating invariants that should hold for all inputs.
 import ast
 
 import pytest
-from hypothesis import assume, example, given, note, settings
+from hypothesis import assume
+from hypothesis import example
+from hypothesis import given
+from hypothesis import note
+from hypothesis import settings
 from hypothesis import strategies as st
-from hypothesis.stateful import Bundle, RuleBasedStateMachine, invariant, rule
+from hypothesis.stateful import Bundle
+from hypothesis.stateful import RuleBasedStateMachine
+from hypothesis.stateful import invariant
+from hypothesis.stateful import rule
 
 from src.analyzers.code_analyzer import CodeAnalyzer
 from src.core.models import TechnologyType

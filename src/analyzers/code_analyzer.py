@@ -8,25 +8,25 @@ import ast
 import os
 import re
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from ..core.models import (
-    AbstractRepresentation,
-    BackendFunction,
-    DataField,
-    InputData,
-    InputType,
-    TechnologyContext,
-    UIElement,
-    ValidationScope,
-)
-from ..services.llm_service import LLMService, create_llm_service
-from .base import (
-    BaseAnalyzer,
-    ExtractionError,
-    InvalidInputError,
-    UnsupportedScopeError,
-)
+from ..core.models import AbstractRepresentation
+from ..core.models import BackendFunction
+from ..core.models import DataField
+from ..core.models import InputData
+from ..core.models import InputType
+from ..core.models import TechnologyContext
+from ..core.models import UIElement
+from ..core.models import ValidationScope
+from ..services.llm_service import LLMService
+from ..services.llm_service import create_llm_service
+from .base import BaseAnalyzer
+from .base import ExtractionError
+from .base import InvalidInputError
+from .base import UnsupportedScopeError
 
 
 class CodeAnalyzer(BaseAnalyzer):

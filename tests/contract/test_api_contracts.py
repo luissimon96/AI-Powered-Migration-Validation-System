@@ -4,7 +4,8 @@ This module implements contract testing to ensure API compatibility across versi
 and validate request/response schemas against OpenAPI specifications.
 """
 
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
 from unittest.mock import patch
 
 import jsonschema
@@ -13,13 +14,11 @@ from fastapi.testclient import TestClient
 from jsonschema import Draft7Validator
 
 from src.api.routes import app
-from src.core.models import (
-    InputType,
-    TechnologyType,
-    ValidationResult,
-    ValidationScope,
-    ValidationStatus,
-)
+from src.core.models import InputType
+from src.core.models import TechnologyType
+from src.core.models import ValidationResult
+from src.core.models import ValidationScope
+from src.core.models import ValidationStatus
 
 # ═══════════════════════════════════════════════════════════════
 # Contract Testing Framework

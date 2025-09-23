@@ -6,13 +6,17 @@ and data migration between different system versions.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from alembic.config import Config
-from alembic.script import ScriptDirectory
-from sqlalchemy import MetaData, text
+from sqlalchemy import MetaData
+from sqlalchemy import text
 
 from alembic import command
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 
 from .models import Base
 from .session import DatabaseManager

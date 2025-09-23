@@ -4,13 +4,6 @@ This script demonstrates the browser automation capabilities and can be used
 to verify the implementation works correctly.
 """
 
-from behavioral.browser_automation import (
-    BrowserAction,
-    BrowserAutomationEngine,
-    create_comprehensive_validation_scenario,
-    create_form_submission_scenario,
-    create_login_scenario,
-)
 import asyncio
 
 # Import the browser automation module
@@ -18,6 +11,14 @@ import sys
 from pathlib import Path
 
 import pytest
+
+from behavioral.browser_automation import BrowserAction
+from behavioral.browser_automation import BrowserAutomationEngine
+from behavioral.browser_automation import (
+    create_comprehensive_validation_scenario,
+)
+from behavioral.browser_automation import create_form_submission_scenario
+from behavioral.browser_automation import create_login_scenario
 
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 

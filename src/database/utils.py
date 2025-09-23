@@ -5,19 +5,22 @@ and maintenance tasks.
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from datetime import datetime
+from datetime import timedelta
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import (
-    MigrationValidationRequest,
-    ValidationDiscrepancy,
-    ValidationResult,
-    ValidationSession,
-)
-from .models import DiscrepancyModel, ValidationResultModel, ValidationSessionModel
+from ..core.models import MigrationValidationRequest
+from ..core.models import ValidationDiscrepancy
+from ..core.models import ValidationResult
+from ..core.models import ValidationSession
+from .models import DiscrepancyModel
+from .models import ValidationResultModel
+from .models import ValidationSessionModel
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +85,8 @@ async def convert_db_model_to_pydantic(
         ValidationSession: Pydantic validation session
 
     """
-    from ..core.models import InputData, TechnologyContext
+    from ..core.models import InputData
+    from ..core.models import TechnologyContext
 
     # Reconstruct technology contexts
     source_technology = TechnologyContext(

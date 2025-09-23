@@ -5,7 +5,8 @@ Tests system dependencies, configuration, and overall health of the pipeline.
 
 import asyncio
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -57,7 +58,8 @@ class TestSystemHealthCheck:
 
     def test_llm_service_configuration(self):
         """Test LLM service configuration and initialization."""
-        from src.services.llm_service import LLMConfig, LLMProvider
+        from src.services.llm_service import LLMConfig
+        from src.services.llm_service import LLMProvider
 
         # Test basic configuration
         config = LLMConfig()
@@ -111,7 +113,9 @@ class TestSystemHealthCheck:
     async def test_browser_automation_availability(self):
         """Test browser automation system availability."""
         try:
-            from src.behavioral.browser_automation import BrowserAutomationEngine
+            from src.behavioral.browser_automation import (
+                BrowserAutomationEngine,
+            )
 
             engine = BrowserAutomationEngine(headless=True)
             initialization_success = await engine.initialize()
@@ -159,14 +163,12 @@ class TestSystemIntegrationHealth:
 
     async def test_static_validation_pipeline_health(self):
         """Test static validation pipeline health."""
-        from src.core.models import (
-            InputData,
-            InputType,
-            MigrationValidationRequest,
-            TechnologyContext,
-            TechnologyType,
-            ValidationScope,
-        )
+        from src.core.models import InputData
+        from src.core.models import InputType
+        from src.core.models import MigrationValidationRequest
+        from src.core.models import TechnologyContext
+        from src.core.models import TechnologyType
+        from src.core.models import ValidationScope
 
         mock_llm_service = AsyncMock()
         mock_llm_service.analyze_code_semantic_similarity.return_value = {
@@ -225,11 +227,9 @@ class TestSystemIntegrationHealth:
     def test_unified_reporting_pipeline_health(self):
         """Test unified reporting pipeline health."""
         from src.behavioral.crews import BehavioralValidationResult
-        from src.core.models import (
-            SeverityLevel,
-            ValidationDiscrepancy,
-            ValidationResult,
-        )
+        from src.core.models import SeverityLevel
+        from src.core.models import ValidationDiscrepancy
+        from src.core.models import ValidationResult
 
         reporter = ValidationReporter()
 
@@ -410,7 +410,8 @@ class TestSystemConfigurationHealth:
                 if key in os.environ:
                     del os.environ[key]
 
-            from src.services.llm_service import LLMConfig, LLMService
+            from src.services.llm_service import LLMConfig
+            from src.services.llm_service import LLMService
 
             # Should still initialize with default configuration
             config = LLMConfig()
@@ -463,7 +464,8 @@ class TestSystemConfigurationHealth:
         """Test that system objects can be JSON serialized."""
         import json
 
-        from src.core.models import SeverityLevel, ValidationDiscrepancy
+        from src.core.models import SeverityLevel
+        from src.core.models import ValidationDiscrepancy
 
         # Test ValidationDiscrepancy serialization
         discrepancy = ValidationDiscrepancy(
@@ -500,7 +502,8 @@ class TestExternalDependencyHealth:
     @pytest.mark.skip(reason="Requires actual LLM API access")
     async def test_llm_service_connectivity(self):
         """Test LLM service connectivity (skip unless testing with real API)."""
-        from src.services.llm_service import LLMConfig, LLMService
+        from src.services.llm_service import LLMConfig
+        from src.services.llm_service import LLMService
 
         config = LLMConfig()
         service = LLMService(config)

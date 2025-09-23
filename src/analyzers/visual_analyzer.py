@@ -8,25 +8,25 @@ import base64
 import io
 import os
 from dataclasses import asdict
-from typing import Any, Dict, List
+from typing import Any
+from typing import Dict
+from typing import List
 
 from PIL import Image
 
-from ..core.models import (
-    AbstractRepresentation,
-    InputData,
-    InputType,
-    TechnologyContext,
-    UIElement,
-    ValidationScope,
-)
-from ..services.llm_service import AnalysisType, LLMService, create_llm_service
-from .base import (
-    BaseAnalyzer,
-    ExtractionError,
-    InvalidInputError,
-    UnsupportedScopeError,
-)
+from ..core.models import AbstractRepresentation
+from ..core.models import InputData
+from ..core.models import InputType
+from ..core.models import TechnologyContext
+from ..core.models import UIElement
+from ..core.models import ValidationScope
+from ..services.llm_service import AnalysisType
+from ..services.llm_service import LLMService
+from ..services.llm_service import create_llm_service
+from .base import BaseAnalyzer
+from .base import ExtractionError
+from .base import InvalidInputError
+from .base import UnsupportedScopeError
 
 
 class VisualAnalyzer(BaseAnalyzer):

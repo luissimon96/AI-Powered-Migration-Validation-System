@@ -6,16 +6,17 @@ detailed findings, and actionable recommendations.
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from ..behavioral.crews import BehavioralValidationResult
-from ..core.models import (
-    AbstractRepresentation,
-    MigrationValidationRequest,
-    SeverityLevel,
-    ValidationDiscrepancy,
-    ValidationResult,
-)
+from ..core.models import AbstractRepresentation
+from ..core.models import MigrationValidationRequest
+from ..core.models import SeverityLevel
+from ..core.models import ValidationDiscrepancy
+from ..core.models import ValidationResult
 
 
 class ValidationReporter:
