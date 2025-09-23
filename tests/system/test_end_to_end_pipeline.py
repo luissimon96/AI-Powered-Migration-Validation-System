@@ -1,22 +1,19 @@
-"""
-End-to-end system tests for the complete AI Migration Validation pipeline.
+"""End-to-end system tests for the complete AI Migration Validation pipeline.
 
 Tests the entire workflow from API request to final unified report generation.
 """
 
-import asyncio
 import json
 import tempfile
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from src.api.routes import app
 from src.behavioral.crews import BehavioralValidationResult
-from src.core.models import (SeverityLevel, ValidationDiscrepancy,
-                             ValidationResult)
+from src.core.models import SeverityLevel, ValidationDiscrepancy, ValidationResult
 
 
 @pytest.mark.system
@@ -70,7 +67,7 @@ class UserManager:
             "created_at": "2023-12-15"
         }
         return {"success": True, "user_id": len(self.users)}
-"""
+""",
             )
 
         target_file = f"{temp_dir}/target.java"
@@ -114,7 +111,7 @@ public class UserManager {
         return new CreateUserResult(true, users.size());
     }
 }
-"""
+""",
             )
 
         return {
@@ -198,7 +195,7 @@ public class UserManager {
 
         # Prepare file upload
         with open(sample_code_files["source_file"], "rb") as source_f, open(
-            sample_code_files["target_file"], "rb"
+            sample_code_files["target_file"], "rb",
         ) as target_f:
             files = [
                 ("source_files", ("source.py", source_f, "text/plain")),
@@ -212,8 +209,8 @@ public class UserManager {
                         "target_technology": "java_spring",
                         "validation_scope": "business_logic",
                         "metadata": {"test_run": True},
-                    }
-                )
+                    },
+                ),
             }
 
             # Submit validation request
@@ -316,7 +313,7 @@ public class UserManager {
                     "progress": "Behavioral validation completed",
                     "result": behavioral_result,
                     "logs": behavioral_result.execution_log,
-                }
+                },
             },
         ):
             # Check validation status
@@ -355,7 +352,7 @@ public class UserManager {
         """Test complete hybrid validation pipeline end-to-end."""
         # Prepare hybrid validation request
         with open(sample_code_files["source_file"], "rb") as source_f, open(
-            sample_code_files["target_file"], "rb"
+            sample_code_files["target_file"], "rb",
         ) as target_f:
             files = [
                 ("source_files", ("source.py", source_f, "text/plain")),
@@ -383,8 +380,8 @@ public class UserManager {
                             "hybrid_validation": True,
                             "environment": "staging",
                         },
-                    }
-                )
+                    },
+                ),
             }
 
             # Submit hybrid validation request
@@ -444,7 +441,7 @@ public class UserManager {
                             "Combining static and behavioral validation results",
                             "Hybrid validation completed successfully",
                         ],
-                    )
+                    ),
                 },
             ):
                 # Check validation status
@@ -477,7 +474,7 @@ public class UserManager {
                 assert "text/html" in html_report_response.headers["content-type"]
 
                 markdown_report_response = client.get(
-                    f"/api/validate/{request_id}/report?format=markdown"
+                    f"/api/validate/{request_id}/report?format=markdown",
                 )
                 assert markdown_report_response.status_code == 200
 
@@ -534,7 +531,7 @@ public class UserManager {
 
         # Test invalid JSON in hybrid validation
         response = client.post(
-            "/api/validate/hybrid", data={"request_data": "invalid json"}, files=[]
+            "/api/validate/hybrid", data={"request_data": "invalid json"}, files=[],
         )
         assert response.status_code == 400
 

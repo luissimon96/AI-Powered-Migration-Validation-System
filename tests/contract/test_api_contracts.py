@@ -1,25 +1,25 @@
-"""
-Contract testing for AI-Powered Migration Validation System API endpoints.
+"""Contract testing for AI-Powered Migration Validation System API endpoints.
 
 This module implements contract testing to ensure API compatibility across versions
 and validate request/response schemas against OpenAPI specifications.
 """
 
-import json
-from typing import Any, Dict, List
-from unittest.mock import Mock, patch
+from typing import Any, Dict
+from unittest.mock import patch
 
 import jsonschema
 import pytest
 from fastapi.testclient import TestClient
 from jsonschema import Draft7Validator
-from pydantic import ValidationError
 
 from src.api.routes import app
-from src.core.models import (InputData, InputType, MigrationValidationRequest,
-                             TechnologyContext, TechnologyType,
-                             ValidationResult, ValidationScope,
-                             ValidationStatus)
+from src.core.models import (
+    InputType,
+    TechnologyType,
+    ValidationResult,
+    ValidationScope,
+    ValidationStatus,
+)
 
 # ═══════════════════════════════════════════════════════════════
 # Contract Testing Framework
@@ -33,7 +33,7 @@ class APIContractTester:
         self.client = client
 
     def validate_response_schema(
-        self, response: Dict[str, Any], expected_schema: Dict[str, Any]
+        self, response: Dict[str, Any], expected_schema: Dict[str, Any],
     ) -> None:
         """Validate response against expected JSON schema."""
         try:
@@ -42,7 +42,7 @@ class APIContractTester:
             pytest.fail(f"Response schema validation failed: {e.message}")
 
     def validate_request_schema(
-        self, request_data: Dict[str, Any], expected_schema: Dict[str, Any]
+        self, request_data: Dict[str, Any], expected_schema: Dict[str, Any],
     ) -> None:
         """Validate request against expected JSON schema."""
         try:
@@ -235,7 +235,7 @@ class TestAPIContracts:
 
         # Validate request schema
         self.contract_tester.validate_request_schema(
-            request_data, MIGRATION_VALIDATION_REQUEST_SCHEMA
+            request_data, MIGRATION_VALIDATION_REQUEST_SCHEMA,
         )
 
         with patch("src.core.migration_validator.MigrationValidator.validate") as mock_validate:
@@ -294,7 +294,7 @@ class TestAPIContracts:
         validation_id = "test-validation-123"
 
         with patch(
-            "src.core.migration_validator.MigrationValidator.get_validation_status"
+            "src.core.migration_validator.MigrationValidator.get_validation_status",
         ) as mock_status:
             mock_status.return_value = ValidationResult(
                 validation_id=validation_id,
@@ -475,7 +475,7 @@ class TestAPIBackwardCompatibility:
 
         with patch("src.core.migration_validator.MigrationValidator.validate") as mock_validate:
             mock_validate.return_value = ValidationResult(
-                validation_id="test-123", status=ValidationStatus.COMPLETED, similarity_score=0.85
+                validation_id="test-123", status=ValidationStatus.COMPLETED, similarity_score=0.85,
             )
 
             response = self.client.post("/validate", json=request_data)
@@ -577,7 +577,7 @@ class ContractTestHelper:
             for field in required_fields:
                 assert field in pagination, f"Pagination field '{field}' missing"
                 assert isinstance(
-                    pagination[field], int
+                    pagination[field], int,
                 ), f"Pagination field '{field}' must be integer"
 
             assert pagination["page"] >= 1, "Page number must be >= 1"
@@ -592,7 +592,7 @@ class ContractTestHelper:
         for field in required_fields:
             assert field in response, f"Error response field '{field}' missing"
             assert isinstance(
-                response[field], str
+                response[field], str,
             ), f"Error response field '{field}' must be string"
 
         if "details" in response:

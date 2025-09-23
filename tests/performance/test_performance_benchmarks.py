@@ -1,23 +1,17 @@
-"""
-Performance testing and benchmarking for AI-Powered Migration Validation System.
+"""Performance testing and benchmarking for AI-Powered Migration Validation System.
 
 This module provides comprehensive performance testing including load testing,
 stress testing, memory profiling, and performance regression detection.
 """
 
-import asyncio
 import gc
 import json
-import os
 import statistics
-import sys
-import tempfile
-import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import psutil
 import pytest
@@ -26,9 +20,14 @@ from memory_profiler import profile
 from src.analyzers.code_analyzer import CodeAnalyzer
 from src.core.input_processor import InputProcessor
 from src.core.migration_validator import MigrationValidator
-from src.core.models import (InputData, InputType, MigrationValidationRequest,
-                             TechnologyContext, TechnologyType,
-                             ValidationScope)
+from src.core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+)
 
 # ═══════════════════════════════════════════════════════════════
 # Performance Testing Framework
@@ -100,7 +99,7 @@ class PerformanceTester:
         return max(cpu_percent_end - cpu_percent_start, 0)
 
     def load_test(
-        self, func: Callable, num_requests: int, concurrent_users: int, *args, **kwargs
+        self, func: Callable, num_requests: int, concurrent_users: int, *args, **kwargs,
     ) -> Dict[str, Any]:
         """Perform load testing with concurrent users."""
         execution_times = []
@@ -140,17 +139,16 @@ class PerformanceTester:
                 else 0,
                 "errors": errors[:10],  # First 10 errors for debugging
             }
-        else:
-            return {
-                "total_requests": num_requests,
-                "successful_requests": 0,
-                "failed_requests": len(errors),
-                "error_rate": 1.0,
-                "errors": errors,
-            }
+        return {
+            "total_requests": num_requests,
+            "successful_requests": 0,
+            "failed_requests": len(errors),
+            "error_rate": 1.0,
+            "errors": errors,
+        }
 
     def stress_test(
-        self, func: Callable, max_load: int, ramp_up_time: int, *args, **kwargs
+        self, func: Callable, max_load: int, ramp_up_time: int, *args, **kwargs,
     ) -> Dict[str, Any]:
         """Perform stress testing with gradually increasing load."""
         results = []
@@ -183,10 +181,9 @@ class PerformanceTester:
         index = (percentile / 100) * (len(sorted_data) - 1)
         if index.is_integer():
             return sorted_data[int(index)]
-        else:
-            lower = sorted_data[int(index)]
-            upper = sorted_data[int(index) + 1]
-            return lower + (upper - lower) * (index - int(index))
+        lower = sorted_data[int(index)]
+        upper = sorted_data[int(index) + 1]
+        return lower + (upper - lower) * (index - int(index))
 
     def _find_max_stable_load(self, results: List[Dict]) -> int:
         """Find maximum stable load from stress test results."""
@@ -203,7 +200,7 @@ class PerformanceTester:
         return results[-1]["concurrent_users"] if results else 0
 
     def benchmark_against_baseline(
-        self, current_metrics: PerformanceMetrics, test_name: str
+        self, current_metrics: PerformanceMetrics, test_name: str,
     ) -> Dict[str, Any]:
         """Compare current metrics against baseline."""
         if test_name not in self.baseline_metrics:
@@ -279,13 +276,13 @@ class TestMigrationValidatorPerformance:
             validation_scope=ValidationScope.BUSINESS_LOGIC,
             source_input=InputData(type=InputType.TEXT, text="def hello(): return 'Hello World'"),
             target_input=InputData(
-                type=InputType.TEXT, text='public String hello() { return "Hello World"; }'
+                type=InputType.TEXT, text='public String hello() { return "Hello World"; }',
             ),
         )
 
         # Measure performance
         result, execution_time, memory_used, peak_memory = self.tester.measure_memory_usage(
-            self.validator.validate, request
+            self.validator.validate, request,
         )
 
         metrics = PerformanceMetrics(
@@ -309,11 +306,11 @@ class TestMigrationValidatorPerformance:
         """Test performance with large code inputs."""
         # Generate large code files
         large_python_code = "\n".join(
-            [f"def function_{i}():\n    return {i}\n" for i in range(1000)]
+            [f"def function_{i}():\n    return {i}\n" for i in range(1000)],
         )
 
         large_java_code = "\n".join(
-            [f"public int function_{i}() {{\n    return {i};\n}}" for i in range(1000)]
+            [f"public int function_{i}() {{\n    return {i};\n}}" for i in range(1000)],
         )
 
         request = MigrationValidationRequest(
@@ -345,7 +342,7 @@ class TestMigrationValidatorPerformance:
 
         # Load test with concurrent requests
         load_results = self.tester.load_test(
-            self.validator.validate, num_requests=50, concurrent_users=10, func_args=(request,)
+            self.validator.validate, num_requests=50, concurrent_users=10, func_args=(request,),
         )
 
         # Performance assertions
@@ -495,7 +492,7 @@ def function_{i}():
     return {i}
 """
                 for i in range(200)  # 200 classes and functions
-            ]
+            ],
         )
 
         # Measure performance
@@ -548,7 +545,7 @@ def function_{i}():
         ), f"High average analysis time: {statistics.mean(execution_times):.2f}s"
 
         print(
-            f"Concurrent analysis completed: avg={statistics.mean(execution_times):.3f}s, max={max(execution_times):.3f}s"
+            f"Concurrent analysis completed: avg={statistics.mean(execution_times):.3f}s, max={max(execution_times):.3f}s",
         )
 
 
@@ -636,7 +633,7 @@ class TestPerformanceRegression:
     def load_baselines(self) -> Dict[str, Any]:
         """Load performance baselines from file."""
         try:
-            with open(self.baseline_file, "r") as f:
+            with open(self.baseline_file) as f:
                 return json.load(f)
         except FileNotFoundError:
             return {}
@@ -688,12 +685,12 @@ class TestPerformanceRegression:
             avg_regression = (current_avg_time - baseline_avg) / baseline_avg * 100
             p95_regression = (current_p95_time - baseline_p95) / baseline_p95 * 100
 
-            print(f"Performance comparison:")
+            print("Performance comparison:")
             print(
-                f"  Average time: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {avg_regression:+.1f}%)"
+                f"  Average time: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {avg_regression:+.1f}%)",
             )
             print(
-                f"  P95 time: {current_p95_time:.3f}s (baseline: {baseline_p95:.3f}s, change: {p95_regression:+.1f}%)"
+                f"  P95 time: {current_p95_time:.3f}s (baseline: {baseline_p95:.3f}s, change: {p95_regression:+.1f}%)",
             )
 
             # Assert no significant regression
@@ -713,7 +710,7 @@ class TestPerformanceRegression:
             }
             self.save_baselines(baselines)
             print(
-                f"New performance baseline set: avg={current_avg_time:.3f}s, p95={current_p95_time:.3f}s"
+                f"New performance baseline set: avg={current_avg_time:.3f}s, p95={current_p95_time:.3f}s",
             )
 
     def test_code_analysis_performance_regression(self):
@@ -761,7 +758,7 @@ class DataProcessor:
             regression = (current_avg_time - baseline_avg) / baseline_avg * 100
 
             print(
-                f"Code analysis performance: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {regression:+.1f}%)"
+                f"Code analysis performance: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {regression:+.1f}%)",
             )
 
             # Assert no significant regression
@@ -814,7 +811,7 @@ class TestStressAndBreakingPoints:
             func_args=(request,),
         )
 
-        print(f"Stress test results:")
+        print("Stress test results:")
         print(f"  Max stable load: {stress_results['max_stable_load']} concurrent users")
         print(f"  Breakdown point: {stress_results['breakdown_point']} concurrent users")
 
@@ -848,7 +845,7 @@ class TestStressAndBreakingPoints:
                 memory_used = memory_after - memory_before
 
                 print(
-                    f"Input size: {size_mb}MB, Execution time: {execution_time:.2f}s, Memory used: {memory_used:.2f}MB"
+                    f"Input size: {size_mb}MB, Execution time: {execution_time:.2f}s, Memory used: {memory_used:.2f}MB",
                 )
 
                 # Assert reasonable performance

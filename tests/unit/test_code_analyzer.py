@@ -1,8 +1,6 @@
-"""
-Unit tests for code analyzer.
+"""Unit tests for code analyzer.
 """
 
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -24,7 +22,7 @@ class TestCodeAnalyzer:
         analyzer = CodeAnalyzer()
 
         analysis = analyzer.analyze_code(
-            code=sample_python_code, technology=TechnologyType.PYTHON_FLASK
+            code=sample_python_code, technology=TechnologyType.PYTHON_FLASK,
         )
 
         assert analysis is not None
@@ -38,7 +36,7 @@ class TestCodeAnalyzer:
         analyzer = CodeAnalyzer()
 
         analysis = analyzer.analyze_code(
-            code=sample_java_code, technology=TechnologyType.JAVA_SPRING
+            code=sample_java_code, technology=TechnologyType.JAVA_SPRING,
         )
 
         assert analysis is not None

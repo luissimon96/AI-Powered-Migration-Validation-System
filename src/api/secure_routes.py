@@ -1,36 +1,40 @@
-"""
-Secure API routes with authentication and comprehensive security.
+"""Secure API routes with authentication and comprehensive security.
 
 Enhanced version of the main API routes with integrated security middleware,
 authentication, authorization, input validation, and rate limiting.
 """
 
-import asyncio
 import json
 import os
-import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import (BackgroundTasks, Depends, FastAPI, File, Form,
-                     HTTPException, Request, UploadFile, status)
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
-from ..behavioral.crews import (BehavioralValidationRequest,
-                                create_behavioral_validation_crew)
 from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
-from ..core.models import (SeverityLevel, ValidationDiscrepancy,
-                           ValidationResult, ValidationSession)
-from ..security.auth import (User, UserRole, get_current_user, require_admin,
-                             require_api_client, require_validator,
-                             require_viewer)
-from ..security.headers import create_security_headers
+from ..core.models import ValidationResult, ValidationSession
+from ..security.auth import (
+    User,
+    get_current_user,
+    require_admin,
+    require_validator,
+    require_viewer,
+)
 from ..security.middleware import SecurityMiddleware
-from ..security.rate_limiter import RateLimitConfig, rate_limit
+from ..security.rate_limiter import rate_limit
 from ..security.validation import SecurityValidationError, input_validator
 from .auth_routes import router as auth_router
 
@@ -177,7 +181,7 @@ def create_secure_app() -> FastAPI:
     )
     @rate_limit("api_general")
     async def get_technology_options(
-        request: Request, current_user: User = Depends(get_current_user)
+        request: Request, current_user: User = Depends(get_current_user),
     ):
         """Get available technology options for validation (authenticated users only)."""
         try:
@@ -185,11 +189,11 @@ def create_secure_app() -> FastAPI:
             return options
         except Exception as e:
             raise HTTPException(
-                status_code=500, detail=f"Failed to get technology options: {str(e)}"
+                status_code=500, detail=f"Failed to get technology options: {e!s}",
             )
 
     @app.post(
-        "/api/compatibility/check", tags=["Configuration"], dependencies=[Depends(require_viewer)]
+        "/api/compatibility/check", tags=["Configuration"], dependencies=[Depends(require_viewer)],
     )
     @rate_limit("api_general")
     async def check_compatibility(
@@ -201,7 +205,7 @@ def create_secure_app() -> FastAPI:
         try:
             # Validate input
             validated_data = await input_validator.validate_migration_request(
-                compatibility_request
+                compatibility_request,
             )
 
             result = input_processor.validate_technology_compatibility(
@@ -213,7 +217,7 @@ def create_secure_app() -> FastAPI:
         except SecurityValidationError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Compatibility check failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Compatibility check failed: {e!s}")
 
     @app.get("/api/capabilities", tags=["Configuration"], dependencies=[Depends(require_viewer)])
     async def get_system_capabilities(current_user: User = Depends(get_current_user)):
@@ -222,10 +226,10 @@ def create_secure_app() -> FastAPI:
             capabilities = validator.get_supported_technologies()
             return capabilities
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to get capabilities: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to get capabilities: {e!s}")
 
     @app.post(
-        "/api/upload/source", tags=["File Management"], dependencies=[Depends(require_validator)]
+        "/api/upload/source", tags=["File Management"], dependencies=[Depends(require_validator)],
     )
     @rate_limit("upload")
     async def upload_source_files(
@@ -268,10 +272,10 @@ def create_secure_app() -> FastAPI:
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Upload failed: {e!s}")
 
     @app.post(
-        "/api/upload/target", tags=["File Management"], dependencies=[Depends(require_validator)]
+        "/api/upload/target", tags=["File Management"], dependencies=[Depends(require_validator)],
     )
     @rate_limit("upload")
     async def upload_target_files(
@@ -312,7 +316,7 @@ def create_secure_app() -> FastAPI:
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Upload failed: {e!s}")
 
     @app.post("/api/validate", tags=["Validation"], dependencies=[Depends(require_validator)])
     @rate_limit("validation")
@@ -363,7 +367,7 @@ def create_secure_app() -> FastAPI:
 
                 if source_uploaded:
                     source_file_paths = input_processor.upload_files(
-                        source_uploaded, f"{context_prefix}_source"
+                        source_uploaded, f"{context_prefix}_source",
                     )
 
             # Similar processing for other file types...
@@ -424,7 +428,7 @@ def create_secure_app() -> FastAPI:
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Validation failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Validation failed: {e!s}")
 
     @app.get(
         "/api/validate/{request_id}/status",
@@ -433,7 +437,7 @@ def create_secure_app() -> FastAPI:
         dependencies=[Depends(require_viewer)],
     )
     async def get_validation_status(
-        request_id: str, current_user: User = Depends(get_current_user)
+        request_id: str, current_user: User = Depends(get_current_user),
     ):
         """Get validation status and progress (with user isolation)."""
         session_key = f"{current_user.id}:{request_id}"
@@ -486,7 +490,7 @@ def create_secure_app() -> FastAPI:
                         "fidelity_score": session.result.fidelity_score
                         if session.result
                         else None,
-                    }
+                    },
                 )
 
         return {"sessions": user_sessions, "total_count": len(user_sessions)}
@@ -513,7 +517,7 @@ def create_secure_app() -> FastAPI:
                     "target_technology": session.request.target_technology.type.value,
                     "validation_scope": session.request.validation_scope.value,
                     "fidelity_score": session.result.fidelity_score if session.result else None,
-                }
+                },
             )
 
         return {"sessions": all_sessions, "total_count": len(all_sessions)}
@@ -522,7 +526,7 @@ def create_secure_app() -> FastAPI:
 
 
 async def run_secure_validation_background(
-    request_id: str, migration_request, validator: MigrationValidator, user_id: str
+    request_id: str, migration_request, validator: MigrationValidator, user_id: str,
 ):
     """Run validation in background task with user context."""
     session_key = f"{user_id}:{request_id}"
@@ -534,12 +538,12 @@ async def run_secure_validation_background(
         # Update session with error
         if session_key in validation_sessions:
             session = validation_sessions[session_key]
-            session.add_log(f"Validation failed: {str(e)}")
+            session.add_log(f"Validation failed: {e!s}")
 
             session.result = ValidationResult(
                 overall_status="error",
                 fidelity_score=0.0,
-                summary=f"Validation failed: {str(e)}",
+                summary=f"Validation failed: {e!s}",
                 discrepancies=[],
             )
 

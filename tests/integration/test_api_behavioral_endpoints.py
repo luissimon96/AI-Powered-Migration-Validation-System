@@ -1,10 +1,8 @@
-"""
-Integration tests for behavioral validation API endpoints.
+"""Integration tests for behavioral validation API endpoints.
 
 Tests the REST API endpoints for behavioral validation functionality.
 """
 
-import json
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -81,7 +79,7 @@ class TestBehavioralValidationAPIEndpoints:
         )
 
     def test_start_behavioral_validation_success(
-        self, client, sample_behavioral_request_data, mock_successful_behavioral_result
+        self, client, sample_behavioral_request_data, mock_successful_behavioral_result,
     ):
         """Test successful behavioral validation initiation."""
         with patch("src.api.routes.run_behavioral_validation_background") as mock_background_task:
@@ -153,7 +151,7 @@ class TestBehavioralValidationAPIEndpoints:
                     "progress": "Behavioral validation queued for processing",
                     "logs": ["Request received", "Queued for processing"],
                     "result": None,
-                }
+                },
             },
         ):
             response = client.get(f"/api/behavioral/{request_id}/status")
@@ -185,7 +183,7 @@ class TestBehavioralValidationAPIEndpoints:
                         "Capturing user interaction patterns",
                     ],
                     "result": None,
-                }
+                },
             },
         ):
             response = client.get(f"/api/behavioral/{request_id}/status")
@@ -200,7 +198,7 @@ class TestBehavioralValidationAPIEndpoints:
             assert response_data["result_available"] is False
 
     def test_get_behavioral_validation_status_completed(
-        self, client, mock_successful_behavioral_result
+        self, client, mock_successful_behavioral_result,
     ):
         """Test getting status of completed behavioral validation."""
         request_id = "behavioral_20231215_123456_7890"
@@ -213,7 +211,7 @@ class TestBehavioralValidationAPIEndpoints:
                     "progress": "Behavioral validation completed",
                     "logs": ["Behavioral validation completed successfully"],
                     "result": mock_successful_behavioral_result,
-                }
+                },
             },
         ):
             response = client.get(f"/api/behavioral/{request_id}/status")
@@ -235,7 +233,7 @@ class TestBehavioralValidationAPIEndpoints:
         assert "not found" in response.json()["detail"]
 
     def test_get_behavioral_validation_result_success(
-        self, client, mock_successful_behavioral_result
+        self, client, mock_successful_behavioral_result,
     ):
         """Test getting successful behavioral validation results."""
         request_id = "behavioral_20231215_123456_7890"
@@ -247,7 +245,7 @@ class TestBehavioralValidationAPIEndpoints:
                     "status": "completed",
                     "result": mock_successful_behavioral_result,
                     "logs": ["Completed successfully"],
-                }
+                },
             },
         ):
             response = client.get(f"/api/behavioral/{request_id}/result")
@@ -280,7 +278,7 @@ class TestBehavioralValidationAPIEndpoints:
                     "status": "processing",
                     "result": None,
                     "logs": ["Still processing"],
-                }
+                },
             },
         ):
             response = client.get(f"/api/behavioral/{request_id}/result")
@@ -301,7 +299,7 @@ class TestBehavioralValidationAPIEndpoints:
                     severity=SeverityLevel.CRITICAL,
                     description="Failed to initialize browser automation",
                     recommendation="Check browser installation and configuration",
-                )
+                ),
             ],
             execution_log=["Browser initialization failed"],
             execution_time=5.0,
@@ -315,7 +313,7 @@ class TestBehavioralValidationAPIEndpoints:
                     "status": "error",
                     "result": error_result,
                     "logs": ["Error occurred"],
-                }
+                },
             },
         ):
             response = client.get(f"/api/behavioral/{request_id}/result")
@@ -376,7 +374,7 @@ class TestBehavioralValidationAPIEndpoints:
                     "status": "completed",
                     "result": None,
                     "logs": ["Completed"],
-                }
+                },
             },
         ) as mock_sessions:
             response = client.delete(f"/api/behavioral/{request_id}")
@@ -408,7 +406,7 @@ class TestBehavioralValidationAPIEndpoints:
             assert response_data["total_count"] == 0
 
     def test_list_behavioral_validation_sessions_with_data(
-        self, client, mock_successful_behavioral_result
+        self, client, mock_successful_behavioral_result,
     ):
         """Test listing behavioral validation sessions with data."""
         sessions_data = {
@@ -471,7 +469,7 @@ class TestBehavioralValidationBackgroundTasks:
             yield mock_crew
 
     def test_background_task_successful_execution(
-        self, mock_behavioral_crew, mock_successful_behavioral_result
+        self, mock_behavioral_crew, mock_successful_behavioral_result,
     ):
         """Test successful background task execution."""
         from src.api.routes import run_behavioral_validation_background
@@ -518,7 +516,7 @@ class TestBehavioralValidationBackgroundTasks:
 
         # Mock crew execution failure
         mock_behavioral_crew.validate_migration.side_effect = Exception(
-            "Validation infrastructure failure"
+            "Validation infrastructure failure",
         )
 
         request_id = "test_request_error"

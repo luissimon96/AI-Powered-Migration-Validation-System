@@ -1,12 +1,10 @@
-"""
-Unit tests for password policy module.
+"""Unit tests for password policy module.
 Ultra-compressed test implementation for T001 completion.
 """
 
 import pytest
 
-from src.security.password_policy import (PasswordPolicy, PasswordValidator,
-                                          password_validator)
+from src.security.password_policy import PasswordPolicy, PasswordValidator, password_validator
 
 
 class TestPasswordPolicy:
@@ -30,7 +28,7 @@ class TestPasswordPolicy:
         policy = PasswordPolicy(
             min_length=8,
             require_special=False,
-            forbidden_patterns=["admin", "test"]
+            forbidden_patterns=["admin", "test"],
         )
 
         assert policy.min_length == 8
@@ -158,7 +156,7 @@ class TestPasswordValidator:
 
     def test_edge_case_special_chars(self, validator):
         """Test various special characters."""
-        special_chars = "!@#$%^&*(),.?\":{}|<>"
+        special_chars = '!@#$%^&*(),.?":{}|<>'
 
         for char in special_chars:
             password = f"MySecurePass123{char}"

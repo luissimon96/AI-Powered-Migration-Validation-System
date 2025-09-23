@@ -1,12 +1,11 @@
-"""
-System health check tests for the complete AI Migration Validation pipeline.
+"""System health check tests for the complete AI Migration Validation pipeline.
 
 Tests system dependencies, configuration, and overall health of the pipeline.
 """
 
 import asyncio
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -112,8 +111,7 @@ class TestSystemHealthCheck:
     async def test_browser_automation_availability(self):
         """Test browser automation system availability."""
         try:
-            from src.behavioral.browser_automation import \
-                BrowserAutomationEngine
+            from src.behavioral.browser_automation import BrowserAutomationEngine
 
             engine = BrowserAutomationEngine(headless=True)
             initialization_success = await engine.initialize()
@@ -160,10 +158,14 @@ class TestSystemIntegrationHealth:
 
     async def test_static_validation_pipeline_health(self):
         """Test static validation pipeline health."""
-        from src.core.models import (InputData, InputType,
-                                     MigrationValidationRequest,
-                                     TechnologyContext, TechnologyType,
-                                     ValidationScope)
+        from src.core.models import (
+            InputData,
+            InputType,
+            MigrationValidationRequest,
+            TechnologyContext,
+            TechnologyType,
+            ValidationScope,
+        )
 
         mock_llm_service = AsyncMock()
         mock_llm_service.analyze_code_semantic_similarity.return_value = {
@@ -214,8 +216,7 @@ class TestSystemIntegrationHealth:
     def test_unified_reporting_pipeline_health(self):
         """Test unified reporting pipeline health."""
         from src.behavioral.crews import BehavioralValidationResult
-        from src.core.models import (SeverityLevel, ValidationDiscrepancy,
-                                     ValidationResult)
+        from src.core.models import SeverityLevel, ValidationDiscrepancy, ValidationResult
 
         reporter = ValidationReporter()
 
@@ -229,7 +230,7 @@ class TestSystemIntegrationHealth:
                     type="test_discrepancy",
                     severity=SeverityLevel.INFO,
                     description="Test discrepancy for health check",
-                )
+                ),
             ],
         )
 
@@ -241,7 +242,7 @@ class TestSystemIntegrationHealth:
                     type="behavioral_test_discrepancy",
                     severity=SeverityLevel.WARNING,
                     description="Behavioral test discrepancy for health check",
-                )
+                ),
             ],
             execution_log=["Health check executed"],
             execution_time=10.0,
@@ -250,7 +251,7 @@ class TestSystemIntegrationHealth:
 
         # Test unified report generation
         unified_report = reporter.generate_unified_report(
-            static_result=static_result, behavioral_result=behavioral_result
+            static_result=static_result, behavioral_result=behavioral_result,
         )
 
         assert "metadata" in unified_report
@@ -261,19 +262,19 @@ class TestSystemIntegrationHealth:
 
         # Test different report formats
         json_report = reporter.generate_unified_json_report(
-            static_result=static_result, behavioral_result=behavioral_result
+            static_result=static_result, behavioral_result=behavioral_result,
         )
         assert json_report is not None
         assert len(json_report) > 0
 
         html_report = reporter.generate_unified_html_report(
-            static_result=static_result, behavioral_result=behavioral_result
+            static_result=static_result, behavioral_result=behavioral_result,
         )
         assert html_report is not None
         assert html_report.startswith("<!DOCTYPE html>")
 
         markdown_report = reporter.generate_unified_markdown_report(
-            static_result=static_result, behavioral_result=behavioral_result
+            static_result=static_result, behavioral_result=behavioral_result,
         )
         assert markdown_report is not None
         assert markdown_report.startswith("#")
@@ -287,7 +288,6 @@ class TestSystemPerformanceHealth:
     def test_concurrent_request_handling(self):
         """Test system can handle concurrent requests."""
         import threading
-        import time
 
         mock_llm_service = MagicMock()
         mock_llm_service.analyze_code_semantic_similarity.return_value = {
@@ -409,8 +409,6 @@ class TestSystemConfigurationHealth:
 
     def test_logging_configuration(self):
         """Test logging system is properly configured."""
-        import logging
-
         import structlog
 
         # Test that structlog is configured

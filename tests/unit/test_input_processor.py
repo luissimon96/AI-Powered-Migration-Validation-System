@@ -1,10 +1,8 @@
-"""
-Unit tests for input processor.
+"""Unit tests for input processor.
 """
 
 import os
 import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -167,7 +165,7 @@ class TestInputProcessor:
 
             # Should handle large files gracefully
             result = processor.process_input(
-                input_data, max_file_size=5 * 1024 * 1024
+                input_data, max_file_size=5 * 1024 * 1024,
             )  # 5MB limit
 
             assert "size_warning" in result

@@ -1,35 +1,35 @@
-"""
-Repository pattern implementation for database operations.
+"""Repository pattern implementation for database operations.
 
 Provides high-level data access methods with business logic
 encapsulation, query optimization, and transaction management.
 """
 
-import json
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import and_, desc, func, or_, select, update
+from sqlalchemy import and_, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..core.models import (SeverityLevel, TechnologyType,
-                           ValidationDiscrepancy, ValidationResult,
-                           ValidationScope, ValidationSession)
-from .models import (BehavioralTestResultModel, DiscrepancyModel,
-                     ValidationMetricsModel, ValidationResultModel,
-                     ValidationSessionModel)
+from ..core.models import SeverityLevel, TechnologyType, ValidationDiscrepancy, ValidationScope
+from .models import (
+    BehavioralTestResultModel,
+    DiscrepancyModel,
+    ValidationMetricsModel,
+    ValidationResultModel,
+    ValidationSessionModel,
+)
 
 
 class BaseRepository:
     """Base repository with common database operations."""
 
     def __init__(self, session: AsyncSession):
-        """
-        Initialize repository with database session.
+        """Initialize repository with database session.
 
         Args:
             session: AsyncSession for database operations
+
         """
         self.session = session
 
@@ -57,8 +57,7 @@ class ValidationSessionRepository(BaseRepository):
         validation_scope: ValidationScope,
         **kwargs,
     ) -> ValidationSessionModel:
-        """
-        Create new validation session.
+        """Create new validation session.
 
         Args:
             request_id: Unique request identifier
@@ -69,6 +68,7 @@ class ValidationSessionRepository(BaseRepository):
 
         Returns:
             ValidationSessionModel: Created session
+
         """
         session_data = {
             "request_id": request_id,
@@ -85,14 +85,14 @@ class ValidationSessionRepository(BaseRepository):
         return session_model
 
     async def get_by_request_id(self, request_id: str) -> Optional[ValidationSessionModel]:
-        """
-        Get session by request ID.
+        """Get session by request ID.
 
         Args:
             request_id: Request identifier
 
         Returns:
             ValidationSessionModel or None
+
         """
         result = await self.session.execute(
             select(ValidationSessionModel)
@@ -100,19 +100,19 @@ class ValidationSessionRepository(BaseRepository):
                 selectinload(ValidationSessionModel.results),
                 selectinload(ValidationSessionModel.discrepancies),
             )
-            .where(ValidationSessionModel.request_id == request_id)
+            .where(ValidationSessionModel.request_id == request_id),
         )
         return result.scalar_one_or_none()
 
     async def get_by_id(self, session_id: int) -> Optional[ValidationSessionModel]:
-        """
-        Get session by ID.
+        """Get session by ID.
 
         Args:
             session_id: Session ID
 
         Returns:
             ValidationSessionModel or None
+
         """
         result = await self.session.execute(
             select(ValidationSessionModel)
@@ -120,13 +120,12 @@ class ValidationSessionRepository(BaseRepository):
                 selectinload(ValidationSessionModel.results),
                 selectinload(ValidationSessionModel.discrepancies),
             )
-            .where(ValidationSessionModel.id == session_id)
+            .where(ValidationSessionModel.id == session_id),
         )
         return result.scalar_one_or_none()
 
     async def update_status(self, request_id: str, status: str) -> bool:
-        """
-        Update session status.
+        """Update session status.
 
         Args:
             request_id: Request identifier
@@ -134,17 +133,17 @@ class ValidationSessionRepository(BaseRepository):
 
         Returns:
             bool: True if updated, False if not found
+
         """
         result = await self.session.execute(
             update(ValidationSessionModel)
             .where(ValidationSessionModel.request_id == request_id)
-            .values(status=status, updated_at=func.now())
+            .values(status=status, updated_at=func.now()),
         )
         return result.rowcount > 0
 
     async def add_log_entry(self, request_id: str, message: str) -> bool:
-        """
-        Add log entry to session.
+        """Add log entry to session.
 
         Args:
             request_id: Request identifier
@@ -152,6 +151,7 @@ class ValidationSessionRepository(BaseRepository):
 
         Returns:
             bool: True if added, False if session not found
+
         """
         session_model = await self.get_by_request_id(request_id)
         if session_model:
@@ -168,8 +168,7 @@ class ValidationSessionRepository(BaseRepository):
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
     ) -> Tuple[List[ValidationSessionModel], int]:
-        """
-        List validation sessions with filtering and pagination.
+        """List validation sessions with filtering and pagination.
 
         Args:
             limit: Maximum number of sessions to return
@@ -181,6 +180,7 @@ class ValidationSessionRepository(BaseRepository):
 
         Returns:
             Tuple of (sessions list, total count)
+
         """
         query = select(ValidationSessionModel)
         count_query = select(func.count(ValidationSessionModel.id))
@@ -195,7 +195,7 @@ class ValidationSessionRepository(BaseRepository):
                 and_(
                     ValidationSessionModel.source_technology == source_tech,
                     ValidationSessionModel.target_technology == target_tech,
-                )
+                ),
             )
         if date_from:
             filters.append(ValidationSessionModel.created_at >= date_from)
@@ -219,21 +219,21 @@ class ValidationSessionRepository(BaseRepository):
             )
             .order_by(desc(ValidationSessionModel.created_at))
             .limit(limit)
-            .offset(offset)
+            .offset(offset),
         )
         sessions = sessions_result.scalars().all()
 
         return list(sessions), total_count
 
     async def delete_session(self, request_id: str) -> bool:
-        """
-        Delete validation session and all related data.
+        """Delete validation session and all related data.
 
         Args:
             request_id: Request identifier
 
         Returns:
             bool: True if deleted, False if not found
+
         """
         session_model = await self.get_by_request_id(request_id)
         if session_model:
@@ -242,28 +242,28 @@ class ValidationSessionRepository(BaseRepository):
         return False
 
     async def get_active_sessions(self) -> List[ValidationSessionModel]:
-        """
-        Get all active (processing) sessions.
+        """Get all active (processing) sessions.
 
         Returns:
             List of active sessions
+
         """
         result = await self.session.execute(
             select(ValidationSessionModel)
             .where(ValidationSessionModel.status.in_(["pending", "processing"]))
-            .order_by(ValidationSessionModel.created_at)
+            .order_by(ValidationSessionModel.created_at),
         )
         return list(result.scalars().all())
 
     async def cleanup_old_sessions(self, days_old: int = 30) -> int:
-        """
-        Cleanup old completed sessions.
+        """Cleanup old completed sessions.
 
         Args:
             days_old: Delete sessions older than this many days
 
         Returns:
             Number of sessions deleted
+
         """
         cutoff_date = datetime.utcnow() - timedelta(days=days_old)
 
@@ -273,8 +273,8 @@ class ValidationSessionRepository(BaseRepository):
                 and_(
                     ValidationSessionModel.created_at < cutoff_date,
                     ValidationSessionModel.status.in_(["completed", "error"]),
-                )
-            )
+                ),
+            ),
         )
         old_sessions = result.scalars().all()
 
@@ -296,8 +296,7 @@ class ValidationResultRepository(BaseRepository):
         result_type: str = "static",
         **kwargs,
     ) -> ValidationResultModel:
-        """
-        Create validation result.
+        """Create validation result.
 
         Args:
             session_id: Session ID
@@ -309,6 +308,7 @@ class ValidationResultRepository(BaseRepository):
 
         Returns:
             ValidationResultModel: Created result
+
         """
         result_data = {
             "session_id": session_id,
@@ -325,37 +325,37 @@ class ValidationResultRepository(BaseRepository):
         return result_model
 
     async def get_by_session_id(self, session_id: int) -> List[ValidationResultModel]:
-        """
-        Get all results for a session.
+        """Get all results for a session.
 
         Args:
             session_id: Session ID
 
         Returns:
             List of validation results
+
         """
         result = await self.session.execute(
             select(ValidationResultModel)
             .where(ValidationResultModel.session_id == session_id)
-            .order_by(desc(ValidationResultModel.created_at))
+            .order_by(desc(ValidationResultModel.created_at)),
         )
         return list(result.scalars().all())
 
     async def get_latest_by_session_id(self, session_id: int) -> Optional[ValidationResultModel]:
-        """
-        Get latest result for a session.
+        """Get latest result for a session.
 
         Args:
             session_id: Session ID
 
         Returns:
             Latest validation result or None
+
         """
         result = await self.session.execute(
             select(ValidationResultModel)
             .where(ValidationResultModel.session_id == session_id)
             .order_by(desc(ValidationResultModel.created_at))
-            .limit(1)
+            .limit(1),
         )
         return result.scalar_one_or_none()
 
@@ -364,8 +364,7 @@ class ValidationResultRepository(BaseRepository):
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
     ) -> Dict[str, Any]:
-        """
-        Get validation result statistics.
+        """Get validation result statistics.
 
         Args:
             date_from: Start date for statistics
@@ -373,6 +372,7 @@ class ValidationResultRepository(BaseRepository):
 
         Returns:
             Dictionary with statistics
+
         """
         query = select(ValidationResultModel)
 
@@ -428,8 +428,7 @@ class DiscrepancyRepository(BaseRepository):
         result_id: Optional[int] = None,
         **kwargs,
     ) -> DiscrepancyModel:
-        """
-        Create validation discrepancy.
+        """Create validation discrepancy.
 
         Args:
             session_id: Session ID
@@ -441,6 +440,7 @@ class DiscrepancyRepository(BaseRepository):
 
         Returns:
             DiscrepancyModel: Created discrepancy
+
         """
         discrepancy_data = {
             "session_id": session_id,
@@ -462,8 +462,7 @@ class DiscrepancyRepository(BaseRepository):
         discrepancies: List[ValidationDiscrepancy],
         result_id: Optional[int] = None,
     ) -> List[DiscrepancyModel]:
-        """
-        Create multiple discrepancies in bulk.
+        """Create multiple discrepancies in bulk.
 
         Args:
             session_id: Session ID
@@ -472,6 +471,7 @@ class DiscrepancyRepository(BaseRepository):
 
         Returns:
             List of created discrepancy models
+
         """
         discrepancy_models = []
 
@@ -500,8 +500,7 @@ class DiscrepancyRepository(BaseRepository):
         session_id: int,
         severity: Optional[SeverityLevel] = None,
     ) -> List[DiscrepancyModel]:
-        """
-        Get discrepancies for a session.
+        """Get discrepancies for a session.
 
         Args:
             session_id: Session ID
@@ -509,6 +508,7 @@ class DiscrepancyRepository(BaseRepository):
 
         Returns:
             List of discrepancies
+
         """
         query = select(DiscrepancyModel).where(DiscrepancyModel.session_id == session_id)
 
@@ -516,7 +516,7 @@ class DiscrepancyRepository(BaseRepository):
             query = query.where(DiscrepancyModel.severity == severity)
 
         query = query.order_by(
-            DiscrepancyModel.severity.desc(), DiscrepancyModel.created_at.desc()
+            DiscrepancyModel.severity.desc(), DiscrepancyModel.created_at.desc(),
         )
 
         result = await self.session.execute(query)
@@ -528,8 +528,7 @@ class DiscrepancyRepository(BaseRepository):
         resolved_by: str,
         resolution_notes: Optional[str] = None,
     ) -> bool:
-        """
-        Mark discrepancy as resolved.
+        """Mark discrepancy as resolved.
 
         Args:
             discrepancy_id: Discrepancy ID
@@ -538,6 +537,7 @@ class DiscrepancyRepository(BaseRepository):
 
         Returns:
             bool: True if updated, False if not found
+
         """
         result = await self.session.execute(
             update(DiscrepancyModel)
@@ -548,7 +548,7 @@ class DiscrepancyRepository(BaseRepository):
                 resolved_by=resolved_by,
                 resolution_notes=resolution_notes,
                 updated_at=func.now(),
-            )
+            ),
         )
         return result.rowcount > 0
 
@@ -556,21 +556,21 @@ class DiscrepancyRepository(BaseRepository):
         self,
         days: int = 30,
     ) -> Dict[str, Any]:
-        """
-        Get discrepancy trends over time.
+        """Get discrepancy trends over time.
 
         Args:
             days: Number of days to analyze
 
         Returns:
             Dictionary with trend data
+
         """
         date_from = datetime.utcnow() - timedelta(days=days)
 
         result = await self.session.execute(
             select(DiscrepancyModel)
             .where(DiscrepancyModel.created_at >= date_from)
-            .order_by(DiscrepancyModel.created_at)
+            .order_by(DiscrepancyModel.created_at),
         )
         discrepancies = result.scalars().all()
 
@@ -611,8 +611,7 @@ class BehavioralTestRepository(BaseRepository):
         execution_status: str,
         **kwargs,
     ) -> BehavioralTestResultModel:
-        """
-        Create behavioral test result.
+        """Create behavioral test result.
 
         Args:
             session_id: Session ID
@@ -624,6 +623,7 @@ class BehavioralTestRepository(BaseRepository):
 
         Returns:
             BehavioralTestResultModel: Created test result
+
         """
         test_data = {
             "session_id": session_id,
@@ -640,19 +640,19 @@ class BehavioralTestRepository(BaseRepository):
         return test_model
 
     async def get_by_session_id(self, session_id: int) -> List[BehavioralTestResultModel]:
-        """
-        Get behavioral test results for a session.
+        """Get behavioral test results for a session.
 
         Args:
             session_id: Session ID
 
         Returns:
             List of test results
+
         """
         result = await self.session.execute(
             select(BehavioralTestResultModel)
             .where(BehavioralTestResultModel.session_id == session_id)
-            .order_by(BehavioralTestResultModel.created_at)
+            .order_by(BehavioralTestResultModel.created_at),
         )
         return list(result.scalars().all())
 
@@ -666,8 +666,7 @@ class MetricsRepository(BaseRepository):
         metric_period: str,
         metrics_data: Dict[str, Any],
     ) -> ValidationMetricsModel:
-        """
-        Create or update validation metrics for a specific period.
+        """Create or update validation metrics for a specific period.
 
         Args:
             metric_date: Date for the metrics
@@ -676,6 +675,7 @@ class MetricsRepository(BaseRepository):
 
         Returns:
             ValidationMetricsModel: Created or updated metrics
+
         """
         # Try to find existing metrics
         result = await self.session.execute(
@@ -683,8 +683,8 @@ class MetricsRepository(BaseRepository):
                 and_(
                     ValidationMetricsModel.metric_date == metric_date,
                     ValidationMetricsModel.metric_period == metric_period,
-                )
-            )
+                ),
+            ),
         )
         existing_metrics = result.scalar_one_or_none()
 
@@ -695,18 +695,17 @@ class MetricsRepository(BaseRepository):
                     setattr(existing_metrics, key, value)
             existing_metrics.updated_at = func.now()
             return existing_metrics
-        else:
-            # Create new metrics
-            metrics_data.update(
-                {
-                    "metric_date": metric_date,
-                    "metric_period": metric_period,
-                }
-            )
-            metrics_model = ValidationMetricsModel(**metrics_data)
-            self.session.add(metrics_model)
-            await self.session.flush()
-            return metrics_model
+        # Create new metrics
+        metrics_data.update(
+            {
+                "metric_date": metric_date,
+                "metric_period": metric_period,
+            },
+        )
+        metrics_model = ValidationMetricsModel(**metrics_data)
+        self.session.add(metrics_model)
+        await self.session.flush()
+        return metrics_model
 
     async def get_metrics(
         self,
@@ -714,8 +713,7 @@ class MetricsRepository(BaseRepository):
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
     ) -> List[ValidationMetricsModel]:
-        """
-        Get metrics for a specific period.
+        """Get metrics for a specific period.
 
         Args:
             period: Period type (daily, weekly, monthly)
@@ -724,9 +722,10 @@ class MetricsRepository(BaseRepository):
 
         Returns:
             List of metrics
+
         """
         query = select(ValidationMetricsModel).where(
-            ValidationMetricsModel.metric_period == period
+            ValidationMetricsModel.metric_period == period,
         )
 
         if date_from:
@@ -740,14 +739,14 @@ class MetricsRepository(BaseRepository):
         return list(result.scalars().all())
 
     async def compute_daily_metrics(self, target_date: datetime) -> Dict[str, Any]:
-        """
-        Compute metrics for a specific date.
+        """Compute metrics for a specific date.
 
         Args:
             target_date: Date to compute metrics for
 
         Returns:
             Dictionary with computed metrics
+
         """
         # Get sessions for the target date
         start_of_day = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -763,8 +762,8 @@ class MetricsRepository(BaseRepository):
                 and_(
                     ValidationSessionModel.created_at >= start_of_day,
                     ValidationSessionModel.created_at < end_of_day,
-                )
-            )
+                ),
+            ),
         )
         sessions = sessions_result.scalars().all()
 
@@ -779,7 +778,7 @@ class MetricsRepository(BaseRepository):
 
         approved_count = len([r for r in results if r.overall_status == "approved"])
         approved_with_warnings_count = len(
-            [r for r in results if r.overall_status == "approved_with_warnings"]
+            [r for r in results if r.overall_status == "approved_with_warnings"],
         )
         rejected_count = len([r for r in results if r.overall_status == "rejected"])
 
@@ -799,13 +798,13 @@ class MetricsRepository(BaseRepository):
 
         total_discrepancies = len(all_discrepancies)
         critical_discrepancies = len(
-            [d for d in all_discrepancies if d.severity == SeverityLevel.CRITICAL]
+            [d for d in all_discrepancies if d.severity == SeverityLevel.CRITICAL],
         )
         warning_discrepancies = len(
-            [d for d in all_discrepancies if d.severity == SeverityLevel.WARNING]
+            [d for d in all_discrepancies if d.severity == SeverityLevel.WARNING],
         )
         info_discrepancies = len(
-            [d for d in all_discrepancies if d.severity == SeverityLevel.INFO]
+            [d for d in all_discrepancies if d.severity == SeverityLevel.INFO],
         )
 
         return {

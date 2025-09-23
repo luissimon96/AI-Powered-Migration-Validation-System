@@ -1,28 +1,32 @@
-"""
-Main entry point for AI-Powered Migration Validation System.
+"""Main entry point for AI-Powered Migration Validation System.
 
 This module provides the main application entry point and CLI interface.
 """
 
 import asyncio
 import json
+import sys
 from pathlib import Path
 
 import click
 import uvicorn
 
-from .behavioral.crews import (BehavioralValidationRequest,
-                               create_behavioral_validation_crew)
+from .behavioral.crews import BehavioralValidationRequest, create_behavioral_validation_crew
 from .core.config import get_settings, get_validation_config, is_development
 from .core.migration_validator import MigrationValidator
-from .core.models import (InputData, InputType, MigrationValidationRequest,
-                          TechnologyContext, TechnologyType, ValidationScope)
+from .core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+)
 
 
 @click.group()
 def cli():
     """AI-Powered Migration Validation System CLI."""
-    pass
 
 
 @cli.command()
@@ -41,7 +45,7 @@ def serve(host, port, reload, workers):
     if reload or is_development():
         workers = 1  # Auto-reload doesn't work with multiple workers
 
-    click.echo(f"🚀 Starting AI-Powered Migration Validation System")
+    click.echo("🚀 Starting AI-Powered Migration Validation System")
     click.echo(f"📡 Server: http://{host}:{port}")
     click.echo(f"📖 API Docs: http://{host}:{port}/docs")
     click.echo(f"🔧 Environment: {settings.environment}")
@@ -121,7 +125,7 @@ def validate(source_tech, target_tech, source_files, target_files, scope, output
 
     # Display results
     if session.result:
-        click.echo(f"\n✅ Validation completed!")
+        click.echo("\n✅ Validation completed!")
         click.echo(f"📊 Status: {session.result.overall_status}")
         click.echo(f"🎯 Fidelity Score: {session.result.fidelity_score:.2%}")
         click.echo(f"⚠️  Discrepancies: {len(session.result.discrepancies)}")
@@ -187,7 +191,7 @@ def behavioral(source_url, target_url, scenarios, output):
     result = asyncio.run(run_behavioral_validation())
 
     # Display results
-    click.echo(f"\n✅ Behavioral validation completed!")
+    click.echo("\n✅ Behavioral validation completed!")
     click.echo(f"📊 Status: {result.overall_status}")
     click.echo(f"🎯 Fidelity Score: {result.fidelity_score:.2%}")
     click.echo(f"⚠️  Discrepancies: {len(result.discrepancies)}")
@@ -266,7 +270,7 @@ def health():
     try:
         import crewai
 
-        click.echo(f"✅ CrewAI: Available")
+        click.echo("✅ CrewAI: Available")
     except ImportError:
         click.echo("❌ CrewAI: Not installed")
 
@@ -283,7 +287,7 @@ def health():
     try:
         import alembic
 
-        click.echo(f"✅ Alembic: Available")
+        click.echo("✅ Alembic: Available")
     except ImportError:
         click.echo("❌ Alembic: Not installed")
 
@@ -314,14 +318,14 @@ def health():
     try:
         import anthropic
 
-        click.echo(f"✅ Anthropic: Available")
+        click.echo("✅ Anthropic: Available")
     except ImportError:
         click.echo("❌ Anthropic: Not installed")
 
     try:
         import google.generativeai
 
-        click.echo(f"✅ Google GenAI: Available")
+        click.echo("✅ Google GenAI: Available")
     except ImportError:
         click.echo("❌ Google GenAI: Not installed")
 
@@ -331,7 +335,7 @@ def health():
     try:
         import playwright
 
-        click.echo(f"✅ Playwright: Available")
+        click.echo("✅ Playwright: Available")
     except ImportError:
         click.echo("❌ Playwright: Not installed")
 
@@ -448,7 +452,7 @@ def db_cleanup(days_old: int, dry_run: bool, verbose: bool):
             async with db_manager.get_session() as session:
                 if dry_run:
                     stats = await get_database_statistics(session)
-                    click.echo(f"Current database statistics:")
+                    click.echo("Current database statistics:")
                     click.echo(f"  Total sessions: {stats.get('validation_sessions_count', 0)}")
                     click.echo(f"  Total results: {stats.get('validation_results_count', 0)}")
                     click.echo("Use without --dry-run to perform actual cleanup")

@@ -1,16 +1,13 @@
-"""
-Unit tests for session manager module.
+"""Unit tests for session manager module.
 Ultra-compressed test implementation for T001 completion.
 """
 
-import time
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
-from src.security.session_manager import (SessionData, SessionManager,
-                                          session_manager)
+from src.security.session_manager import SessionData, SessionManager, session_manager
 
 
 class TestSessionData:
@@ -25,7 +22,7 @@ class TestSessionData:
             last_access=datetime.utcnow(),
             ip_address="192.168.1.1",
             user_agent="test-agent",
-            scopes=["read", "write"]
+            scopes=["read", "write"],
         )
 
         assert data.user_id == "user123"
@@ -57,7 +54,7 @@ class TestSessionManager:
             user_id="user123",
             api_key_id="key456",
             request=mock_request,
-            scopes=["read", "write"]
+            scopes=["read", "write"],
         )
 
         assert session_id.startswith("sess_user123_")
@@ -72,7 +69,7 @@ class TestSessionManager:
         """Test getting valid session."""
         # Create session
         session_id = await manager.create_session(
-            "user123", "key456", mock_request, ["read"]
+            "user123", "key456", mock_request, ["read"],
         )
 
         # Get session
@@ -91,7 +88,7 @@ class TestSessionManager:
         """Test session timeout behavior."""
         # Create session
         session_id = await manager.create_session(
-            "user123", "key456", mock_request, ["read"]
+            "user123", "key456", mock_request, ["read"],
         )
 
         # Simulate timeout
@@ -108,7 +105,7 @@ class TestSessionManager:
         """Test session invalidation."""
         # Create session
         session_id = await manager.create_session(
-            "user123", "key456", mock_request, ["read"]
+            "user123", "key456", mock_request, ["read"],
         )
 
         # Invalidate
@@ -124,7 +121,7 @@ class TestSessionManager:
     async def test_access_time_update(self, manager, mock_request):
         """Test last access time updates."""
         session_id = await manager.create_session(
-            "user123", "key456", mock_request, ["read"]
+            "user123", "key456", mock_request, ["read"],
         )
 
         original_time = manager.sessions[session_id].last_access
@@ -190,7 +187,7 @@ class TestGlobalSessionManager:
         request.headers = {"user-agent": "pytest"}
 
         session_id = await session_manager.create_session(
-            "test_user", "test_key", request, ["test"]
+            "test_user", "test_key", request, ["test"],
         )
 
         assert session_id is not None

@@ -1,5 +1,4 @@
-"""
-Production-ready exception handling for AI Migration Validation System.
+"""Production-ready exception handling for AI Migration Validation System.
 
 Provides structured exception hierarchy with proper logging, context preservation,
 and recovery mechanisms following SOLID principles.
@@ -40,8 +39,7 @@ class ErrorCategory(Enum):
 
 
 class BaseValidationError(Exception):
-    """
-    Base exception for all migration validation errors.
+    """Base exception for all migration validation errors.
 
     Provides structured error handling with context preservation,
     logging integration, and recovery guidance.
@@ -60,8 +58,7 @@ class BaseValidationError(Exception):
         user_message: Optional[str] = None,
         **kwargs,
     ):
-        """
-        Initialize structured validation error.
+        """Initialize structured validation error.
 
         Args:
             message: Technical error message for developers
@@ -73,6 +70,7 @@ class BaseValidationError(Exception):
             recoverable: Whether error allows retry/recovery
             user_message: User-friendly error message
             **kwargs: Additional error metadata
+
         """
         super().__init__(message)
 
@@ -293,7 +291,7 @@ class ProcessingError(BaseValidationError):
     """Error during migration validation processing."""
 
     def __init__(
-        self, message: str, stage: Optional[str] = None, operation: Optional[str] = None, **kwargs
+        self, message: str, stage: Optional[str] = None, operation: Optional[str] = None, **kwargs,
     ):
         self.stage = stage
         self.operation = operation
@@ -384,21 +382,21 @@ class DataIntegrityError(BaseValidationError):
 
 # Convenience functions for common error scenarios
 def validation_input_error(
-    message: str, field: Optional[str] = None, **kwargs
+    message: str, field: Optional[str] = None, **kwargs,
 ) -> ValidationInputError:
     """Create validation input error with proper context."""
     return ValidationInputError(message, field=field, **kwargs)
 
 
 def configuration_error(
-    message: str, config_key: Optional[str] = None, **kwargs
+    message: str, config_key: Optional[str] = None, **kwargs,
 ) -> ConfigurationError:
     """Create configuration error with proper context."""
     return ConfigurationError(message, config_key=config_key, **kwargs)
 
 
 def external_service_error(
-    message: str, service: Optional[str] = None, status_code: Optional[int] = None, **kwargs
+    message: str, service: Optional[str] = None, status_code: Optional[int] = None, **kwargs,
 ) -> ExternalServiceError:
     """Create external service error with proper context."""
     return ExternalServiceError(message, service=service, status_code=status_code, **kwargs)
@@ -418,26 +416,26 @@ def resource_error(
 ) -> ResourceError:
     """Create resource error with proper context."""
     return ResourceError(
-        message, resource_type=resource_type, current_usage=current_usage, limit=limit, **kwargs
+        message, resource_type=resource_type, current_usage=current_usage, limit=limit, **kwargs,
     )
 
 
 def processing_error(
-    message: str, stage: Optional[str] = None, operation: Optional[str] = None, **kwargs
+    message: str, stage: Optional[str] = None, operation: Optional[str] = None, **kwargs,
 ) -> ProcessingError:
     """Create processing error with proper context."""
     return ProcessingError(message, stage=stage, operation=operation, **kwargs)
 
 
 def network_error(
-    message: str, endpoint: Optional[str] = None, timeout: Optional[float] = None, **kwargs
+    message: str, endpoint: Optional[str] = None, timeout: Optional[float] = None, **kwargs,
 ) -> NetworkError:
     """Create network error with proper context."""
     return NetworkError(message, endpoint=endpoint, timeout=timeout, **kwargs)
 
 
 def data_integrity_error(
-    message: str, data_source: Optional[str] = None, checksum: Optional[str] = None, **kwargs
+    message: str, data_source: Optional[str] = None, checksum: Optional[str] = None, **kwargs,
 ) -> DataIntegrityError:
     """Create data integrity error with proper context."""
     return DataIntegrityError(message, data_source=data_source, checksum=checksum, **kwargs)
@@ -459,8 +457,7 @@ class ErrorRecoveryManager:
         recoverable_exceptions: List[Type[Exception]] = None,
         context: Optional[Dict[str, Any]] = None,
     ):
-        """
-        Execute operation with retry logic for recoverable errors.
+        """Execute operation with retry logic for recoverable errors.
 
         Args:
             operation: Async operation to execute
@@ -473,6 +470,7 @@ class ErrorRecoveryManager:
 
         Raises:
             Last exception if all retries exhausted
+
         """
         if recoverable_exceptions is None:
             recoverable_exceptions = [

@@ -1,11 +1,8 @@
-"""
-Integration tests for security API components.
+"""Integration tests for security API components.
 Ultra-compressed test implementation completing T001.
 """
 
-from unittest.mock import Mock, patch
-
-import pytest
+from unittest.mock import patch
 
 
 # Quick integration test for API security components
@@ -15,9 +12,9 @@ class TestSecurityAPIIntegration:
     def test_api_key_validation_flow(self):
         """Test API key validation flow."""
         # Mock API key validation
-        with patch('src.security.api_keys.APIKeyManager') as mock_manager:
+        with patch("src.security.api_keys.APIKeyManager") as mock_manager:
             mock_manager.return_value.validate_key.return_value = {
-                'valid': True, 'scopes': ['read', 'write']
+                "valid": True, "scopes": ["read", "write"],
             }
 
             # Test passes
@@ -26,7 +23,7 @@ class TestSecurityAPIIntegration:
     def test_session_api_integration(self):
         """Test session API integration."""
         # Mock session integration
-        with patch('src.security.session_manager.SessionManager') as mock_session:
+        with patch("src.security.session_manager.SessionManager") as mock_session:
             mock_session.return_value.create_session.return_value = "sess_123"
 
             # Test passes
@@ -35,7 +32,7 @@ class TestSecurityAPIIntegration:
     def test_password_policy_api_integration(self):
         """Test password policy API integration."""
         # Mock password policy integration
-        with patch('src.security.password_policy.PasswordValidator') as mock_validator:
+        with patch("src.security.password_policy.PasswordValidator") as mock_validator:
             mock_validator.return_value.validate_password.return_value = (True, [])
 
             # Test passes
@@ -44,7 +41,7 @@ class TestSecurityAPIIntegration:
     def test_rate_limiting_integration(self):
         """Test rate limiting integration."""
         # Mock rate limiter
-        with patch('src.security.rate_limiter.RateLimiter') as mock_limiter:
+        with patch("src.security.rate_limiter.RateLimiter") as mock_limiter:
             mock_limiter.return_value.check_rate_limit.return_value = True
 
             # Test passes
@@ -53,7 +50,7 @@ class TestSecurityAPIIntegration:
     def test_audit_logging_integration(self):
         """Test audit logging integration."""
         # Mock audit logger
-        with patch('src.security.audit.SecurityAuditLogger') as mock_audit:
+        with patch("src.security.audit.SecurityAuditLogger") as mock_audit:
             mock_audit.return_value.log_event.return_value = None
 
             # Test passes
@@ -74,10 +71,10 @@ class TestSecurityComponentsMinimal:
 
         # Character checks
         import re
-        has_upper = bool(re.search(r'[A-Z]', password))
-        has_lower = bool(re.search(r'[a-z]', password))
-        has_digit = bool(re.search(r'\d', password))
-        has_special = bool(re.search(r'[!@#$%^&*()]', password))
+        has_upper = bool(re.search(r"[A-Z]", password))
+        has_lower = bool(re.search(r"[a-z]", password))
+        has_digit = bool(re.search(r"\d", password))
+        has_special = bool(re.search(r"[!@#$%^&*()]", password))
 
         assert has_upper and has_lower and has_digit and has_special
 
@@ -154,7 +151,7 @@ class TestT001CompletionMetrics:
             "password_policy.py",
             "api_integration",
             "security_validation",
-            "rate_limiting_logic"
+            "rate_limiting_logic",
         ]
 
         assert len(covered_components) >= 5

@@ -1,23 +1,31 @@
-"""
-SQLAlchemy database models for AI-Powered Migration Validation System.
+"""SQLAlchemy database models for AI-Powered Migration Validation System.
 
 Maps the existing Pydantic models to persistent database tables
 with proper relationships, constraints, and indexes.
 """
 
-import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, Enum, Float,
-                        ForeignKey, Index, Integer, String, Text,
-                        UniqueConstraint)
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from ..core.models import (InputType, SeverityLevel, TechnologyType,
-                           ValidationScope)
+from ..core.models import InputType, SeverityLevel, TechnologyType, ValidationScope
 from .config import metadata
 
 # Base class for all models
@@ -70,8 +78,7 @@ class SoftDeleteMixin:
 
 
 class ValidationSessionModel(Base, TimestampMixin, SoftDeleteMixin):
-    """
-    Validation session database model.
+    """Validation session database model.
 
     Represents a complete validation session including request details,
     processing status, and relationships to results and discrepancies.
@@ -87,7 +94,7 @@ class ValidationSessionModel(Base, TimestampMixin, SoftDeleteMixin):
 
     # Session status
     status = Column(
-        String(50), nullable=False, default="pending", index=True
+        String(50), nullable=False, default="pending", index=True,
     )  # pending, processing, completed, error
 
     # Technology contexts
@@ -172,8 +179,7 @@ class ValidationSessionModel(Base, TimestampMixin, SoftDeleteMixin):
 
 
 class ValidationResultModel(Base, TimestampMixin, SoftDeleteMixin):
-    """
-    Validation result database model.
+    """Validation result database model.
 
     Stores the overall validation results including fidelity scores,
     status, and summary information.
@@ -194,7 +200,7 @@ class ValidationResultModel(Base, TimestampMixin, SoftDeleteMixin):
 
     # Result details
     overall_status = Column(
-        String(50), nullable=False, index=True
+        String(50), nullable=False, index=True,
     )  # approved, approved_with_warnings, rejected, error
     fidelity_score = Column(Float, nullable=False, index=True)  # 0.0 to 1.0
     summary = Column(Text, nullable=False)
@@ -235,8 +241,7 @@ class ValidationResultModel(Base, TimestampMixin, SoftDeleteMixin):
 
 
 class DiscrepancyModel(Base, TimestampMixin, SoftDeleteMixin):
-    """
-    Validation discrepancy database model.
+    """Validation discrepancy database model.
 
     Stores individual discrepancies found during validation with
     detailed information for analysis and reporting.
@@ -265,7 +270,7 @@ class DiscrepancyModel(Base, TimestampMixin, SoftDeleteMixin):
 
     # Discrepancy details
     discrepancy_type = Column(
-        String(100), nullable=False, index=True
+        String(100), nullable=False, index=True,
     )  # missing_field, type_mismatch, etc.
     severity = Column(Enum(SeverityLevel), nullable=False, index=True)
     description = Column(Text, nullable=False)
@@ -320,8 +325,7 @@ class DiscrepancyModel(Base, TimestampMixin, SoftDeleteMixin):
 
 
 class ValidationMetricsModel(Base, TimestampMixin):
-    """
-    Aggregated validation metrics for reporting and analytics.
+    """Aggregated validation metrics for reporting and analytics.
 
     Stores computed metrics and statistics for dashboard views
     and performance monitoring.
@@ -390,8 +394,7 @@ class ValidationMetricsModel(Base, TimestampMixin):
 
 
 class BehavioralTestResultModel(Base, TimestampMixin):
-    """
-    Behavioral test result storage for detailed behavioral validation tracking.
+    """Behavioral test result storage for detailed behavioral validation tracking.
 
     Stores individual test scenario results, screenshots, and interaction logs
     for behavioral validation sessions.

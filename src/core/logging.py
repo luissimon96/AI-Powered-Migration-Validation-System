@@ -1,5 +1,4 @@
-"""
-Production-ready structured logging configuration for AI Migration Validation System.
+"""Production-ready structured logging configuration for AI Migration Validation System.
 
 Implements comprehensive logging with structured output, context preservation,
 security filtering, and performance monitoring.
@@ -11,7 +10,6 @@ import logging.config
 import os
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -41,7 +39,7 @@ class SecurityFilter:
         self.sensitive_fields = sensitive_fields or SENSITIVE_FIELDS
 
     def __call__(
-        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any]
+        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Filter sensitive data from event dictionary."""
         return self._filter_sensitive_data(event_dict)
@@ -50,7 +48,7 @@ class SecurityFilter:
         """Recursively filter sensitive data from nested structures."""
         if isinstance(data, dict):
             return {key: self._filter_value(key, value) for key, value in data.items()}
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [self._filter_sensitive_data(item) for item in data]
         return data
 
@@ -73,7 +71,7 @@ class PerformanceMonitor:
     """Monitor and log performance metrics."""
 
     def __call__(
-        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any]
+        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Add performance context to log events."""
         if "duration" in event_dict or "execution_time" in event_dict:
@@ -98,7 +96,7 @@ class RequestTracker:
         self._context: Dict[str, Any] = {}
 
     def __call__(
-        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any]
+        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Add request context to log events."""
         # Add request context if available
@@ -122,8 +120,7 @@ def configure_structlog(
     enable_colors: bool = True,
     include_stdlib: bool = True,
 ) -> None:
-    """
-    Configure structured logging for the application.
+    """Configure structured logging for the application.
 
     Args:
         log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
@@ -131,6 +128,7 @@ def configure_structlog(
         log_file: Optional log file path
         enable_colors: Enable colored output for console
         include_stdlib: Include standard library logging
+
     """
     # Convert string level to int
     if isinstance(log_level, str):
@@ -156,7 +154,7 @@ def configure_structlog(
                 structlog.processors.CallsiteParameter.FILENAME,
                 structlog.processors.CallsiteParameter.FUNC_NAME,
                 structlog.processors.CallsiteParameter.LINENO,
-            ]
+            ],
         ),
     ]
 
@@ -168,14 +166,14 @@ def configure_structlog(
             [
                 structlog.processors.add_log_level,
                 structlog.dev.ConsoleRenderer(colors=enable_colors),
-            ]
+            ],
         )
     else:  # human-readable
         processors.extend(
             [
                 structlog.processors.add_log_level,
                 structlog.dev.ConsoleRenderer(colors=enable_colors),
-            ]
+            ],
         )
 
     # Configure structlog
@@ -235,7 +233,7 @@ class LoggerMixin:
         """Get logger instance for this class."""
         if not hasattr(self, "_logger"):
             self._logger = structlog.get_logger(
-                self.__class__.__module__ + "." + self.__class__.__name__
+                self.__class__.__module__ + "." + self.__class__.__name__,
             )
         return self._logger
 
@@ -309,14 +307,14 @@ def log_operation(
     log_args: bool = False,
     log_result: bool = False,
 ):
-    """
-    Decorator for automatic operation logging.
+    """Decorator for automatic operation logging.
 
     Args:
         operation: Operation name for logging
         context: Additional context to include
         log_args: Whether to log function arguments
         log_result: Whether to log function result
+
     """
 
     def decorator(func):
@@ -331,7 +329,7 @@ def log_operation(
                     log_context["kwargs"] = kwargs
 
                 async with OperationLogger(
-                    logger, operation, log_context, log_args, log_result
+                    logger, operation, log_context, log_args, log_result,
                 ) as op_logger:
                     result = await func(*args, **kwargs)
 
@@ -341,27 +339,26 @@ def log_operation(
                     return result
 
             return async_wrapper
-        else:
 
-            def sync_wrapper(*args, **kwargs):
-                logger = get_logger(func.__module__)
-                log_context = dict(context or {})
+        def sync_wrapper(*args, **kwargs):
+            logger = get_logger(func.__module__)
+            log_context = dict(context or {})
 
-                if log_args:
-                    log_context["args"] = args
-                    log_context["kwargs"] = kwargs
+            if log_args:
+                log_context["args"] = args
+                log_context["kwargs"] = kwargs
 
-                with OperationLogger(
-                    logger, operation, log_context, log_args, log_result
-                ) as op_logger:
-                    result = func(*args, **kwargs)
+            with OperationLogger(
+                logger, operation, log_context, log_args, log_result,
+            ) as op_logger:
+                result = func(*args, **kwargs)
 
-                    if log_result:
-                        op_logger.add_context(result=result)
+                if log_result:
+                    op_logger.add_context(result=result)
 
-                    return result
+                return result
 
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
@@ -400,13 +397,12 @@ def measure_performance(name: str):
                     return await func(*args, **kwargs)
 
             return async_wrapper
-        else:
 
-            def sync_wrapper(*args, **kwargs):
-                with PerformanceTimer(name):
-                    return func(*args, **kwargs)
+        def sync_wrapper(*args, **kwargs):
+            with PerformanceTimer(name):
+                return func(*args, **kwargs)
 
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 

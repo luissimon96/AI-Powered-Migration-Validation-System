@@ -1,42 +1,57 @@
-"""
-Secure API routes with comprehensive security integration.
+"""Secure API routes with comprehensive security integration.
 
 Provides fully secured API endpoints with input validation, authentication,
 authorization, rate limiting, and audit logging.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from fastapi import (APIRouter, BackgroundTasks, Depends, File, Form,
-                     HTTPException, Request, UploadFile, status)
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import JSONResponse
 
-from ..behavioral.crews import \
-    BehavioralValidationRequest as CrewBehavioralRequest
+from ..behavioral.crews import BehavioralValidationRequest as CrewBehavioralRequest
 from ..behavioral.crews import create_behavioral_validation_crew
 from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
 from ..core.models import ValidationSession
-from ..security.api_keys import (APIKeyMetadata, APIKeyScope, api_key_manager,
-                                 api_key_rate_limiter, get_api_key_metadata,
-                                 require_admin_scope, require_read_scope,
-                                 require_validation_scope)
+from ..security.api_keys import (
+    APIKeyMetadata,
+    api_key_manager,
+    api_key_rate_limiter,
+    require_admin_scope,
+    require_read_scope,
+    require_validation_scope,
+)
 from ..security.audit import security_audit
 from ..security.headers import create_security_headers
-from ..security.schemas import (APIKeyCreateRequest, APIKeyListResponse,
-                                APIKeyResponse, BehavioralValidationRequest,
-                                BehavioralValidationResultResponse,
-                                ErrorResponse, FileUploadBatchResponse,
-                                FileUploadMetadata, FileUploadResponse,
-                                HealthCheckResponse,
-                                MigrationValidationRequest,
-                                SystemStatsResponse, ValidationListQuery,
-                                ValidationResultResponse,
-                                ValidationStatusResponse,
-                                sanitize_response_data,
-                                validate_request_schema)
+from ..security.schemas import (
+    APIKeyCreateRequest,
+    APIKeyListResponse,
+    APIKeyResponse,
+    BehavioralValidationRequest,
+    BehavioralValidationResultResponse,
+    FileUploadBatchResponse,
+    FileUploadMetadata,
+    FileUploadResponse,
+    HealthCheckResponse,
+    MigrationValidationRequest,
+    SystemStatsResponse,
+    ValidationResultResponse,
+    ValidationStatusResponse,
+    sanitize_response_data,
+)
 from ..security.validation import SecurityValidationError, input_validator
 
 # Initialize components
@@ -63,7 +78,7 @@ def get_request_context(request: Request) -> Dict[str, Any]:
 async def validate_user_access(
     api_key_metadata: APIKeyMetadata,
     resource_id: str,
-    request: Request
+    request: Request,
 ) -> None:
     """Validate user access to specific resources."""
     # In a production system, implement proper resource ownership checks
@@ -75,7 +90,7 @@ async def validate_user_access(
         resource=resource_id,
         action="access_check",
         source_ip=context["client_ip"],
-        request_id=context["request_id"]
+        request_id=context["request_id"],
     )
 
 
@@ -93,7 +108,7 @@ async def create_api_key(
         # Create API key
         api_key, metadata = await api_key_manager.create_api_key(
             request=request,
-            created_by=api_key_metadata.id
+            created_by=api_key_metadata.id,
         )
 
         # Log creation
@@ -102,7 +117,7 @@ async def create_api_key(
             created_by=api_key_metadata.id,
             scopes=[scope.value for scope in request.scopes],
             source_ip=context["client_ip"],
-            request_id=context["request_id"]
+            request_id=context["request_id"],
         )
 
         # Return metadata (not the actual key for security)
@@ -115,20 +130,20 @@ async def create_api_key(
             expires_at=metadata.expires_at,
             last_used_at=metadata.last_used_at,
             rate_limit_per_minute=metadata.rate_limit_per_minute,
-            is_active=metadata.is_active
+            is_active=metadata.is_active,
         )
 
         # Add security headers
         headers = create_security_headers()
         return JSONResponse(
             content=sanitize_response_data(response_data.dict()),
-            headers=headers
+            headers=headers,
         )
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create API key"
+            detail="Failed to create API key",
         )
 
 
@@ -149,24 +164,24 @@ async def list_api_keys(
             resource="api_keys_list",
             action="list",
             source_ip=context["client_ip"],
-            request_id=context["request_id"]
+            request_id=context["request_id"],
         )
 
         response_data = APIKeyListResponse(
             api_keys=api_keys,
-            total=len(api_keys)
+            total=len(api_keys),
         )
 
         headers = create_security_headers()
         return JSONResponse(
             content=sanitize_response_data(response_data.dict()),
-            headers=headers
+            headers=headers,
         )
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve API keys"
+            detail="Failed to retrieve API keys",
         )
 
 
@@ -182,25 +197,25 @@ async def revoke_api_key(
 
         success = await api_key_manager.revoke_api_key(
             api_key_id=api_key_id,
-            revoked_by=api_key_metadata.id
+            revoked_by=api_key_metadata.id,
         )
 
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="API key not found"
+                detail="API key not found",
             )
 
         headers = create_security_headers()
         return JSONResponse(
             content={"message": "API key revoked successfully"},
-            headers=headers
+            headers=headers,
         )
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to revoke API key"
+            detail="Failed to revoke API key",
         )
 
 
@@ -225,7 +240,7 @@ async def upload_files(
         except (json.JSONDecodeError, ValueError) as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid metadata: {str(e)}"
+                detail=f"Invalid metadata: {e!s}",
             )
 
         # Validate files
@@ -249,7 +264,7 @@ async def upload_files(
                     content_type=validation_result.detected_type,
                     validation_result=validation_result.dict(),
                     source_ip=context["client_ip"],
-                    request_id=context["request_id"]
+                    request_id=context["request_id"],
                 )
 
                 uploaded_files.append(FileUploadResponse(
@@ -260,7 +275,7 @@ async def upload_files(
                     content_type=validation_result.detected_type,
                     upload_type=upload_metadata.upload_type,
                     uploaded_at=datetime.utcnow(),
-                    validation_result=validation_result.dict()
+                    validation_result=validation_result.dict(),
                 ))
 
                 total_size += validation_result.file_size
@@ -268,7 +283,7 @@ async def upload_files(
             else:
                 failed_uploads.append({
                     "filename": file.filename,
-                    "errors": validation_result.security_issues
+                    "errors": validation_result.security_issues,
                 })
 
         response_data = FileUploadBatchResponse(
@@ -276,19 +291,19 @@ async def upload_files(
             failed_uploads=failed_uploads,
             total_files=len(files),
             successful_uploads=len(uploaded_files),
-            total_size=total_size
+            total_size=total_size,
         )
 
         headers = create_security_headers()
         return JSONResponse(
             content=sanitize_response_data(response_data.dict()),
-            headers=headers
+            headers=headers,
         )
 
     except SecurityValidationError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File validation failed: {str(e)}"
+            detail=f"File validation failed: {e!s}",
         )
 
 
@@ -318,7 +333,7 @@ async def create_migration_validation(
             target_technology=validated_data["target_technology"],
             validation_scope=validated_data["validation_scope"],
             status="pending",
-            created_at=datetime.utcnow()
+            created_at=datetime.utcnow(),
         )
 
         validation_sessions[session_id] = session
@@ -329,7 +344,7 @@ async def create_migration_validation(
             session_id,
             validated_data,
             api_key_metadata.id,
-            context
+            context,
         )
 
         # Log validation request
@@ -339,7 +354,7 @@ async def create_migration_validation(
             resource=f"validation/{session_id}",
             action="create_validation",
             source_ip=context["client_ip"],
-            request_id=context["request_id"]
+            request_id=context["request_id"],
         )
 
         response_data = ValidationStatusResponse(
@@ -350,19 +365,19 @@ async def create_migration_validation(
             result_available=False,
             user_id=api_key_metadata.id,
             created_at=session.created_at,
-            updated_at=session.created_at
+            updated_at=session.created_at,
         )
 
         headers = create_security_headers()
         return JSONResponse(
             content=sanitize_response_data(response_data.dict()),
-            headers=headers
+            headers=headers,
         )
 
     except SecurityValidationError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Validation request failed: {str(e)}"
+            detail=f"Validation request failed: {e!s}",
         )
 
 
@@ -388,7 +403,7 @@ async def create_behavioral_validation(
             "user_id": api_key_metadata.id,
             "status": "pending",
             "created_at": datetime.utcnow(),
-            "request_data": validated_data
+            "request_data": validated_data,
         }
 
         # Schedule background validation
@@ -397,7 +412,7 @@ async def create_behavioral_validation(
             session_id,
             validated_data,
             api_key_metadata.id,
-            context
+            context,
         )
 
         # Log validation request
@@ -407,7 +422,7 @@ async def create_behavioral_validation(
             resource=f"behavioral_validation/{session_id}",
             action="create_behavioral_validation",
             source_ip=context["client_ip"],
-            request_id=context["request_id"]
+            request_id=context["request_id"],
         )
 
         response_data = ValidationStatusResponse(
@@ -418,19 +433,19 @@ async def create_behavioral_validation(
             result_available=False,
             user_id=api_key_metadata.id,
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
 
         headers = create_security_headers()
         return JSONResponse(
             content=sanitize_response_data(response_data.dict()),
-            headers=headers
+            headers=headers,
         )
 
     except SecurityValidationError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Behavioral validation request failed: {str(e)}"
+            detail=f"Behavioral validation request failed: {e!s}",
         )
 
 
@@ -452,12 +467,12 @@ async def get_validation_status(
             response_data = ValidationStatusResponse(
                 request_id=request_id,
                 status=session.status,
-                progress=getattr(session, 'progress', None),
-                message=getattr(session, 'message', None),
+                progress=getattr(session, "progress", None),
+                message=getattr(session, "message", None),
                 result_available=session.status == "completed",
                 user_id=session.user_id,
                 created_at=session.created_at,
-                updated_at=getattr(session, 'updated_at', session.created_at)
+                updated_at=getattr(session, "updated_at", session.created_at),
             )
 
         # Check behavioral validation sessions
@@ -473,27 +488,27 @@ async def get_validation_status(
                 result_available=session["status"] == "completed",
                 user_id=session["user_id"],
                 created_at=session["created_at"],
-                updated_at=session.get("updated_at", session["created_at"])
+                updated_at=session.get("updated_at", session["created_at"]),
             )
 
         else:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Validation request not found"
+                detail="Validation request not found",
             )
 
         headers = create_security_headers()
         return JSONResponse(
             content=sanitize_response_data(response_data.dict()),
-            headers=headers
+            headers=headers,
         )
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve validation status"
+            detail="Failed to retrieve validation status",
         )
 
 
@@ -515,14 +530,14 @@ async def get_validation_result(
             if session.status != "completed":
                 raise HTTPException(
                     status_code=status.HTTP_202_ACCEPTED,
-                    detail="Validation not yet completed"
+                    detail="Validation not yet completed",
                 )
 
-            result = getattr(session, 'result', None)
+            result = getattr(session, "result", None)
             if not result:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Validation result not available"
+                    detail="Validation result not available",
                 )
 
             response_data = ValidationResultResponse(
@@ -536,7 +551,7 @@ async def get_validation_result(
                 execution_time=result.execution_time,
                 timestamp=result.timestamp,
                 user_id=session.user_id,
-                metadata=result.metadata
+                metadata=result.metadata,
             )
 
         # Check behavioral validation sessions
@@ -547,14 +562,14 @@ async def get_validation_result(
             if session["status"] != "completed":
                 raise HTTPException(
                     status_code=status.HTTP_202_ACCEPTED,
-                    detail="Behavioral validation not yet completed"
+                    detail="Behavioral validation not yet completed",
                 )
 
             result = session.get("result")
             if not result:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Behavioral validation result not available"
+                    detail="Behavioral validation result not available",
                 )
 
             response_data = BehavioralValidationResultResponse(
@@ -567,13 +582,13 @@ async def get_validation_result(
                 screenshot_urls=result.get("screenshot_urls", []),
                 detailed_results=result["detailed_results"],
                 timestamp=result["timestamp"],
-                user_id=session["user_id"]
+                user_id=session["user_id"],
             )
 
         else:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Validation request not found"
+                detail="Validation request not found",
             )
 
         # Log result access
@@ -583,21 +598,21 @@ async def get_validation_result(
             resource=f"validation_result/{request_id}",
             action="get_result",
             source_ip=context["client_ip"],
-            request_id=context["request_id"]
+            request_id=context["request_id"],
         )
 
         headers = create_security_headers()
         return JSONResponse(
             content=sanitize_response_data(response_data.dict()),
-            headers=headers
+            headers=headers,
         )
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve validation result"
+            detail="Failed to retrieve validation result",
         )
 
 
@@ -622,21 +637,21 @@ async def health_check(
             services={
                 "database": "healthy",
                 "redis": "healthy",
-                "llm_service": "healthy"
+                "llm_service": "healthy",
             },
-            uptime_seconds=uptime
+            uptime_seconds=uptime,
         )
 
         headers = create_security_headers()
         return JSONResponse(
             content=sanitize_response_data(response_data.dict()),
-            headers=headers
+            headers=headers,
         )
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Health check failed"
+            detail="Health check failed",
         )
 
 
@@ -655,20 +670,20 @@ async def get_system_stats(
             total_users=1,  # Placeholder
             system_load=psutil.cpu_percent(),
             memory_usage_mb=psutil.virtual_memory().used / 1024 / 1024,
-            disk_usage_mb=psutil.disk_usage('/').used / 1024 / 1024,
-            timestamp=datetime.utcnow()
+            disk_usage_mb=psutil.disk_usage("/").used / 1024 / 1024,
+            timestamp=datetime.utcnow(),
         )
 
         headers = create_security_headers()
         return JSONResponse(
             content=sanitize_response_data(response_data.dict()),
-            headers=headers
+            headers=headers,
         )
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve system statistics"
+            detail="Failed to retrieve system statistics",
         )
 
 
@@ -677,7 +692,7 @@ async def _process_migration_validation(
     session_id: str,
     validated_data: dict,
     user_id: str,
-    context: dict
+    context: dict,
 ):
     """Process migration validation in background."""
     try:
@@ -689,20 +704,24 @@ async def _process_migration_validation(
         session.updated_at = datetime.utcnow()
 
         # Initialize real validation pipeline
-        from ..core.models import (InputData, InputType,
-                                   MigrationValidationRequest,
-                                   TechnologyContext, TechnologyType)
+        from ..core.models import (
+            InputData,
+            InputType,
+            MigrationValidationRequest,
+            TechnologyContext,
+            TechnologyType,
+        )
 
         # Create technology contexts
         source_tech = TechnologyContext(
             technology_type=TechnologyType(validated_data["source_technology"]),
             framework=validated_data.get("source_framework"),
-            version=validated_data.get("source_version")
+            version=validated_data.get("source_version"),
         )
         target_tech = TechnologyContext(
             technology_type=TechnologyType(validated_data["target_technology"]),
             framework=validated_data.get("target_framework"),
-            version=validated_data.get("target_version")
+            version=validated_data.get("target_version"),
         )
 
         # Create validation request
@@ -710,14 +729,14 @@ async def _process_migration_validation(
             source_input=InputData(
                 input_type=InputType.CODE_FILES,
                 content=validated_data.get("source_files", {}),
-                technology_context=source_tech
+                technology_context=source_tech,
             ),
             target_input=InputData(
                 input_type=InputType.CODE_FILES,
                 content=validated_data.get("target_files", {}),
-                technology_context=target_tech
+                technology_context=target_tech,
             ),
-            validation_scope=validated_data["validation_scope"]
+            validation_scope=validated_data["validation_scope"],
         )
 
         # Initialize and run migration validator
@@ -732,7 +751,7 @@ async def _process_migration_validation(
         session = validation_sessions.get(session_id)
         if session:
             session.status = "failed"
-            session.message = f"Validation failed: {str(e)}"
+            session.message = f"Validation failed: {e!s}"
             session.updated_at = datetime.utcnow()
 
 
@@ -740,7 +759,7 @@ async def _process_behavioral_validation(
     session_id: str,
     validated_data: dict,
     user_id: str,
-    context: dict
+    context: dict,
 ):
     """Process behavioral validation in background."""
     try:
@@ -756,7 +775,7 @@ async def _process_behavioral_validation(
             source_url=validated_data.get("source_url", ""),
             target_url=validated_data.get("target_url", ""),
             validation_scenarios=validated_data["validation_scenarios"],
-            max_execution_time=validated_data.get("max_execution_time", 300)
+            max_execution_time=validated_data.get("max_execution_time", 300),
         )
 
         # Create and execute behavioral validation crew
@@ -771,7 +790,7 @@ async def _process_behavioral_validation(
                 "execution_time": crew_result.get("execution_time", 0.0),
                 "screenshot_urls": crew_result.get("screenshot_urls", []),
                 "detailed_results": crew_result.get("detailed_results", []),
-                "timestamp": datetime.utcnow()
+                "timestamp": datetime.utcnow(),
             }
 
             session["result"] = result
@@ -782,11 +801,11 @@ async def _process_behavioral_validation(
             session = behavioral_validation_sessions.get(session_id)
             if session:
                 session["status"] = "failed"
-                session["message"] = f"Behavioral validation failed: {str(e)}"
+                session["message"] = f"Behavioral validation failed: {e!s}"
                 session["updated_at"] = datetime.utcnow()
     except Exception as e:
         session = behavioral_validation_sessions.get(session_id)
         if session:
             session["status"] = "failed"
-            session["message"] = f"Process failed: {str(e)}"
+            session["message"] = f"Process failed: {e!s}"
             session["updated_at"] = datetime.utcnow()

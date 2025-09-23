@@ -1,19 +1,21 @@
-"""
-Validation reporter for generating user-friendly migration validation reports.
+"""Validation reporter for generating user-friendly migration validation reports.
 
 Transforms validation results into structured reports with executive summaries,
 detailed findings, and actionable recommendations.
 """
 
 import json
-from dataclasses import asdict
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from ..behavioral.crews import BehavioralValidationResult
-from ..core.models import (AbstractRepresentation, MigrationValidationRequest,
-                           SeverityLevel, ValidationDiscrepancy,
-                           ValidationResult)
+from ..core.models import (
+    AbstractRepresentation,
+    MigrationValidationRequest,
+    SeverityLevel,
+    ValidationDiscrepancy,
+    ValidationResult,
+)
 
 
 class ValidationReporter:
@@ -43,8 +45,7 @@ class ValidationReporter:
         source_representation: Optional[AbstractRepresentation] = None,
         target_representation: Optional[AbstractRepresentation] = None,
     ) -> Dict[str, Any]:
-        """
-        Generate comprehensive validation report.
+        """Generate comprehensive validation report.
 
         Args:
             validation_result: Validation results with discrepancies
@@ -54,6 +55,7 @@ class ValidationReporter:
 
         Returns:
             Comprehensive report dictionary
+
         """
         report = {
             "metadata": self._generate_report_metadata(request, validation_result),
@@ -62,7 +64,7 @@ class ValidationReporter:
             "detailed_findings": self._generate_detailed_findings(validation_result.discrepancies),
             "recommendations": self._generate_recommendations(validation_result.discrepancies),
             "technical_details": self._generate_technical_details(
-                request, source_representation, target_representation
+                request, source_representation, target_representation,
             ),
             "appendix": self._generate_appendix(validation_result),
         }
@@ -78,7 +80,7 @@ class ValidationReporter:
     ) -> str:
         """Generate HTML version of the validation report."""
         report_data = self.generate_report(
-            validation_result, request, source_representation, target_representation
+            validation_result, request, source_representation, target_representation,
         )
 
         html_content = self._render_html_template(report_data)
@@ -93,7 +95,7 @@ class ValidationReporter:
     ) -> str:
         """Generate JSON version of the validation report."""
         report_data = self.generate_report(
-            validation_result, request, source_representation, target_representation
+            validation_result, request, source_representation, target_representation,
         )
 
         return json.dumps(report_data, indent=2, default=str)
@@ -107,7 +109,7 @@ class ValidationReporter:
     ) -> str:
         """Generate Markdown version of the validation report."""
         report_data = self.generate_report(
-            validation_result, request, source_representation, target_representation
+            validation_result, request, source_representation, target_representation,
         )
 
         markdown_content = self._render_markdown_template(report_data)
@@ -122,8 +124,7 @@ class ValidationReporter:
         target_representation: Optional[AbstractRepresentation] = None,
         weights: Optional[Dict[str, float]] = None,
     ) -> Dict[str, Any]:
-        """
-        Generate unified report combining static and behavioral validation results.
+        """Generate unified report combining static and behavioral validation results.
 
         Args:
             static_result: Static validation results (optional)
@@ -138,10 +139,11 @@ class ValidationReporter:
 
         Raises:
             ValueError: If both results are None
+
         """
         if static_result is None and behavioral_result is None:
             raise ValueError(
-                "At least one validation result (static or behavioral) must be provided"
+                "At least one validation result (static or behavioral) must be provided",
             )
 
         # Use provided weights or defaults
@@ -149,10 +151,10 @@ class ValidationReporter:
 
         # Generate unified fidelity score and status
         unified_fidelity = self._calculate_unified_fidelity_score(
-            static_result, behavioral_result, scoring_weights
+            static_result, behavioral_result, scoring_weights,
         )
         unified_status = self._determine_unified_status(
-            static_result, behavioral_result, unified_fidelity
+            static_result, behavioral_result, unified_fidelity,
         )
 
         # Combine discrepancies from both sources
@@ -161,7 +163,7 @@ class ValidationReporter:
         # Build unified report
         report = {
             "metadata": self._generate_unified_metadata(
-                static_result, behavioral_result, request, scoring_weights
+                static_result, behavioral_result, request, scoring_weights,
             ),
             "executive_summary": self._generate_unified_executive_summary(
                 static_result,
@@ -171,14 +173,14 @@ class ValidationReporter:
                 combined_discrepancies,
             ),
             "fidelity_assessment": self._generate_unified_fidelity_assessment(
-                static_result, behavioral_result, unified_fidelity, scoring_weights
+                static_result, behavioral_result, unified_fidelity, scoring_weights,
             ),
             "detailed_findings": self._generate_unified_detailed_findings(combined_discrepancies),
             "recommendations": self._generate_unified_recommendations(
-                static_result, behavioral_result, combined_discrepancies
+                static_result, behavioral_result, combined_discrepancies,
             ),
             "validation_breakdown": self._generate_validation_breakdown(
-                static_result, behavioral_result, scoring_weights
+                static_result, behavioral_result, scoring_weights,
             ),
             "technical_details": self._generate_unified_technical_details(
                 static_result,
@@ -258,7 +260,7 @@ class ValidationReporter:
         return markdown_content
 
     def _generate_report_metadata(
-        self, request: MigrationValidationRequest, result: ValidationResult
+        self, request: MigrationValidationRequest, result: ValidationResult,
     ) -> Dict[str, Any]:
         """Generate report metadata section."""
         return {
@@ -342,7 +344,7 @@ class ValidationReporter:
         }
 
     def _generate_detailed_findings(
-        self, discrepancies: List[ValidationDiscrepancy]
+        self, discrepancies: List[ValidationDiscrepancy],
     ) -> Dict[str, Any]:
         """Generate detailed findings section."""
         findings_by_severity = {"critical": [], "warning": [], "info": []}
@@ -367,7 +369,7 @@ class ValidationReporter:
         }
 
     def _generate_recommendations(
-        self, discrepancies: List[ValidationDiscrepancy]
+        self, discrepancies: List[ValidationDiscrepancy],
     ) -> Dict[str, Any]:
         """Generate recommendations section."""
         recommendations = {
@@ -456,7 +458,7 @@ class ValidationReporter:
         }
 
     def _count_discrepancies_by_severity(
-        self, discrepancies: List[ValidationDiscrepancy]
+        self, discrepancies: List[ValidationDiscrepancy],
     ) -> Dict[str, int]:
         """Count discrepancies by severity level."""
         counts = {"critical": 0, "warning": 0, "info": 0}
@@ -471,7 +473,7 @@ class ValidationReporter:
         return [disc.description for disc in top_discrepancies]
 
     def _generate_general_recommendations(
-        self, discrepancies: List[ValidationDiscrepancy]
+        self, discrepancies: List[ValidationDiscrepancy],
     ) -> List[str]:
         """Generate general recommendations based on discrepancy patterns."""
         recommendations = []
@@ -480,24 +482,24 @@ class ValidationReporter:
 
         if counts["critical"] > 0:
             recommendations.append(
-                "Address all critical issues before proceeding with migration deployment"
+                "Address all critical issues before proceeding with migration deployment",
             )
 
         if counts["warning"] > 3:
             recommendations.append(
-                "Consider additional testing to verify that warning-level differences don't impact user experience"
+                "Consider additional testing to verify that warning-level differences don't impact user experience",
             )
 
         if counts["info"] > 5:
             recommendations.append(
-                "Document all identified differences for future reference and maintenance"
+                "Document all identified differences for future reference and maintenance",
             )
 
         # Pattern-based recommendations
         types = [disc.type for disc in discrepancies]
         if types.count("missing_field") > 2:
             recommendations.append(
-                "Review data mapping to ensure all necessary fields are migrated"
+                "Review data mapping to ensure all necessary fields are migrated",
             )
 
         if types.count("function_renamed") > 2:
@@ -550,10 +552,9 @@ class ValidationReporter:
         # If fidelity score is too low, reject
         if unified_fidelity < 0.60:
             return "rejected"
-        elif unified_fidelity < 0.85:
+        if unified_fidelity < 0.85:
             return "approved_with_warnings"
-        else:
-            return "approved"
+        return "approved"
 
     def _merge_discrepancies(
         self,
@@ -684,7 +685,7 @@ class ValidationReporter:
                 summary_parts.append(f"Behavioral testing: {behavioral_result.summary}")
             else:
                 summary_parts.append(
-                    f"Behavioral testing completed with {len(behavioral_result.discrepancies)} findings"
+                    f"Behavioral testing completed with {len(behavioral_result.discrepancies)} findings",
                 )
 
         unified_summary = " | ".join(summary_parts)
@@ -698,7 +699,7 @@ class ValidationReporter:
             "summary": unified_summary,
             "discrepancy_counts": discrepancy_counts,
             "key_findings": self._extract_key_findings(
-                combined_discrepancies[:5]
+                combined_discrepancies[:5],
             ),  # Top 5 findings
         }
 
@@ -761,7 +762,7 @@ class ValidationReporter:
         }
 
     def _generate_unified_detailed_findings(
-        self, combined_discrepancies: List[ValidationDiscrepancy]
+        self, combined_discrepancies: List[ValidationDiscrepancy],
     ) -> Dict[str, Any]:
         """Generate unified detailed findings section."""
         findings_by_severity = {"critical": [], "warning": [], "info": []}
@@ -840,7 +841,7 @@ class ValidationReporter:
 
         # Add unified recommendations
         recommendations["unified"] = self._generate_unified_general_recommendations(
-            static_result, behavioral_result, combined_discrepancies
+            static_result, behavioral_result, combined_discrepancies,
         )
 
         return recommendations
@@ -879,7 +880,7 @@ class ValidationReporter:
                     "phase": "Static Analysis",
                     "timestamp": static_result.timestamp.isoformat(),
                     "duration": static_result.execution_time,
-                }
+                },
             )
 
         if behavioral_result is not None:
@@ -903,7 +904,7 @@ class ValidationReporter:
                     "phase": "Behavioral Testing",
                     "timestamp": behavioral_result.timestamp.isoformat(),
                     "duration": behavioral_result.execution_time,
-                }
+                },
             )
 
         # Calculate total execution time
@@ -1024,13 +1025,13 @@ class ValidationReporter:
         # Critical issues
         if counts["critical"] > 0:
             recommendations.append(
-                "Address all critical issues before proceeding with migration deployment"
+                "Address all critical issues before proceeding with migration deployment",
             )
 
         # High number of warnings
         if counts["warning"] > 5:
             recommendations.append(
-                "Consider additional validation cycles to address the high number of warnings"
+                "Consider additional validation cycles to address the high number of warnings",
             )
 
         # Static vs behavioral discrepancy patterns
@@ -1041,11 +1042,11 @@ class ValidationReporter:
 
         if len(static_discrepancies) > 0 and len(behavioral_discrepancies) == 0:
             recommendations.append(
-                "Consider adding behavioral testing to validate real-world usage scenarios"
+                "Consider adding behavioral testing to validate real-world usage scenarios",
             )
         elif len(behavioral_discrepancies) > 0 and len(static_discrepancies) == 0:
             recommendations.append(
-                "Consider adding static analysis to catch structural and code-level issues"
+                "Consider adding static analysis to catch structural and code-level issues",
             )
 
         # Performance recommendations
@@ -1054,13 +1055,13 @@ class ValidationReporter:
                 behavioral_result.execution_time or 0
             ) > 300:  # 5 minutes
                 recommendations.append(
-                    "Consider optimizing validation process for better performance in CI/CD pipelines"
+                    "Consider optimizing validation process for better performance in CI/CD pipelines",
                 )
 
         # Documentation recommendations
         if counts["info"] > 3:
             recommendations.append(
-                "Document all identified differences for future reference and maintenance"
+                "Document all identified differences for future reference and maintenance",
             )
 
         return recommendations

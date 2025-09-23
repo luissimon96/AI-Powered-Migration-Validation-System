@@ -1,5 +1,4 @@
-"""
-Encryption and secrets management module.
+"""Encryption and secrets management module.
 
 Provides secure encryption/decryption for sensitive data, secure key management,
 and utilities for protecting data at rest and in transit.
@@ -9,12 +8,11 @@ import base64
 import hashlib
 import os
 import secrets
-from typing import Any, Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 from ..core.config import get_settings
@@ -23,7 +21,6 @@ from ..core.config import get_settings
 class EncryptionError(Exception):
     """Encryption-related errors."""
 
-    pass
 
 
 class KeyManager:
@@ -46,7 +43,7 @@ class KeyManager:
                 self._master_key = secrets.token_bytes(32)
                 if self.settings.environment == "development":
                     print(
-                        f"Generated master key (save this!): {base64.b64encode(self._master_key).decode()}"
+                        f"Generated master key (save this!): {base64.b64encode(self._master_key).decode()}",
                     )
 
         return self._master_key
@@ -95,7 +92,7 @@ class SymmetricEncryption:
             encrypted_bytes = fernet.encrypt(data.encode("utf-8"))
             return base64.b64encode(encrypted_bytes).decode("utf-8")
         except Exception as e:
-            raise EncryptionError(f"Encryption failed: {str(e)}")
+            raise EncryptionError(f"Encryption failed: {e!s}")
 
     def decrypt_data(self, encrypted_data: str, context: str = "default") -> str:
         """Decrypt string data."""
@@ -105,7 +102,7 @@ class SymmetricEncryption:
             decrypted_bytes = fernet.decrypt(encrypted_bytes)
             return decrypted_bytes.decode("utf-8")
         except Exception as e:
-            raise EncryptionError(f"Decryption failed: {str(e)}")
+            raise EncryptionError(f"Decryption failed: {e!s}")
 
     def encrypt_file(self, file_path: str, context: str = "files") -> str:
         """Encrypt file and return path to encrypted file."""
@@ -122,7 +119,7 @@ class SymmetricEncryption:
 
             return encrypted_path
         except Exception as e:
-            raise EncryptionError(f"File encryption failed: {str(e)}")
+            raise EncryptionError(f"File encryption failed: {e!s}")
 
     def decrypt_file(self, encrypted_file_path: str, context: str = "files") -> str:
         """Decrypt file and return path to decrypted file."""
@@ -139,7 +136,7 @@ class SymmetricEncryption:
 
             return decrypted_path
         except Exception as e:
-            raise EncryptionError(f"File decryption failed: {str(e)}")
+            raise EncryptionError(f"File decryption failed: {e!s}")
 
 
 class AsymmetricEncryption:
@@ -189,7 +186,7 @@ class AsymmetricEncryption:
 
             return base64.b64encode(encrypted).decode("utf-8")
         except Exception as e:
-            raise EncryptionError(f"Public key encryption failed: {str(e)}")
+            raise EncryptionError(f"Public key encryption failed: {e!s}")
 
     def decrypt_with_private_key(self, encrypted_data: str, private_key_pem: bytes) -> str:
         """Decrypt data with private key."""
@@ -209,7 +206,7 @@ class AsymmetricEncryption:
 
             return decrypted.decode("utf-8")
         except Exception as e:
-            raise EncryptionError(f"Private key decryption failed: {str(e)}")
+            raise EncryptionError(f"Private key decryption failed: {e!s}")
 
 
 class SecureStorage:

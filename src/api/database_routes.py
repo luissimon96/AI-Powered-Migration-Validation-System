@@ -1,38 +1,41 @@
-"""
-Database-backed FastAPI routes for AI-Powered Migration Validation System.
+"""Database-backed FastAPI routes for AI-Powered Migration Validation System.
 
 Replaces in-memory session storage with database persistence while maintaining
 API compatibility with existing clients.
 """
 
-import asyncio
 import json
 import os
-import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import (BackgroundTasks, Depends, FastAPI, File, Form,
-                     HTTPException, Query, UploadFile)
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..behavioral.crews import (BehavioralValidationRequest,
-                                create_behavioral_validation_crew)
-from ..core.config import get_settings, get_validation_config
+from ..behavioral.crews import BehavioralValidationRequest, create_behavioral_validation_crew
+from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
-from ..core.models import (InputData, InputType, MigrationValidationRequest,
-                           TechnologyContext, TechnologyType, ValidationScope,
-                           ValidationSession)
-from ..database.integration import (DatabaseIntegration, HybridSessionManager,
-                                    database_lifespan,
-                                    get_database_integration, get_db_service,
-                                    get_hybrid_session_manager)
+from ..core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+    ValidationSession,
+)
+from ..database.integration import (
+    DatabaseIntegration,
+    HybridSessionManager,
+    database_lifespan,
+    get_database_integration,
+    get_db_service,
+    get_hybrid_session_manager,
+)
 from ..database.service import ValidationDatabaseService
-from ..database.session import get_db_session
 from ..reporters.validation_reporter import ValidationReporter
 
 
@@ -88,7 +91,6 @@ class SessionListResponse(BaseModel):
 
 def create_database_app() -> FastAPI:
     """Create FastAPI application with database integration."""
-
     app = FastAPI(
         title="AI-Powered Migration Validation System",
         description="Validates code migrations between different technologies using AI-powered analysis with database persistence",
@@ -193,7 +195,6 @@ def create_database_app() -> FastAPI:
         hybrid_manager: HybridSessionManager = Depends(get_hybrid_session_manager),
     ):
         """Start migration validation with database persistence."""
-
         try:
             # Convert string enums
             source_tech = TechnologyType(request.source_technology)
@@ -289,10 +290,10 @@ def create_database_app() -> FastAPI:
                 try:
                     # Update status to processing
                     await hybrid_manager.update_session_status(
-                        validation_request.request_id, "processing"
+                        validation_request.request_id, "processing",
                     )
                     await hybrid_manager.add_session_log(
-                        validation_request.request_id, "Starting migration validation"
+                        validation_request.request_id, "Starting migration validation",
                     )
 
                     # Run validation
@@ -303,19 +304,19 @@ def create_database_app() -> FastAPI:
 
                     # Update status to completed
                     await hybrid_manager.update_session_status(
-                        validation_request.request_id, "completed"
+                        validation_request.request_id, "completed",
                     )
                     await hybrid_manager.add_session_log(
-                        validation_request.request_id, "Migration validation completed"
+                        validation_request.request_id, "Migration validation completed",
                     )
 
                 except Exception as e:
                     # Update status to error
                     await hybrid_manager.update_session_status(
-                        validation_request.request_id, "error"
+                        validation_request.request_id, "error",
                     )
                     await hybrid_manager.add_session_log(
-                        validation_request.request_id, f"Validation failed: {str(e)}"
+                        validation_request.request_id, f"Validation failed: {e!s}",
                     )
 
             # Create initial session
@@ -342,7 +343,6 @@ def create_database_app() -> FastAPI:
         hybrid_manager: HybridSessionManager = Depends(get_hybrid_session_manager),
     ):
         """Start behavioral validation with database persistence."""
-
         try:
             # Create behavioral validation request
             behavioral_request = BehavioralValidationRequest(
@@ -404,7 +404,7 @@ def create_database_app() -> FastAPI:
                 except Exception as e:
                     # Update status to error
                     await hybrid_manager.update_session_status(request_id, "error")
-                    await hybrid_manager.add_session_log(request_id, f"Behavioral validation failed: {str(e)}")
+                    await hybrid_manager.add_session_log(request_id, f"Behavioral validation failed: {e!s}")
 
             # Start background task
             background_tasks.add_task(run_behavioral_validation)
@@ -429,7 +429,6 @@ def create_database_app() -> FastAPI:
         hybrid_manager: HybridSessionManager = Depends(get_hybrid_session_manager),
     ):
         """List validation sessions with database persistence."""
-
         try:
             sessions = await hybrid_manager.list_sessions(
                 include_memory=True,
@@ -466,7 +465,6 @@ def create_database_app() -> FastAPI:
         hybrid_manager: HybridSessionManager = Depends(get_hybrid_session_manager),
     ):
         """Get validation session details."""
-
         session = await hybrid_manager.get_session(request_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
@@ -514,7 +512,6 @@ def create_database_app() -> FastAPI:
         hybrid_manager: HybridSessionManager = Depends(get_hybrid_session_manager),
     ):
         """Update session status."""
-
         await hybrid_manager.update_session_status(request_id, status_update.status)
 
         if status_update.message:
@@ -528,7 +525,6 @@ def create_database_app() -> FastAPI:
         hybrid_manager: HybridSessionManager = Depends(get_hybrid_session_manager),
     ):
         """Delete validation session."""
-
         deleted = await hybrid_manager.delete_session(request_id)
         if not deleted:
             raise HTTPException(status_code=404, detail="Session not found")
@@ -542,7 +538,6 @@ def create_database_app() -> FastAPI:
         hybrid_manager: HybridSessionManager = Depends(get_hybrid_session_manager),
     ):
         """Generate and download session report."""
-
         session = await hybrid_manager.get_session(request_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
@@ -555,22 +550,21 @@ def create_database_app() -> FastAPI:
 
             if format == "json":
                 return JSONResponse(content=json.loads(report_content))
-            elif format == "html":
+            if format == "html":
                 return PlainTextResponse(content=report_content, media_type="text/html")
-            elif format == "pdf":
+            if format == "pdf":
                 # For PDF, we'd need to implement PDF generation
                 # For now, return HTML
                 return PlainTextResponse(content=report_content, media_type="text/html")
 
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Report generation failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Report generation failed: {e!s}")
 
     @app.get("/api/statistics")
     async def get_statistics(
         db_integration: DatabaseIntegration = Depends(get_database_integration),
     ):
         """Get system statistics."""
-
         try:
             stats = await db_integration.get_statistics()
             stats["timestamp"] = datetime.utcnow().isoformat()
@@ -584,7 +578,6 @@ def create_database_app() -> FastAPI:
         db_service: ValidationDatabaseService = Depends(get_db_service),
     ):
         """Admin endpoint to cleanup old sessions."""
-
         try:
             deleted_count = await db_service.cleanup_old_sessions(days_old)
             return {
@@ -600,7 +593,6 @@ def create_database_app() -> FastAPI:
         hybrid_manager: HybridSessionManager = Depends(get_hybrid_session_manager),
     ):
         """Admin endpoint to migrate in-memory sessions to database."""
-
         try:
             # This would need access to the old memory sessions
             # For now, we'll just clear the memory cache

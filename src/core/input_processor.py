@@ -1,5 +1,4 @@
-"""
-Input processor for handling structured migration validation requests.
+"""Input processor for handling structured migration validation requests.
 
 Implements the input interface described in the proposal:
 - Technology selection (source/target)
@@ -8,33 +7,34 @@ Implements the input interface described in the proposal:
 - Request validation and preprocessing
 """
 
-import mimetypes
 import os
-import shutil
 import tempfile
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .exceptions import (ResourceError, SecurityError, ValidationInputError,
-                         resource_error, security_error,
-                         validation_input_error)
-from .logging import LoggerMixin, log_operation
-from .models import (InputData, InputType, MigrationValidationRequest,
-                     TechnologyContext, TechnologyType, ValidationScope)
+from .exceptions import resource_error
+from .logging import LoggerMixin
+from .models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+)
 
 
 class InputProcessor(LoggerMixin):
     """Processes and validates migration validation inputs with security and validation."""
 
     def __init__(self, upload_dir: Optional[str] = None):
-        """
-        Initialize input processor.
+        """Initialize input processor.
 
         Args:
             upload_dir: Directory for storing uploaded files. If None, uses temp directory.
 
         Raises:
             ResourceError: If upload directory cannot be created
+
         """
         super().__init__()
         self.upload_dir = upload_dir or tempfile.mkdtemp(prefix="migration_validation_")
@@ -80,10 +80,10 @@ class InputProcessor(LoggerMixin):
             self.logger.info("Upload directory initialized", path=self.upload_dir)
         except OSError as e:
             self.logger.error(
-                "Failed to create upload directory", path=self.upload_dir, error=str(e)
+                "Failed to create upload directory", path=self.upload_dir, error=str(e),
             )
             raise resource_error(
-                f"Failed to create upload directory: {str(e)}", resource_type="filesystem", cause=e
+                f"Failed to create upload directory: {e!s}", resource_type="filesystem", cause=e,
             )
 
     def create_validation_request(
@@ -99,8 +99,7 @@ class InputProcessor(LoggerMixin):
         target_tech_version: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> MigrationValidationRequest:
-        """
-        Create a structured validation request from user inputs.
+        """Create a structured validation request from user inputs.
 
         Args:
             source_technology: Source technology string (e.g., "python-flask")
@@ -119,6 +118,7 @@ class InputProcessor(LoggerMixin):
 
         Raises:
             ValueError: If input parameters are invalid
+
         """
         # Parse and validate technology types
         try:
@@ -126,7 +126,7 @@ class InputProcessor(LoggerMixin):
         except ValueError:
             raise ValueError(
                 f"Unsupported source technology: {source_technology}. "
-                f"Supported: {[t.value for t in TechnologyType]}"
+                f"Supported: {[t.value for t in TechnologyType]}",
             )
 
         try:
@@ -134,7 +134,7 @@ class InputProcessor(LoggerMixin):
         except ValueError:
             raise ValueError(
                 f"Unsupported target technology: {target_technology}. "
-                f"Supported: {[t.value for t in TechnologyType]}"
+                f"Supported: {[t.value for t in TechnologyType]}",
             )
 
         # Parse and validate validation scope
@@ -143,16 +143,16 @@ class InputProcessor(LoggerMixin):
         except ValueError:
             raise ValueError(
                 f"Unsupported validation scope: {validation_scope}. "
-                f"Supported: {[s.value for s in ValidationScope]}"
+                f"Supported: {[s.value for s in ValidationScope]}",
             )
 
         # Validate and process input files
         source_input = self._process_input_data(
-            source_files or [], source_screenshots or [], "source"
+            source_files or [], source_screenshots or [], "source",
         )
 
         target_input = self._process_input_data(
-            target_files or [], target_screenshots or [], "target"
+            target_files or [], target_screenshots or [], "target",
         )
 
         # Create technology contexts
@@ -180,10 +180,9 @@ class InputProcessor(LoggerMixin):
         return request
 
     def _process_input_data(
-        self, files: List[str], screenshots: List[str], context: str
+        self, files: List[str], screenshots: List[str], context: str,
     ) -> InputData:
-        """
-        Process and validate input data.
+        """Process and validate input data.
 
         Args:
             files: List of file paths
@@ -195,6 +194,7 @@ class InputProcessor(LoggerMixin):
 
         Raises:
             ValueError: If input data is invalid
+
         """
         # Validate files exist and are readable
         validated_files = []
@@ -213,7 +213,7 @@ class InputProcessor(LoggerMixin):
             if file_size > self.max_file_size:
                 raise ValueError(
                     f"{context.title()} file too large: {file_path} "
-                    f"({file_size} bytes, max {self.max_file_size})"
+                    f"({file_size} bytes, max {self.max_file_size})",
                 )
 
             # Check file extension
@@ -221,7 +221,7 @@ class InputProcessor(LoggerMixin):
             if ext not in self.allowed_code_extensions:
                 raise ValueError(
                     f"{context.title()} file has unsupported extension: {file_path} "
-                    f"(supported: {self.allowed_code_extensions})"
+                    f"(supported: {self.allowed_code_extensions})",
                 )
 
             validated_files.append(file_path)
@@ -237,7 +237,7 @@ class InputProcessor(LoggerMixin):
 
             if not os.path.isfile(screenshot_path):
                 raise ValueError(
-                    f"{context.title()} screenshot path is not a file: {screenshot_path}"
+                    f"{context.title()} screenshot path is not a file: {screenshot_path}",
                 )
 
             # Check file size
@@ -245,7 +245,7 @@ class InputProcessor(LoggerMixin):
             if file_size > self.max_file_size:
                 raise ValueError(
                     f"{context.title()} screenshot too large: {screenshot_path} "
-                    f"({file_size} bytes, max {self.max_file_size})"
+                    f"({file_size} bytes, max {self.max_file_size})",
                 )
 
             # Check file extension
@@ -253,7 +253,7 @@ class InputProcessor(LoggerMixin):
             if ext not in self.allowed_image_extensions:
                 raise ValueError(
                     f"{context.title()} screenshot has unsupported extension: {screenshot_path} "
-                    f"(supported: {self.allowed_image_extensions})"
+                    f"(supported: {self.allowed_image_extensions})",
                 )
 
             validated_screenshots.append(screenshot_path)
@@ -263,7 +263,7 @@ class InputProcessor(LoggerMixin):
         if total_size > self.max_total_size:
             raise ValueError(
                 f"{context.title()} total file size too large: {total_size} bytes "
-                f"(max {self.max_total_size})"
+                f"(max {self.max_total_size})",
             )
 
         # Determine input type
@@ -288,10 +288,9 @@ class InputProcessor(LoggerMixin):
         )
 
     def upload_files(
-        self, uploaded_files: List[Tuple[str, bytes]], context: str = "upload"
+        self, uploaded_files: List[Tuple[str, bytes]], context: str = "upload",
     ) -> List[str]:
-        """
-        Handle file uploads and save them to upload directory.
+        """Handle file uploads and save them to upload directory.
 
         Args:
             uploaded_files: List of (filename, file_content) tuples
@@ -302,6 +301,7 @@ class InputProcessor(LoggerMixin):
 
         Raises:
             ValueError: If upload fails validation
+
         """
         saved_paths = []
         context_dir = os.path.join(self.upload_dir, context)
@@ -340,11 +340,11 @@ class InputProcessor(LoggerMixin):
         return saved_paths
 
     def cleanup_uploads(self, file_paths: List[str]):
-        """
-        Clean up uploaded files.
+        """Clean up uploaded files.
 
         Args:
             file_paths: List of file paths to clean up
+
         """
         for file_path in file_paths:
             try:
@@ -403,10 +403,9 @@ class InputProcessor(LoggerMixin):
         return labels.get(input_type_value, input_type_value.replace("_", " ").title())
 
     def validate_technology_compatibility(
-        self, source_tech: str, target_tech: str, scope: str
+        self, source_tech: str, target_tech: str, scope: str,
     ) -> Dict[str, Any]:
-        """
-        Validate that technology combination is supported for the given scope.
+        """Validate that technology combination is supported for the given scope.
 
         Args:
             source_tech: Source technology value
@@ -415,6 +414,7 @@ class InputProcessor(LoggerMixin):
 
         Returns:
             Compatibility assessment
+
         """
         warnings = []
         issues = []

@@ -1,5 +1,4 @@
-"""
-Core data models for AI-Powered Migration Validation System.
+"""Core data models for AI-Powered Migration Validation System.
 
 Defines the fundamental data structures for representing migration contexts,
 validation results, and system operations.
@@ -8,7 +7,7 @@ validation results, and system operations.
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 
 class TechnologyType(Enum):

@@ -1,24 +1,23 @@
-"""
-Database utilities and helper functions.
+"""Database utilities and helper functions.
 
 Provides utility functions for database operations, data conversion,
 and maintenance tasks.
 """
 
-import json
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import (MigrationValidationRequest, SeverityLevel,
-                           ValidationDiscrepancy, ValidationResult,
-                           ValidationSession)
-from .models import (DiscrepancyModel, ValidationResultModel,
-                     ValidationSessionModel)
-from .session import get_database_manager
+from ..core.models import (
+    MigrationValidationRequest,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationSession,
+)
+from .models import DiscrepancyModel, ValidationResultModel, ValidationSessionModel
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +26,7 @@ async def convert_pydantic_to_db_models(
     validation_session: ValidationSession,
     session: AsyncSession,
 ) -> ValidationSessionModel:
-    """
-    Convert Pydantic ValidationSession to database models.
+    """Convert Pydantic ValidationSession to database models.
 
     Args:
         validation_session: Pydantic validation session
@@ -36,6 +34,7 @@ async def convert_pydantic_to_db_models(
 
     Returns:
         ValidationSessionModel: Database session model
+
     """
     request = validation_session.request
 
@@ -74,17 +73,16 @@ async def convert_pydantic_to_db_models(
 async def convert_db_model_to_pydantic(
     session_model: ValidationSessionModel,
 ) -> ValidationSession:
-    """
-    Convert database session model to Pydantic ValidationSession.
+    """Convert database session model to Pydantic ValidationSession.
 
     Args:
         session_model: Database session model
 
     Returns:
         ValidationSession: Pydantic validation session
+
     """
-    from ..core.models import (InputData, MigrationValidationRequest,
-                               TechnologyContext)
+    from ..core.models import InputData, TechnologyContext
 
     # Reconstruct technology contexts
     source_technology = TechnologyContext(
@@ -168,8 +166,7 @@ async def migrate_in_memory_sessions_to_db(
     memory_sessions: Dict[str, ValidationSession],
     session: AsyncSession,
 ) -> Dict[str, bool]:
-    """
-    Migrate in-memory validation sessions to database.
+    """Migrate in-memory validation sessions to database.
 
     Args:
         memory_sessions: Dictionary of in-memory sessions
@@ -177,6 +174,7 @@ async def migrate_in_memory_sessions_to_db(
 
     Returns:
         Dictionary mapping request_id to migration success status
+
     """
     migration_results = {}
 
@@ -247,8 +245,7 @@ async def cleanup_database(
     days_old: int = 30,
     include_failed: bool = True,
 ) -> Dict[str, int]:
-    """
-    Clean up old records from the database.
+    """Clean up old records from the database.
 
     Args:
         session: Database session
@@ -257,6 +254,7 @@ async def cleanup_database(
 
     Returns:
         Dictionary with cleanup counts by type
+
     """
     cutoff_date = datetime.utcnow() - timedelta(days=days_old)
     cleanup_counts = {}
@@ -276,7 +274,7 @@ async def cleanup_database(
             DELETE FROM validation_sessions
             WHERE created_at < :cutoff_date
             AND status IN ({status_placeholders})
-            """
+            """,
             ),
             {"cutoff_date": cutoff_date},
         )
@@ -288,8 +286,8 @@ async def cleanup_database(
                 """
             DELETE FROM validation_results
             WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-            """
-            )
+            """,
+            ),
         )
         cleanup_counts["orphaned_results"] = result.rowcount
 
@@ -298,8 +296,8 @@ async def cleanup_database(
                 """
             DELETE FROM validation_discrepancies
             WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-            """
-            )
+            """,
+            ),
         )
         cleanup_counts["orphaned_discrepancies"] = result.rowcount
 
@@ -308,8 +306,8 @@ async def cleanup_database(
                 """
             DELETE FROM behavioral_test_results
             WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-            """
-            )
+            """,
+            ),
         )
         cleanup_counts["orphaned_behavioral_tests"] = result.rowcount
 
@@ -327,14 +325,14 @@ async def cleanup_database(
 
 
 async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
-    """
-    Get comprehensive database statistics.
+    """Get comprehensive database statistics.
 
     Args:
         session: Database session
 
     Returns:
         Dictionary with database statistics
+
     """
     try:
         stats = {}
@@ -359,7 +357,7 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
                 """
             SELECT COUNT(*) FROM validation_sessions
             WHERE created_at >= :week_ago
-            """
+            """,
             ),
             {"week_ago": week_ago},
         )
@@ -374,8 +372,8 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
                 SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                 SUM(CASE WHEN status = 'error' THEN 1 ELSE 0 END) as failed
             FROM validation_sessions
-            """
-            )
+            """,
+            ),
         )
         row = result.fetchone()
         if row.total > 0:
@@ -391,7 +389,7 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
                 """
             SELECT AVG(fidelity_score) FROM validation_results
             WHERE created_at >= :week_ago
-            """
+            """,
             ),
             {"week_ago": week_ago},
         )
@@ -411,7 +409,7 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
             GROUP BY source_technology, target_technology
             ORDER BY count DESC
             LIMIT 5
-            """
+            """,
             ),
             {"week_ago": week_ago},
         )
@@ -432,7 +430,7 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
             GROUP BY discrepancy_type
             ORDER BY count DESC
             LIMIT 5
-            """
+            """,
             ),
             {"week_ago": week_ago},
         )
@@ -449,14 +447,14 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
 
 
 async def optimize_database_performance(session: AsyncSession) -> Dict[str, Any]:
-    """
-    Optimize database performance by analyzing and updating statistics.
+    """Optimize database performance by analyzing and updating statistics.
 
     Args:
         session: Database session
 
     Returns:
         Dictionary with optimization results
+
     """
     try:
         optimization_results = {}
@@ -488,8 +486,8 @@ async def optimize_database_performance(session: AsyncSession) -> Dict[str, Any]
                 SELECT schemaname, tablename, indexname, idx_tup_read, idx_tup_fetch
                 FROM pg_stat_user_indexes
                 WHERE idx_tup_read = 0 AND idx_tup_fetch = 0
-                """
-                )
+                """,
+                ),
             )
             unused_indexes = result.fetchall()
             optimization_results["unused_indexes"] = len(unused_indexes)
@@ -520,14 +518,14 @@ async def optimize_database_performance(session: AsyncSession) -> Dict[str, Any]
 
 
 async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
-    """
-    Validate database integrity and relationships.
+    """Validate database integrity and relationships.
 
     Args:
         session: Database session
 
     Returns:
         Dictionary with validation results
+
     """
     try:
         validation_results = {}
@@ -539,8 +537,8 @@ async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
                 """
             SELECT COUNT(*) FROM validation_results
             WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-            """
-            )
+            """,
+            ),
         )
         orphaned_results = result.scalar()
         if orphaned_results > 0:
@@ -551,8 +549,8 @@ async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
                 """
             SELECT COUNT(*) FROM validation_discrepancies
             WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-            """
-            )
+            """,
+            ),
         )
         orphaned_discrepancies = result.scalar()
         if orphaned_discrepancies > 0:
@@ -564,8 +562,8 @@ async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
                 """
             SELECT COUNT(*) FROM validation_sessions
             WHERE status = 'completed' AND id NOT IN (SELECT session_id FROM validation_results)
-            """
-            )
+            """,
+            ),
         )
         completed_without_results = result.scalar()
         if completed_without_results > 0:
@@ -577,8 +575,8 @@ async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
                 """
             SELECT COUNT(*) FROM validation_results
             WHERE fidelity_score < 0 OR fidelity_score > 1
-            """
-            )
+            """,
+            ),
         )
         invalid_scores = result.scalar()
         if invalid_scores > 0:
@@ -610,8 +608,7 @@ async def export_session_data(
     request_id: str,
     include_representations: bool = False,
 ) -> Optional[Dict[str, Any]]:
-    """
-    Export complete session data for backup or analysis.
+    """Export complete session data for backup or analysis.
 
     Args:
         session: Database session
@@ -620,16 +617,16 @@ async def export_session_data(
 
     Returns:
         Dictionary with complete session data or None if not found
+
     """
     try:
         # Get session with all related data
-        from sqlalchemy.orm import selectinload
 
         result = await session.execute(
             text(
                 """
             SELECT * FROM validation_sessions WHERE request_id = :request_id
-            """
+            """,
             ),
             {"request_id": request_id},
         )
@@ -649,7 +646,7 @@ async def export_session_data(
                 """
             SELECT * FROM validation_results WHERE session_id = :session_id
             ORDER BY created_at DESC
-            """
+            """,
             ),
             {"session_id": session_data["id"]},
         )
@@ -673,7 +670,7 @@ async def export_session_data(
                 """
             SELECT * FROM validation_discrepancies WHERE session_id = :session_id
             ORDER BY severity DESC, created_at DESC
-            """
+            """,
             ),
             {"session_id": session_data["id"]},
         )
@@ -694,7 +691,7 @@ async def export_session_data(
                 """
             SELECT * FROM behavioral_test_results WHERE session_id = :session_id
             ORDER BY created_at
-            """
+            """,
             ),
             {"session_id": session_data["id"]},
         )

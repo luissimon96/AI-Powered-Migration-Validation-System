@@ -1,15 +1,12 @@
-"""
-Structured logging implementation for I002.
+"""Structured logging implementation for I002.
 JSON-formatted logging with comprehensive context tracking.
 """
 
-import json
 import logging
 import sys
 import uuid
 from contextlib import contextmanager
-from datetime import datetime
-from typing import Any, Dict, Optional, Union
+from typing import Dict, Optional
 
 import structlog
 
@@ -26,12 +23,11 @@ class StructuredLogger:
 
     def _configure_structlog(self):
         """Configure structlog for JSON output."""
-        
         # Configure stdlib logging
         logging.basicConfig(
             format="%(message)s",
             stream=sys.stdout,
-            level=getattr(logging, self.config.settings.log_level.upper())
+            level=getattr(logging, self.config.settings.log_level.upper()),
         )
 
         # Configure structlog
@@ -42,10 +38,10 @@ class StructuredLogger:
                 structlog.processors.TimeStamper(fmt="iso"),
                 self._add_service_context,
                 self._add_request_id,
-                structlog.processors.JSONRenderer()
+                structlog.processors.JSONRenderer(),
             ],
             wrapper_class=structlog.make_filtering_bound_logger(
-                getattr(logging, self.config.settings.log_level.upper())
+                getattr(logging, self.config.settings.log_level.upper()),
             ),
             logger_factory=structlog.WriteLoggerFactory(),
             cache_logger_on_first_use=True,
@@ -59,7 +55,7 @@ class StructuredLogger:
             "service": "migration-validator",
             "version": "1.0.0",
             "environment": self.config.settings.environment,
-            "hostname": self._get_hostname()
+            "hostname": self._get_hostname(),
         })
         return event_dict
 
@@ -82,7 +78,7 @@ class StructuredLogger:
         """Get current request ID from context."""
         try:
             import contextvars
-            return getattr(contextvars, 'request_id', {}).get()
+            return getattr(contextvars, "request_id", {}).get()
         except:
             return None
 
@@ -94,7 +90,7 @@ class StructuredLogger:
 
         try:
             import contextvars
-            token = contextvars.request_id.set(request_id) if hasattr(contextvars, 'request_id') else None
+            token = contextvars.request_id.set(request_id) if hasattr(contextvars, "request_id") else None
             yield request_id
         finally:
             if token:
@@ -120,8 +116,8 @@ class StructuredLogger:
         """Log critical level message."""
         self.logger.critical(message, **kwargs)
 
-    def log_request(self, method: str, path: str, status_code: int, 
-                   duration: float, **kwargs):
+    def log_request(self, method: str, path: str, status_code: int,
+                    duration: float, **kwargs):
         """Log HTTP request with structured format."""
         self.info(
             "HTTP request completed",
@@ -129,11 +125,11 @@ class StructuredLogger:
             http_path=path,
             http_status_code=status_code,
             duration_ms=round(duration * 1000, 2),
-            **kwargs
+            **kwargs,
         )
 
-    def log_validation_start(self, source_tech: str, target_tech: str, 
-                           scope: str, file_count: int, **kwargs):
+    def log_validation_start(self, source_tech: str, target_tech: str,
+                             scope: str, file_count: int, **kwargs):
         """Log validation start."""
         self.info(
             "Validation started",
@@ -142,12 +138,12 @@ class StructuredLogger:
             target_technology=target_tech,
             validation_scope=scope,
             file_count=file_count,
-            **kwargs
+            **kwargs,
         )
 
     def log_validation_complete(self, source_tech: str, target_tech: str,
-                              fidelity_score: float, duration: float,
-                              status: str, **kwargs):
+                                fidelity_score: float, duration: float,
+                                status: str, **kwargs):
         """Log validation completion."""
         self.info(
             "Validation completed",
@@ -157,11 +153,11 @@ class StructuredLogger:
             fidelity_score=fidelity_score,
             duration_seconds=duration,
             validation_status=status,
-            **kwargs
+            **kwargs,
         )
 
     def log_llm_request(self, provider: str, model: str, tokens_used: int,
-                       duration: float, cost: float, **kwargs):
+                        duration: float, cost: float, **kwargs):
         """Log LLM API request."""
         self.info(
             "LLM request completed",
@@ -171,11 +167,11 @@ class StructuredLogger:
             tokens_used=tokens_used,
             duration_seconds=duration,
             estimated_cost_usd=cost,
-            **kwargs
+            **kwargs,
         )
 
-    def log_error(self, error: Exception, component: str, 
-                 operation: str, **kwargs):
+    def log_error(self, error: Exception, component: str,
+                  operation: str, **kwargs):
         """Log error with comprehensive context."""
         self.error(
             "Error occurred",
@@ -184,11 +180,11 @@ class StructuredLogger:
             error_message=str(error),
             component=component,
             operation=operation,
-            **kwargs
+            **kwargs,
         )
 
     def log_security_event(self, event_type: str, user_id: str,
-                          ip_address: str, **kwargs):
+                           ip_address: str, **kwargs):
         """Log security-related events."""
         self.warning(
             "Security event",
@@ -196,11 +192,11 @@ class StructuredLogger:
             security_event_type=event_type,
             user_id=user_id,
             ip_address=ip_address,
-            **kwargs
+            **kwargs,
         )
 
     def log_performance_alert(self, metric_name: str, current_value: float,
-                            threshold: float, **kwargs):
+                              threshold: float, **kwargs):
         """Log performance alerts."""
         self.warning(
             "Performance alert",
@@ -208,7 +204,7 @@ class StructuredLogger:
             metric_name=metric_name,
             current_value=current_value,
             threshold=threshold,
-            **kwargs
+            **kwargs,
         )
 
     def log_business_event(self, event_type: str, **kwargs):
@@ -217,7 +213,7 @@ class StructuredLogger:
             "Business event",
             event_type="business",
             business_event_type=event_type,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -230,7 +226,7 @@ class LoggingMiddleware:
     async def __call__(self, request, call_next):
         """Process request with logging."""
         import time
-        
+
         request_id = str(uuid.uuid4())
         start_time = time.time()
 
@@ -244,34 +240,34 @@ class LoggingMiddleware:
                     http_method=request.method,
                     http_path=request.url.path,
                     http_query=str(request.url.query) if request.url.query else None,
-                    user_agent=request.headers.get('user-agent'),
-                    client_ip=request.client.host if request.client else None
+                    user_agent=request.headers.get("user-agent"),
+                    client_ip=request.client.host if request.client else None,
                 )
 
                 response = await call_next(request)
-                
+
                 duration = time.time() - start_time
                 self.logger.log_request(
                     method=request.method,
                     path=request.url.path,
                     status_code=response.status_code,
-                    duration=duration
+                    duration=duration,
                 )
 
                 return response
 
         except Exception as e:
             duration = time.time() - start_time
-            
+
             self.logger.log_error(
                 error=e,
                 component="http_middleware",
                 operation="request_processing",
                 http_method=request.method,
                 http_path=request.url.path,
-                duration_seconds=duration
+                duration_seconds=duration,
             )
-            
+
             # Re-raise to let FastAPI handle the error
             raise
 
@@ -288,37 +284,37 @@ class AlertManager:
         return {
             "response_time": {
                 "warning": 5.0,  # 5 seconds
-                "critical": 10.0  # 10 seconds
+                "critical": 10.0,  # 10 seconds
             },
             "error_rate": {
                 "warning": 0.05,  # 5%
-                "critical": 0.10   # 10%
+                "critical": 0.10,   # 10%
             },
             "queue_size": {
                 "warning": 50,
-                "critical": 100
+                "critical": 100,
             },
             "memory_usage": {
                 "warning": 0.80,  # 80%
-                "critical": 0.90   # 90%
+                "critical": 0.90,   # 90%
             },
             "llm_cost": {
                 "warning": 100.0,  # $100/day
-                "critical": 200.0   # $200/day
-            }
+                "critical": 200.0,   # $200/day
+            },
         }
 
     def check_response_time_alert(self, duration: float, endpoint: str):
         """Check for response time alerts."""
         thresholds = self.alert_thresholds["response_time"]
-        
+
         if duration > thresholds["critical"]:
             self.logger.log_performance_alert(
                 metric_name="response_time",
                 current_value=duration,
                 threshold=thresholds["critical"],
                 severity="critical",
-                endpoint=endpoint
+                endpoint=endpoint,
             )
         elif duration > thresholds["warning"]:
             self.logger.log_performance_alert(
@@ -326,20 +322,20 @@ class AlertManager:
                 current_value=duration,
                 threshold=thresholds["warning"],
                 severity="warning",
-                endpoint=endpoint
+                endpoint=endpoint,
             )
 
     def check_queue_size_alert(self, queue_size: int, queue_name: str):
         """Check for queue size alerts."""
         thresholds = self.alert_thresholds["queue_size"]
-        
+
         if queue_size > thresholds["critical"]:
             self.logger.log_performance_alert(
                 metric_name="queue_size",
                 current_value=queue_size,
                 threshold=thresholds["critical"],
                 severity="critical",
-                queue_name=queue_name
+                queue_name=queue_name,
             )
         elif queue_size > thresholds["warning"]:
             self.logger.log_performance_alert(
@@ -347,20 +343,20 @@ class AlertManager:
                 current_value=queue_size,
                 threshold=thresholds["warning"],
                 severity="warning",
-                queue_name=queue_name
+                queue_name=queue_name,
             )
 
     def check_error_rate_alert(self, error_rate: float, component: str):
         """Check for error rate alerts."""
         thresholds = self.alert_thresholds["error_rate"]
-        
+
         if error_rate > thresholds["critical"]:
             self.logger.log_performance_alert(
                 metric_name="error_rate",
                 current_value=error_rate,
                 threshold=thresholds["critical"],
                 severity="critical",
-                component=component
+                component=component,
             )
         elif error_rate > thresholds["warning"]:
             self.logger.log_performance_alert(
@@ -368,7 +364,7 @@ class AlertManager:
                 current_value=error_rate,
                 threshold=thresholds["warning"],
                 severity="warning",
-                component=component
+                component=component,
             )
 
 

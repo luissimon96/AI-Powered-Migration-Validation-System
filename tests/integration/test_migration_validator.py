@@ -1,5 +1,4 @@
-"""
-Integration tests for migration validator.
+"""Integration tests for migration validator.
 """
 
 from unittest.mock import patch
@@ -41,7 +40,7 @@ class TestMigrationValidatorIntegration:
         mock_llm_service.generate_response.assert_called()
 
     async def test_validation_with_different_scopes(
-        self, sample_validation_request, mock_llm_service
+        self, sample_validation_request, mock_llm_service,
     ):
         """Test validation with different validation scopes."""
         validator = MigrationValidator(llm_client=mock_llm_service)
@@ -83,7 +82,7 @@ class TestMigrationValidatorConfiguration:
         # Mock configuration
         mock_config = ValidationConfig.__new__(ValidationConfig)
         mock_config.get_default_llm_config = lambda: LLMProviderConfig(
-            provider="openai", model="gpt-4", api_key="test-key", enabled=True
+            provider="openai", model="gpt-4", api_key="test-key", enabled=True,
         )
         mock_get_config.return_value = mock_config
 

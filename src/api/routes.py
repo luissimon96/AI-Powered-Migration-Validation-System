@@ -1,5 +1,4 @@
-"""
-FastAPI routes for AI-Powered Migration Validation System.
+"""FastAPI routes for AI-Powered Migration Validation System.
 
 Provides REST API endpoints for migration validation functionality:
 - Technology options and validation
@@ -8,20 +7,17 @@ Provides REST API endpoints for migration validation functionality:
 - Report generation and retrieval
 """
 
-import asyncio
 import json
 import os
-import tempfile
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from fastapi import (BackgroundTasks, Depends, FastAPI, File, Form,
-                     HTTPException, UploadFile)
+from fastapi import BackgroundTasks, Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class UserRole(str, Enum):
@@ -56,7 +52,6 @@ from src.api.async_routes import router as async_router
 
 def create_app() -> FastAPI:
     """Create and configure FastAPI application."""
-
     app = FastAPI(
         title="AI-Powered Migration Validation System",
         description="Validates code migrations between different technologies using AI-powered analysis",
@@ -151,7 +146,7 @@ def create_app() -> FastAPI:
             return TechnologyOptionsResponse(**options)
         except Exception as e:
             raise HTTPException(
-                status_code=500, detail=f"Failed to get technology options: {str(e)}"
+                status_code=500, detail=f"Failed to get technology options: {e!s}",
             )
 
     @app.post(
@@ -169,7 +164,7 @@ def create_app() -> FastAPI:
             )
             return CompatibilityCheckResponse(**result)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Compatibility check failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Compatibility check failed: {e!s}")
 
     @app.get(
         "/api/capabilities",
@@ -182,7 +177,7 @@ def create_app() -> FastAPI:
             capabilities = validator.get_supported_technologies()
             return capabilities
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to get capabilities: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to get capabilities: {e!s}")
 
     @app.post("/api/upload/source", tags=["File Management"])
     async def upload_source_files(files: List[UploadFile] = File(...)):
@@ -211,7 +206,7 @@ def create_app() -> FastAPI:
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Upload failed: {e!s}")
 
     @app.post("/api/upload/target", tags=["File Management"])
     async def upload_target_files(files: List[UploadFile] = File(...)):
@@ -240,7 +235,7 @@ def create_app() -> FastAPI:
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Upload failed: {e!s}")
 
     @app.post("/api/validate", tags=["Validation"])
     async def validate_migration(
@@ -251,8 +246,7 @@ def create_app() -> FastAPI:
         target_files: List[UploadFile] = File(default=[]),
         target_screenshots: List[UploadFile] = File(default=[]),
     ):
-        """
-        Execute migration validation with uploaded files.
+        """Execute migration validation with uploaded files.
 
         This endpoint handles file uploads and starts validation process in background.
         """
@@ -278,7 +272,7 @@ def create_app() -> FastAPI:
 
                 if source_uploaded:
                     source_file_paths = input_processor.upload_files(
-                        source_uploaded, "source_validation"
+                        source_uploaded, "source_validation",
                     )
 
             # Handle source screenshots
@@ -291,7 +285,7 @@ def create_app() -> FastAPI:
 
                 if source_screenshot_uploaded:
                     source_screenshot_paths = input_processor.upload_files(
-                        source_screenshot_uploaded, "source_screenshots"
+                        source_screenshot_uploaded, "source_screenshots",
                     )
 
             # Handle target files
@@ -304,7 +298,7 @@ def create_app() -> FastAPI:
 
                 if target_uploaded:
                     target_file_paths = input_processor.upload_files(
-                        target_uploaded, "target_validation"
+                        target_uploaded, "target_validation",
                     )
 
             # Handle target screenshots
@@ -317,7 +311,7 @@ def create_app() -> FastAPI:
 
                 if target_screenshot_uploaded:
                     target_screenshot_paths = input_processor.upload_files(
-                        target_screenshot_uploaded, "target_screenshots"
+                        target_screenshot_uploaded, "target_screenshots",
                     )
 
             # Create validation request
@@ -371,7 +365,7 @@ def create_app() -> FastAPI:
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Validation failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Validation failed: {e!s}")
 
     @app.get(
         "/api/validate/{request_id}/status",
@@ -440,12 +434,12 @@ def create_app() -> FastAPI:
 
     @app.get("/api/validate/{request_id}/report", tags=["Reports"])
     async def get_validation_report(request_id: str, format: str = "json"):
-        """
-        Get detailed validation report.
+        """Get detailed validation report.
 
         Args:
             request_id: Validation request ID
             format: Report format (json, html, markdown)
+
         """
         if request_id not in validation_sessions:
             raise HTTPException(status_code=404, detail="Validation request not found")
@@ -463,27 +457,27 @@ def create_app() -> FastAPI:
                     content=report_content,
                     media_type="text/html",
                     headers={
-                        "Content-Disposition": f"attachment; filename=validation_report_{request_id}.html"
+                        "Content-Disposition": f"attachment; filename=validation_report_{request_id}.html",
                     },
                 )
-            elif format.lower() == "markdown":
+            if format.lower() == "markdown":
                 return PlainTextResponse(
                     content=report_content,
                     media_type="text/markdown",
                     headers={
-                        "Content-Disposition": f"attachment; filename=validation_report_{request_id}.md"
+                        "Content-Disposition": f"attachment; filename=validation_report_{request_id}.md",
                     },
                 )
-            else:  # JSON
-                return JSONResponse(
-                    content=json.loads(report_content),
-                    headers={
-                        "Content-Disposition": f"attachment; filename=validation_report_{request_id}.json"
-                    },
-                )
+            # JSON
+            return JSONResponse(
+                content=json.loads(report_content),
+                headers={
+                    "Content-Disposition": f"attachment; filename=validation_report_{request_id}.json",
+                },
+            )
 
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Report generation failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Report generation failed: {e!s}")
 
     @app.get("/api/validate/{request_id}/logs", tags=["Validation"])
     async def get_validation_logs(request_id: str):
@@ -541,17 +535,16 @@ def create_app() -> FastAPI:
                     "target_technology": session.request.target_technology.type.value,
                     "validation_scope": session.request.validation_scope.value,
                     "fidelity_score": (session.result.fidelity_score if session.result else None),
-                }
+                },
             )
 
         return {"sessions": sessions_info, "total_count": len(sessions_info)}
 
     @app.post("/api/behavioral/validate", tags=["Behavioral Validation"])
     async def start_behavioral_validation(
-        background_tasks: BackgroundTasks, request: BehavioralValidationRequestModel
+        background_tasks: BackgroundTasks, request: BehavioralValidationRequestModel,
     ):
-        """
-        Start behavioral validation with source and target URLs.
+        """Start behavioral validation with source and target URLs.
 
         This endpoint initiates behavioral testing using browser automation
         to compare user interactions between source and target systems.
@@ -582,7 +575,7 @@ def create_app() -> FastAPI:
 
             # Start validation in background
             background_tasks.add_task(
-                run_behavioral_validation_background, request_id, behavioral_request
+                run_behavioral_validation_background, request_id, behavioral_request,
             )
 
             return {
@@ -595,7 +588,7 @@ def create_app() -> FastAPI:
         except Exception as e:
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to start behavioral validation: {str(e)}",
+                detail=f"Failed to start behavioral validation: {e!s}",
             )
 
     @app.get(
@@ -650,7 +643,7 @@ def create_app() -> FastAPI:
                     "target_element": discrepancy.target_element,
                     "recommendation": discrepancy.recommendation,
                     "confidence": discrepancy.confidence,
-                }
+                },
             )
 
         return BehavioralValidationResultResponse(
@@ -672,8 +665,7 @@ def create_app() -> FastAPI:
         target_files: List[UploadFile] = File(default=[]),
         target_screenshots: List[UploadFile] = File(default=[]),
     ):
-        """
-        Execute hybrid validation combining static analysis and behavioral testing.
+        """Execute hybrid validation combining static analysis and behavioral testing.
 
         This endpoint handles both file-based static analysis and URL-based behavioral
         validation, providing a comprehensive migration assessment.
@@ -689,7 +681,7 @@ def create_app() -> FastAPI:
 
             # Determine validation types to perform
             perform_static = bool(
-                source_files or target_files or source_screenshots or target_screenshots
+                source_files or target_files or source_screenshots or target_screenshots,
             )
             perform_behavioral = bool(hybrid_request.source_url and hybrid_request.target_url)
 
@@ -703,7 +695,7 @@ def create_app() -> FastAPI:
             validation_sessions[request_id] = ValidationSession(
                 request=None,  # Will be populated during processing
                 processing_log=[
-                    f"Hybrid validation started - Static: {perform_static}, Behavioral: {perform_behavioral}"
+                    f"Hybrid validation started - Static: {perform_static}, Behavioral: {perform_behavioral}",
                 ],
             )
 
@@ -739,7 +731,7 @@ def create_app() -> FastAPI:
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Hybrid validation failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Hybrid validation failed: {e!s}")
 
     @app.get("/api/behavioral/{request_id}/logs", tags=["Behavioral Validation"])
     async def get_behavioral_validation_logs(request_id: str):
@@ -783,7 +775,7 @@ def create_app() -> FastAPI:
                     "fidelity_score": (
                         session["result"].fidelity_score if session["result"] else None
                     ),
-                }
+                },
             )
 
         return {"sessions": sessions_info, "total_count": len(sessions_info)}
@@ -795,7 +787,7 @@ def create_app() -> FastAPI:
 
 
 async def run_validation_background(
-    request_id: str, migration_request, validator: MigrationValidator
+    request_id: str, migration_request, validator: MigrationValidator,
 ):
     """Run validation in background task."""
     try:
@@ -805,20 +797,20 @@ async def run_validation_background(
         # Update session with error
         if request_id in validation_sessions:
             session = validation_sessions[request_id]
-            session.add_log(f"Validation failed: {str(e)}")
+            session.add_log(f"Validation failed: {e!s}")
             # Create error result
             from ..core.models import ValidationResult
 
             session.result = ValidationResult(
                 overall_status="error",
                 fidelity_score=0.0,
-                summary=f"Validation failed: {str(e)}",
+                summary=f"Validation failed: {e!s}",
                 discrepancies=[],
             )
 
 
 async def run_behavioral_validation_background(
-    request_id: str, behavioral_request: BehavioralValidationRequest
+    request_id: str, behavioral_request: BehavioralValidationRequest,
 ):
     """Run behavioral validation in background task."""
     try:
@@ -829,7 +821,7 @@ async def run_behavioral_validation_background(
                 "progress"
             ] = "Initializing behavioral validation crew"
             behavioral_validation_sessions[request_id]["logs"].append(
-                "Starting behavioral validation crew"
+                "Starting behavioral validation crew",
             )
 
         # Create behavioral validation crew
@@ -841,7 +833,7 @@ async def run_behavioral_validation_background(
                 "progress"
             ] = "Executing behavioral validation scenarios"
             behavioral_validation_sessions[request_id]["logs"].append(
-                "Behavioral validation crew initialized, starting validation"
+                "Behavioral validation crew initialized, starting validation",
             )
 
         # Execute behavioral validation
@@ -855,7 +847,7 @@ async def run_behavioral_validation_background(
             ] = "Behavioral validation completed"
             behavioral_validation_sessions[request_id]["result"] = result
             behavioral_validation_sessions[request_id]["logs"].append(
-                f"Behavioral validation completed with fidelity score: {result.fidelity_score:.2f}"
+                f"Behavioral validation completed with fidelity score: {result.fidelity_score:.2f}",
             )
 
     except Exception as e:
@@ -864,9 +856,9 @@ async def run_behavioral_validation_background(
             behavioral_validation_sessions[request_id]["status"] = "error"
             behavioral_validation_sessions[request_id][
                 "progress"
-            ] = f"Behavioral validation failed: {str(e)}"
+            ] = f"Behavioral validation failed: {e!s}"
             behavioral_validation_sessions[request_id]["logs"].append(
-                f"Behavioral validation error: {str(e)}"
+                f"Behavioral validation error: {e!s}",
             )
 
             # Create error result
@@ -879,11 +871,11 @@ async def run_behavioral_validation_background(
                     ValidationDiscrepancy(
                         type="behavioral_validation_error",
                         severity=SeverityLevel.CRITICAL,
-                        description=f"Behavioral validation failed: {str(e)}",
+                        description=f"Behavioral validation failed: {e!s}",
                         recommendation="Review system configuration and retry validation",
-                    )
+                    ),
                 ],
-                execution_log=[f"Error: {str(e)}"],
+                execution_log=[f"Error: {e!s}"],
                 execution_time=0.0,
                 timestamp=datetime.now(),
             )
@@ -927,7 +919,7 @@ async def run_hybrid_validation_background(
 
                 if source_uploaded:
                     source_file_paths = input_processor.upload_files(
-                        source_uploaded, "hybrid_source"
+                        source_uploaded, "hybrid_source",
                     )
 
             # Handle source screenshots
@@ -940,7 +932,7 @@ async def run_hybrid_validation_background(
 
                 if source_screenshot_uploaded:
                     source_screenshot_paths = input_processor.upload_files(
-                        source_screenshot_uploaded, "hybrid_source_screenshots"
+                        source_screenshot_uploaded, "hybrid_source_screenshots",
                     )
 
             # Handle target files
@@ -953,7 +945,7 @@ async def run_hybrid_validation_background(
 
                 if target_uploaded:
                     target_file_paths = input_processor.upload_files(
-                        target_uploaded, "hybrid_target"
+                        target_uploaded, "hybrid_target",
                     )
 
             # Handle target screenshots
@@ -966,7 +958,7 @@ async def run_hybrid_validation_background(
 
                 if target_screenshot_uploaded:
                     target_screenshot_paths = input_processor.upload_files(
-                        target_screenshot_uploaded, "hybrid_target_screenshots"
+                        target_screenshot_uploaded, "hybrid_target_screenshots",
                     )
 
             # Create static validation request
@@ -990,7 +982,7 @@ async def run_hybrid_validation_background(
             static_session = await validator.validate_migration(migration_request)
             static_result = static_session.result
             session.add_log(
-                f"Static validation completed with fidelity score: {static_result.fidelity_score:.2f}"
+                f"Static validation completed with fidelity score: {static_result.fidelity_score:.2f}",
             )
 
         # Perform behavioral validation if URLs were provided
@@ -1011,7 +1003,7 @@ async def run_hybrid_validation_background(
             crew = create_behavioral_validation_crew()
             behavioral_result = await crew.validate_migration(behavioral_request)
             session.add_log(
-                f"Behavioral validation completed with fidelity score: {behavioral_result.fidelity_score:.2f}"
+                f"Behavioral validation completed with fidelity score: {behavioral_result.fidelity_score:.2f}",
             )
 
         # Combine results
@@ -1061,19 +1053,19 @@ async def run_hybrid_validation_background(
         # Update session with error
         if request_id in validation_sessions:
             session = validation_sessions[request_id]
-            session.add_log(f"Hybrid validation failed: {str(e)}")
+            session.add_log(f"Hybrid validation failed: {e!s}")
 
             session.result = ValidationResult(
                 overall_status="error",
                 fidelity_score=0.0,
-                summary=f"Hybrid validation failed: {str(e)}",
+                summary=f"Hybrid validation failed: {e!s}",
                 discrepancies=[
                     ValidationDiscrepancy(
                         type="hybrid_validation_error",
                         severity=SeverityLevel.CRITICAL,
-                        description=f"Hybrid validation failed: {str(e)}",
+                        description=f"Hybrid validation failed: {e!s}",
                         recommendation="Review system configuration and retry validation",
-                    )
+                    ),
                 ],
             )
 

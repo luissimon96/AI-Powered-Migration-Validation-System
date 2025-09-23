@@ -1,5 +1,4 @@
-"""
-Security configuration module for production-grade security settings.
+"""Security configuration module for production-grade security settings.
 
 Centralizes all security-related configuration including authentication,
 encryption, rate limiting, and monitoring settings.
@@ -198,7 +197,7 @@ class SecurityConfig(BaseModel):
                 enable_rate_limiting=False,
                 strict_csp=False,
             )
-        elif self.security_level == SecurityLevel.MEDIUM:
+        if self.security_level == SecurityLevel.MEDIUM:
             return SecurityPolicy(
                 min_password_length=8,
                 max_login_attempts=7,
@@ -206,7 +205,7 @@ class SecurityConfig(BaseModel):
                 require_https=True,
                 allow_http_dev_only=True,
             )
-        elif self.security_level == SecurityLevel.HIGH:
+        if self.security_level == SecurityLevel.HIGH:
             return SecurityPolicy(
                 min_password_length=10,
                 require_mfa=False,  # Optional for high
@@ -216,19 +215,19 @@ class SecurityConfig(BaseModel):
                 allow_http_dev_only=False,
                 scan_for_malware=True,
             )
-        else:  # CRITICAL
-            return SecurityPolicy(
-                min_password_length=12,
-                require_mfa=True,
-                max_login_attempts=3,
-                lockout_duration_minutes=30,
-                require_https=True,
-                allow_http_dev_only=False,
-                scan_for_malware=True,
-                quarantine_suspicious_files=True,
-                strict_csp=True,
-                enable_hsts=True,
-            )
+        # CRITICAL
+        return SecurityPolicy(
+            min_password_length=12,
+            require_mfa=True,
+            max_login_attempts=3,
+            lockout_duration_minutes=30,
+            require_https=True,
+            allow_http_dev_only=False,
+            scan_for_malware=True,
+            quarantine_suspicious_files=True,
+            strict_csp=True,
+            enable_hsts=True,
+        )
 
     def is_development(self) -> bool:
         """Check if running in development environment."""
@@ -265,15 +264,14 @@ class SecurityConfig(BaseModel):
                 "base-uri 'self'; "
                 "form-action 'self';"
             )
-        else:
-            return (
-                "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                "style-src 'self' 'unsafe-inline'; "
-                "img-src 'self' data: https:; "
-                "connect-src 'self' https:; "
-                "object-src 'none';"
-            )
+        return (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https:; "
+            "object-src 'none';"
+        )
 
 
 class SecurityConstants:
@@ -313,7 +311,7 @@ class SecurityConstants:
 
 
 def create_security_config(
-    environment: Optional[str] = None, security_level: Optional[SecurityLevel] = None
+    environment: Optional[str] = None, security_level: Optional[SecurityLevel] = None,
 ) -> SecurityConfig:
     """Factory function to create security configuration."""
     settings = get_settings()

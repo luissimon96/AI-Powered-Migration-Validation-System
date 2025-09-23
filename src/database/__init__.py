@@ -1,5 +1,4 @@
-"""
-Database layer for AI-Powered Migration Validation System.
+"""Database layer for AI-Powered Migration Validation System.
 
 This module provides:
 - SQLAlchemy models and configuration
@@ -9,22 +8,24 @@ This module provides:
 """
 
 from .config import DatabaseConfig, get_database_config
-from .models import (Base, DiscrepancyModel, ValidationResultModel,
-                     ValidationSessionModel)
-from .repositories import (DiscrepancyRepository, ValidationResultRepository,
-                           ValidationSessionRepository)
+from .models import Base, DiscrepancyModel, ValidationResultModel, ValidationSessionModel
+from .repositories import (
+                     DiscrepancyRepository,
+                     ValidationResultRepository,
+                     ValidationSessionRepository,
+)
 from .session import DatabaseManager, get_db_session
 
 __all__ = [
-    "DatabaseConfig",
-    "get_database_config",
-    "Base",
-    "ValidationSessionModel",
-    "ValidationResultModel",
-    "DiscrepancyModel",
-    "DatabaseManager",
-    "get_db_session",
-    "ValidationSessionRepository",
-    "ValidationResultRepository",
-    "DiscrepancyRepository",
+                     "Base",
+                     "DatabaseConfig",
+                     "DatabaseManager",
+                     "DiscrepancyModel",
+                     "DiscrepancyRepository",
+                     "ValidationResultModel",
+                     "ValidationResultRepository",
+                     "ValidationSessionModel",
+                     "ValidationSessionRepository",
+                     "get_database_config",
+                     "get_db_session",
 ]

@@ -1,15 +1,13 @@
-"""
-Base analyzer interface for feature extraction.
+"""Base analyzer interface for feature extraction.
 
 Defines the common interface for all analyzer implementations in the
 migration validation system.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import List
 
-from ..core.models import (AbstractRepresentation, InputData,
-                           TechnologyContext, ValidationScope)
+from ..core.models import AbstractRepresentation, InputData, TechnologyContext, ValidationScope
 
 
 class BaseAnalyzer(ABC):
@@ -22,10 +20,9 @@ class BaseAnalyzer(ABC):
 
     @abstractmethod
     async def analyze(
-        self, input_data: InputData, scope: ValidationScope
+        self, input_data: InputData, scope: ValidationScope,
     ) -> AbstractRepresentation:
-        """
-        Analyze input data and extract abstract representation.
+        """Analyze input data and extract abstract representation.
 
         Args:
             input_data: Input data to analyze
@@ -33,13 +30,12 @@ class BaseAnalyzer(ABC):
 
         Returns:
             Abstract representation of the analyzed system
+
         """
-        pass
 
     @abstractmethod
     def supports_scope(self, scope: ValidationScope) -> bool:
         """Check if analyzer supports the given validation scope."""
-        pass
 
     def get_supported_scopes(self) -> List[ValidationScope]:
         """Get list of supported validation scopes."""
@@ -49,22 +45,18 @@ class BaseAnalyzer(ABC):
 class AnalyzerError(Exception):
     """Base exception for analyzer errors."""
 
-    pass
 
 
 class UnsupportedScopeError(AnalyzerError):
     """Raised when analyzer doesn't support requested scope."""
 
-    pass
 
 
 class InvalidInputError(AnalyzerError):
     """Raised when input data is invalid or cannot be processed."""
 
-    pass
 
 
 class ExtractionError(AnalyzerError):
     """Raised when feature extraction fails."""
 
-    pass

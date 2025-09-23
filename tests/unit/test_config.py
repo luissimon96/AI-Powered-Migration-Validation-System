@@ -1,16 +1,19 @@
-"""
-Unit tests for configuration management.
+"""Unit tests for configuration management.
 """
 
 import os
-import tempfile
 from unittest.mock import mock_open, patch
 
 import pytest
 
-from src.core.config import (BrowserAutomationConfig, LLMProviderConfig,
-                             ValidationConfig, get_validation_config,
-                             load_config_from_file, validate_config)
+from src.core.config import (
+    BrowserAutomationConfig,
+    LLMProviderConfig,
+    ValidationConfig,
+    get_validation_config,
+    load_config_from_file,
+    validate_config,
+)
 
 
 @pytest.mark.unit
@@ -29,11 +32,11 @@ class TestValidationConfig:
     def test_config_with_custom_values(self):
         """Test creating configuration with custom values."""
         llm_config = LLMProviderConfig(
-            provider="openai", model="gpt-4", api_key="test-key", enabled=True
+            provider="openai", model="gpt-4", api_key="test-key", enabled=True,
         )
 
         config = ValidationConfig(
-            default_llm_provider="openai", llm_providers={"openai": llm_config}
+            default_llm_provider="openai", llm_providers={"openai": llm_config},
         )
 
         assert config.default_llm_provider == "openai"
@@ -43,11 +46,11 @@ class TestValidationConfig:
     def test_get_default_llm_config(self):
         """Test getting default LLM configuration."""
         llm_config = LLMProviderConfig(
-            provider="anthropic", model="claude-3", api_key="test-key", enabled=True
+            provider="anthropic", model="claude-3", api_key="test-key", enabled=True,
         )
 
         config = ValidationConfig(
-            default_llm_provider="anthropic", llm_providers={"anthropic": llm_config}
+            default_llm_provider="anthropic", llm_providers={"anthropic": llm_config},
         )
 
         default_config = config.get_default_llm_config()
@@ -118,7 +121,7 @@ class TestLLMProviderConfig:
     def test_get_provider_info(self):
         """Test getting provider information."""
         config = LLMProviderConfig(
-            provider="google", model="gemini-pro", api_key="test-key", max_tokens=8000
+            provider="google", model="gemini-pro", api_key="test-key", max_tokens=8000,
         )
 
         info = config.get_provider_info()
@@ -180,7 +183,7 @@ class TestConfigLoading:
                     "model": "gpt-4",
                     "api_key": "sk-test",
                     "enabled": True,
-                }
+                },
             },
             "browser_config": {"browser": "chrome", "headless": True, "timeout": 30},
         }
@@ -293,7 +296,7 @@ class TestConfigValidation:
                     "model": "gpt-4",
                     "api_key": "sk-test",
                     "enabled": True,
-                }
+                },
             },
         }
 

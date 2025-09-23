@@ -1,5 +1,4 @@
-"""
-Security headers module for HTTP security headers management.
+"""Security headers module for HTTP security headers management.
 
 Provides comprehensive security headers configuration for API protection
 against common web vulnerabilities.
@@ -20,14 +19,14 @@ class SecurityHeaders:
         remove_server_header: bool = True,
         strict_mode: bool = False,
     ):
-        """
-        Initialize security headers manager.
+        """Initialize security headers manager.
 
         Args:
             custom_csp: Custom Content Security Policy
             additional_headers: Additional custom headers
             remove_server_header: Whether to remove/replace server header
             strict_mode: Enable strict security mode
+
         """
         self.custom_csp = custom_csp
         self.additional_headers = additional_headers or {}
@@ -77,22 +76,21 @@ class SecurityHeaders:
                 "upgrade-insecure-requests; "
                 "block-all-mixed-content;"
             )
-        else:
-            # Balanced CSP for functionality and security
-            return (
-                "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                "style-src 'self' 'unsafe-inline'; "
-                "img-src 'self' data: https:; "
-                "font-src 'self' https:; "
-                "connect-src 'self' https:; "
-                "media-src 'self'; "
-                "object-src 'none'; "
-                "child-src 'none'; "
-                "frame-src 'none'; "
-                "form-action 'self'; "
-                "base-uri 'self';"
-            )
+        # Balanced CSP for functionality and security
+        return (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' https:; "
+            "connect-src 'self' https:; "
+            "media-src 'self'; "
+            "object-src 'none'; "
+            "child-src 'none'; "
+            "frame-src 'none'; "
+            "form-action 'self'; "
+            "base-uri 'self';"
+        )
 
     def get_hsts_header(self, max_age: int = 31536000, include_subdomains: bool = True) -> str:
         """Get HTTP Strict Transport Security header."""
@@ -136,16 +134,15 @@ class SecurityHeaders:
                 "web-share=(), "
                 "xr-spatial-tracking=()"
             )
-        else:
-            # Basic permissions for API
-            return (
-                "camera=(), "
-                "microphone=(), "
-                "geolocation=(), "
-                "interest-cohort=(), "
-                "payment=(), "
-                "usb=()"
-            )
+        # Basic permissions for API
+        return (
+            "camera=(), "
+            "microphone=(), "
+            "geolocation=(), "
+            "interest-cohort=(), "
+            "payment=(), "
+            "usb=()"
+        )
 
     def get_all_security_headers(self, request: Request) -> Dict[str, str]:
         """Get all security headers for response."""
@@ -167,7 +164,7 @@ class SecurityHeaders:
                 "Cache-Control": "no-store, no-cache, must-revalidate, private",
                 "Pragma": "no-cache",
                 "Expires": "0",
-            }
+            },
         )
 
         # Add custom headers
@@ -333,7 +330,6 @@ def create_security_headers(environment: str = "development") -> SecurityHeaders
     """Factory function to create appropriate security headers for environment."""
     if environment == "production":
         return ProductionSecurityHeaders()
-    elif environment == "development":
+    if environment == "development":
         return DevelopmentSecurityHeaders()
-    else:
-        return APISecurityHeaders()
+    return APISecurityHeaders()

@@ -1,20 +1,18 @@
-"""
-Session management for secure user sessions with Redis backing.
+"""Session management for secure user sessions with Redis backing.
 Ultra-compressed implementation for S002 completion.
 """
 
-import asyncio
-import json
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, Optional
 
-from fastapi import HTTPException, Request, status
+from fastapi import Request
 from pydantic import BaseModel
 
 
 class SessionData(BaseModel):
     """Session data model."""
+
     user_id: str
     api_key_id: str
     created_at: datetime
@@ -44,7 +42,7 @@ class SessionManager:
             last_access=datetime.utcnow(),
             ip_address=request.client.host,
             user_agent=request.headers.get("user-agent", ""),
-            scopes=scopes
+            scopes=scopes,
         )
 
         self.sessions[session_id] = session_data

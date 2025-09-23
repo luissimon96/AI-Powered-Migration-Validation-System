@@ -1,5 +1,4 @@
-"""
-LLM Service for AI-Powered Migration Validation System.
+"""LLM Service for AI-Powered Migration Validation System.
 
 Provides a unified interface for multiple LLM providers (OpenAI, Anthropic, Google)
 with async support, error handling, token management, and structured prompt templates.
@@ -11,7 +10,7 @@ import json
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import structlog
 
@@ -83,18 +82,15 @@ class AnalysisResult:
 class LLMServiceError(Exception):
     """Base exception for LLM service errors."""
 
-    pass
 
 
 class LLMProviderNotAvailable(LLMServiceError):
     """Raised when requested LLM provider is not available."""
 
-    pass
 
 
 class LLMService:
-    """
-    Unified LLM service supporting multiple providers with failover and structured analysis.
+    """Unified LLM service supporting multiple providers with failover and structured analysis.
 
     Provides a resilient async interface for semantic analysis, code comparison,
     and natural language processing tasks in the migration validation pipeline.
@@ -128,7 +124,7 @@ class LLMService:
                     if not api_key:
                         raise LLMProviderNotAvailable("OpenAI API key not found")
                     self._clients[config.provider] = AsyncOpenAI(
-                        api_key=api_key, timeout=config.timeout
+                        api_key=api_key, timeout=config.timeout,
                     )
 
                 elif config.provider == LLMProvider.ANTHROPIC:
@@ -138,7 +134,7 @@ class LLMService:
                     if not api_key:
                         raise LLMProviderNotAvailable("Anthropic API key not found")
                     self._clients[config.provider] = AsyncAnthropic(
-                        api_key=api_key, timeout=config.timeout
+                        api_key=api_key, timeout=config.timeout,
                     )
 
                 elif config.provider == LLMProvider.GOOGLE:
@@ -168,8 +164,7 @@ class LLMService:
         system_prompt: Optional[str] = None,
         **kwargs,
     ) -> LLMResponse:
-        """
-        Generate response from LLM with failover support.
+        """Generate response from LLM with failover support.
 
         It attempts to generate a response from the configured providers in order.
         If one provider fails, it logs the error and tries the next one.
@@ -184,12 +179,13 @@ class LLMService:
 
         Raises:
             LLMServiceError: If all configured providers fail.
+
         """
         last_error: Optional[Exception] = None
         for config in self.configs:
             if config.provider not in self._clients:
                 self.logger.warning(
-                    "Skipping uninitialized provider", provider=config.provider.value
+                    "Skipping uninitialized provider", provider=config.provider.value,
                 )
                 continue
 
@@ -201,15 +197,14 @@ class LLMService:
                 )
                 if config.provider == LLMProvider.OPENAI:
                     return await self._openai_generate(config, messages, system_prompt, **kwargs)
-                elif config.provider == LLMProvider.ANTHROPIC:
+                if config.provider == LLMProvider.ANTHROPIC:
                     return await self._anthropic_generate(
-                        config, messages, system_prompt, **kwargs
+                        config, messages, system_prompt, **kwargs,
                     )
-                elif config.provider == LLMProvider.GOOGLE:
+                if config.provider == LLMProvider.GOOGLE:
                     return await self._google_generate(config, messages, system_prompt, **kwargs)
-                else:
-                    self.logger.warning(f"Unsupported provider configured: {config.provider}")
-                    continue
+                self.logger.warning(f"Unsupported provider configured: {config.provider}")
+                continue
 
             except Exception as e:
                 last_error = e
@@ -220,17 +215,16 @@ class LLMService:
                 )
 
         raise LLMServiceError(
-            f"All LLM providers failed. Last error: {last_error}"
+            f"All LLM providers failed. Last error: {last_error}",
         ) from last_error
 
     async def structured_analysis(
         self,
         analysis_type: AnalysisType,
         context: Dict[str, Any],
-        retry_on_parse_error: bool = True
+        retry_on_parse_error: bool = True,
     ) -> AnalysisResult:
-        """
-        Perform structured analysis using prompt templates.
+        """Perform structured analysis using prompt templates.
 
         Args:
             analysis_type: Type of analysis to perform
@@ -239,6 +233,7 @@ class LLMService:
 
         Returns:
             Structured analysis result with confidence scoring
+
         """
         # Get formatted prompts
         system_prompt, user_prompt = prompt_manager.format_prompt(analysis_type, context)
@@ -269,7 +264,7 @@ Do not include any text before or after the JSON response."""
                 )
 
                 response = await self.generate_response(
-                    messages, system_prompt, max_tokens=config.max_tokens
+                    messages, system_prompt, max_tokens=config.max_tokens,
                 )
 
                 used_provider = response.provider
@@ -290,8 +285,8 @@ Do not include any text before or after the JSON response."""
                     metadata={
                         "usage": response.usage,
                         "response_metadata": response.metadata,
-                        "parse_successful": True
-                    }
+                        "parse_successful": True,
+                    },
                 )
 
             except json.JSONDecodeError as e:
@@ -299,7 +294,7 @@ Do not include any text before or after the JSON response."""
                     "JSON parse error for structured analysis",
                     analysis_type=analysis_type.value,
                     provider=config.provider.value,
-                    error=str(e)
+                    error=str(e),
                 )
                 last_error = e
                 if not retry_on_parse_error:
@@ -310,7 +305,7 @@ Do not include any text before or after the JSON response."""
                     "Structured analysis failed for provider",
                     analysis_type=analysis_type.value,
                     provider=config.provider.value,
-                    error=str(e)
+                    error=str(e),
                 )
                 last_error = e
 
@@ -318,7 +313,7 @@ Do not include any text before or after the JSON response."""
         self.logger.warning(
             "All providers failed for structured analysis, using fallback",
             analysis_type=analysis_type.value,
-            last_error=str(last_error) if last_error else "Unknown"
+            last_error=str(last_error) if last_error else "Unknown",
         )
 
         fallback_result = prompt_manager.get_fallback_response(analysis_type)
@@ -331,23 +326,21 @@ Do not include any text before or after the JSON response."""
             metadata={
                 "fallback_used": True,
                 "last_error": str(last_error) if last_error else None,
-                "parse_successful": False
-            }
+                "parse_successful": False,
+            },
         )
 
     def _parse_analysis_response(
         self,
         analysis_type: AnalysisType,
-        response_content: str
+        response_content: str,
     ) -> Dict[str, Any]:
         """Parse and validate analysis response."""
         try:
             # Clean response content (remove potential markdown formatting)
             content = response_content.strip()
-            if content.startswith("```json"):
-                content = content[7:]
-            if content.endswith("```"):
-                content = content[:-3]
+            content = content.removeprefix("```json")
+            content = content.removesuffix("```")
             content = content.strip()
 
             result = json.loads(content)
@@ -356,7 +349,7 @@ Do not include any text before or after the JSON response."""
             if not prompt_manager.validate_response_format(analysis_type, result):
                 self.logger.warning(
                     "Response format validation failed",
-                    analysis_type=analysis_type.value
+                    analysis_type=analysis_type.value,
                 )
 
             return result
@@ -366,7 +359,7 @@ Do not include any text before or after the JSON response."""
                 "Failed to parse JSON response",
                 analysis_type=analysis_type.value,
                 content_preview=response_content[:200],
-                error=str(e)
+                error=str(e),
             )
             raise
 
@@ -374,7 +367,7 @@ Do not include any text before or after the JSON response."""
         self,
         analysis_type: AnalysisType,
         result: Dict[str, Any],
-        response: LLMResponse
+        response: LLMResponse,
     ) -> float:
         """Calculate confidence score based on response quality."""
         base_confidence = 0.8  # Base confidence for successful parsing
@@ -503,10 +496,9 @@ Do not include any text before or after the JSON response."""
 
     async def analyze_code_semantic_similarity(
         self, source_code: str, target_code: str, context: str = "",
-        source_language: str = "auto", target_language: str = "auto"
+        source_language: str = "auto", target_language: str = "auto",
     ) -> AnalysisResult:
-        """
-        Analyze semantic similarity between source and target code using structured prompts.
+        """Analyze semantic similarity between source and target code using structured prompts.
 
         Args:
             source_code: Source code snippet
@@ -517,18 +509,19 @@ Do not include any text before or after the JSON response."""
 
         Returns:
             Structured analysis results with similarity score and discrepancies
+
         """
         analysis_context = {
             "source_code": source_code,
             "target_code": target_code,
             "context": context,
             "source_language": source_language,
-            "target_language": target_language
+            "target_language": target_language,
         }
 
         return await self.structured_analysis(
             AnalysisType.CODE_SEMANTIC_SIMILARITY,
-            analysis_context
+            analysis_context,
         )
 
     async def compare_ui_elements(
@@ -536,8 +529,7 @@ Do not include any text before or after the JSON response."""
         source_elements: List[Dict[str, Any]],
         target_elements: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """
-        Compare UI elements between source and target systems.
+        """Compare UI elements between source and target systems.
 
         Args:
             source_elements: Source UI elements
@@ -545,6 +537,7 @@ Do not include any text before or after the JSON response."""
 
         Returns:
             Comparison analysis with matched elements and discrepancies
+
         """
         system_prompt = """You are a UI/UX expert analyzing migration fidelity.
 
@@ -568,7 +561,7 @@ TARGET ELEMENTS:
 {target_elements}
 
 Provide comprehensive UI comparison analysis.""",
-            }
+            },
         ]
 
         try:
@@ -590,8 +583,7 @@ Provide comprehensive UI comparison analysis.""",
         target_functions: List[Dict[str, Any]],
         domain_context: str = "",
     ) -> AnalysisResult:
-        """
-        Validate preservation of business logic between source and target using structured analysis.
+        """Validate preservation of business logic between source and target using structured analysis.
 
         Args:
             source_functions: Source business functions
@@ -600,23 +592,23 @@ Provide comprehensive UI comparison analysis.""",
 
         Returns:
             Structured business logic validation results
+
         """
         analysis_context = {
             "source_functions_json": json.dumps(source_functions, indent=2),
             "target_functions_json": json.dumps(target_functions, indent=2),
-            "domain_context": domain_context
+            "domain_context": domain_context,
         }
 
         return await self.structured_analysis(
             AnalysisType.BUSINESS_LOGIC_VALIDATION,
-            analysis_context
+            analysis_context,
         )
 
     async def analyze_ui_screenshot(
-        self, image_base64: str, prompt: str, detail: str = "auto"
+        self, image_base64: str, prompt: str, detail: str = "auto",
     ) -> AnalysisResult:
-        """
-        Analyze a UI screenshot using a multimodal LLM with structured output.
+        """Analyze a UI screenshot using a multimodal LLM with structured output.
 
         Args:
             image_base64: Base64 encoded image string.
@@ -628,6 +620,7 @@ Provide comprehensive UI comparison analysis.""",
 
         Raises:
             LLMServiceError: If all configured vision providers fail.
+
         """
         last_error: Optional[Exception] = None
         # Prioritize providers known for strong vision capabilities
@@ -666,7 +659,7 @@ Provide comprehensive UI comparison analysis.""",
                                     },
                                 },
                             ],
-                        }
+                        },
                     ]
                     response = await client.chat.completions.create(
                         model=vision_model,
@@ -680,7 +673,7 @@ Provide comprehensive UI comparison analysis.""",
                     vision_client = genai.GenerativeModel(vision_model)
                     img_blob = {"mime_type": "image/png", "data": base64.b64decode(image_base64)}
                     response = await asyncio.to_thread(
-                        vision_client.generate_content, [prompt, img_blob]
+                        vision_client.generate_content, [prompt, img_blob],
                     )
                     content = response.text
 
@@ -699,7 +692,7 @@ Provide comprehensive UI comparison analysis.""",
                                 },
                                 {"type": "text", "text": prompt},
                             ],
-                        }
+                        },
                     ]
                     response = await client.messages.create(
                         model=config.model,  # Assumes model supports vision
@@ -729,7 +722,7 @@ Provide comprehensive UI comparison analysis.""",
                     confidence=0.8,  # Default confidence for vision analysis
                     provider_used=provider.value,
                     model_used=config.model,
-                    metadata={"vision_analysis": True}
+                    metadata={"vision_analysis": True},
                 )
 
             except Exception as e:
@@ -741,16 +734,15 @@ Provide comprehensive UI comparison analysis.""",
                 )
 
         raise LLMServiceError(
-            f"All vision providers failed. Last error: {last_error}"
+            f"All vision providers failed. Last error: {last_error}",
         ) from last_error
 
     async def analyze_ui_element_relationships(
         self,
         elements: List[Dict[str, Any]],
-        screen_context: str = ""
+        screen_context: str = "",
     ) -> AnalysisResult:
-        """
-        Analyze relationships between UI elements using structured analysis.
+        """Analyze relationships between UI elements using structured analysis.
 
         Args:
             elements: List of UI elements to analyze
@@ -758,15 +750,16 @@ Provide comprehensive UI comparison analysis.""",
 
         Returns:
             Structured analysis of element relationships and workflows
+
         """
         analysis_context = {
             "elements_json": json.dumps(elements, indent=2),
-            "screen_context": screen_context
+            "screen_context": screen_context,
         }
 
         return await self.structured_analysis(
             AnalysisType.UI_RELATIONSHIP_ANALYSIS,
-            analysis_context
+            analysis_context,
         )
 
     async def assess_migration_fidelity(
@@ -774,10 +767,9 @@ Provide comprehensive UI comparison analysis.""",
         source_analysis: Dict[str, Any],
         target_analysis: Dict[str, Any],
         discrepancies: List[Dict[str, Any]],
-        validation_scope: str
+        validation_scope: str,
     ) -> AnalysisResult:
-        """
-        Assess overall migration fidelity using comprehensive analysis.
+        """Assess overall migration fidelity using comprehensive analysis.
 
         Args:
             source_analysis: Source system analysis results
@@ -787,17 +779,18 @@ Provide comprehensive UI comparison analysis.""",
 
         Returns:
             Comprehensive migration fidelity assessment
+
         """
         analysis_context = {
             "source_analysis_json": json.dumps(source_analysis, indent=2),
             "target_analysis_json": json.dumps(target_analysis, indent=2),
             "discrepancies_json": json.dumps(discrepancies, indent=2),
-            "validation_scope": validation_scope
+            "validation_scope": validation_scope,
         }
 
         return await self.structured_analysis(
             AnalysisType.MIGRATION_FIDELITY,
-            analysis_context
+            analysis_context,
         )
 
     def get_provider_info(self) -> List[Dict[str, Any]]:
@@ -815,10 +808,9 @@ Provide comprehensive UI comparison analysis.""",
 
 
 def create_llm_service(
-    providers: str = "openai", models: Optional[str] = None, **kwargs
+    providers: str = "openai", models: Optional[str] = None, **kwargs,
 ) -> LLMService:
-    """
-    Factory function to create LLM service with failover support.
+    """Factory function to create LLM service with failover support.
 
     Args:
         providers: Comma-separated string of LLM provider names (e.g., "openai,anthropic").
@@ -827,6 +819,7 @@ def create_llm_service(
 
     Returns:
         Configured LLM service instance.
+
     """
     provider_names = [p.strip() for p in providers.split(",")]
     model_names = [m.strip() for m in models.split(",")] if models else []

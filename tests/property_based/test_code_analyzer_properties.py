@@ -1,14 +1,10 @@
-"""
-Property-based testing for code analyzer components.
+"""Property-based testing for code analyzer components.
 
 This module uses Hypothesis to generate test cases automatically, discovering edge cases
 and validating invariants that should hold for all inputs.
 """
 
 import ast
-import re
-from typing import Any, Dict, List
-from unittest.mock import Mock, patch
 
 import pytest
 from hypothesis import assume, example, given, note, settings
@@ -86,7 +82,7 @@ def python_statements():
         st.text(min_size=1, max_size=100).map(lambda x: f"# {x}"),
         valid_python_names.map(lambda x: f"{x} = 42"),
         st.just("return None"),
-        python_literals.map(lambda x: f"return {repr(x)}"),
+        python_literals.map(lambda x: f"return {x!r}"),
     )
 
 
@@ -136,12 +132,12 @@ def python_module(draw):
                     "from typing import List, Dict, Any",
                     "import json",
                     "from datetime import datetime",
-                ]
+                ],
             ),
             min_size=0,
             max_size=3,
             unique=True,
-        )
+        ),
     )
 
     functions = draw(st.lists(python_function(), min_size=0, max_size=3))
@@ -311,7 +307,7 @@ class TestCodeAnalyzerProperties:
                     if metric in metrics:
                         value = metrics[metric]
                         assert isinstance(
-                            value, (int, float)
+                            value, (int, float),
                         ), f"Metric '{metric}' must be numeric"
                         assert value >= 0, f"Metric '{metric}' cannot be negative"
 
@@ -378,12 +374,12 @@ class TestCodeAnalyzerProperties:
                         "import pandas as pd",
                         "from flask import Flask",
                         "import requests",
-                    ]
+                    ],
                 ),
                 min_size=0,
                 max_size=5,
                 unique=True,
-            )
+            ),
         )
 
         code = "\n".join(imports) + "\n\nprint('Hello World')"

@@ -1,15 +1,11 @@
-"""
-Edge case testing for input validation in AI-Powered Migration Validation System.
+"""Edge case testing for input validation in AI-Powered Migration Validation System.
 
 This module contains comprehensive edge case tests for all input validation scenarios,
 focusing on boundary conditions, malformed inputs, and error handling robustness.
 """
 
-import json
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 from hypothesis import assume, example, given
@@ -17,9 +13,7 @@ from hypothesis import strategies as st
 from hypothesis.stateful import Bundle, RuleBasedStateMachine, invariant, rule
 
 from src.core.input_processor import InputProcessor
-from src.core.models import (InputData, InputType, MigrationValidationRequest,
-                             TechnologyContext, TechnologyType,
-                             ValidationScope)
+from src.core.models import InputData, InputType
 
 
 @pytest.mark.unit
@@ -277,14 +271,14 @@ class TestInputValidationEdgeCases:
                 if text_input.strip():
                     assert result["content"] is not None
 
-        except (ValueError, MemoryError) as e:
+        except (ValueError, MemoryError):
             # These exceptions are acceptable for certain inputs
             assert len(text_input.encode("utf-8")) > 10 * 1024 * 1024 or not text_input.strip()
 
     @given(
         st.lists(
-            st.text(min_size=1, max_size=100).filter(lambda x: "/" in x), min_size=1, max_size=10
-        )
+            st.text(min_size=1, max_size=100).filter(lambda x: "/" in x), min_size=1, max_size=10,
+        ),
     )
     def test_file_list_property_based(self, file_paths):
         """Property-based test for file list handling."""
@@ -483,7 +477,6 @@ class TestConcurrencyEdgeCases:
     def test_concurrent_file_processing(self):
         """Test concurrent processing of the same file."""
         import threading
-        import time
 
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".py") as f:
             f.write("def test_function(): pass")

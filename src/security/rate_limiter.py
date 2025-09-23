@@ -1,5 +1,4 @@
-"""
-Rate limiting implementation for API protection against abuse and DoS attacks.
+"""Rate limiting implementation for API protection against abuse and DoS attacks.
 
 Provides flexible rate limiting with sliding window, token bucket, and fixed window algorithms.
 Supports per-user, per-IP, and global rate limiting with Redis backing.
@@ -8,7 +7,6 @@ Supports per-user, per-IP, and global rate limiting with Redis backing.
 import asyncio
 import time
 from collections import defaultdict, deque
-from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, Optional, Tuple
 
@@ -89,12 +87,12 @@ class TokenBucket:
 
     def __init__(self):
         self.buckets: Dict[str, Dict[str, float]] = defaultdict(
-            lambda: {"tokens": 0, "last_refill": time.time()}
+            lambda: {"tokens": 0, "last_refill": time.time()},
         )
         self.lock = asyncio.Lock()
 
     async def is_allowed(
-        self, key: str, limit: int, window: int, burst_multiplier: float = 1.5
+        self, key: str, limit: int, window: int, burst_multiplier: float = 1.5,
     ) -> Tuple[bool, Dict[str, Any]]:
         """Check if request is allowed under token bucket."""
         async with self.lock:
@@ -191,7 +189,7 @@ class RateLimiter:
         }
 
     def get_rate_limit_key(
-        self, request: Request, config: RateLimitConfig, user_id: Optional[str] = None
+        self, request: Request, config: RateLimitConfig, user_id: Optional[str] = None,
     ) -> str:
         """Generate rate limit key based on configuration."""
         key_parts = []
@@ -221,7 +219,7 @@ class RateLimiter:
     ) -> Dict[str, Any]:
         """Check if request passes rate limit."""
         config = custom_config or self.default_limits.get(
-            limit_type, self.default_limits["api_general"]
+            limit_type, self.default_limits["api_general"],
         )
 
         key = self.get_rate_limit_key(request, config, user_id)
@@ -229,11 +227,11 @@ class RateLimiter:
         # Choose algorithm
         if config.algorithm == RateLimitAlgorithm.SLIDING_WINDOW:
             allowed, info = await self.sliding_window.is_allowed(
-                key, config.requests, config.window
+                key, config.requests, config.window,
             )
         elif config.algorithm == RateLimitAlgorithm.TOKEN_BUCKET:
             allowed, info = await self.token_bucket.is_allowed(
-                key, config.requests, config.window, config.burst_multiplier
+                key, config.requests, config.window, config.burst_multiplier,
             )
         elif config.algorithm == RateLimitAlgorithm.FIXED_WINDOW:
             allowed, info = await self.fixed_window.is_allowed(key, config.requests, config.window)
@@ -242,7 +240,7 @@ class RateLimiter:
 
         if not allowed:
             raise RateLimitExceeded(
-                f"Rate limit exceeded for {limit_type}", retry_after=info.get("retry_after", 60)
+                f"Rate limit exceeded for {limit_type}", retry_after=info.get("retry_after", 60),
             )
 
         return info
@@ -251,7 +249,6 @@ class RateLimiter:
         """Clean up expired rate limit data."""
         # This is automatically handled by the individual algorithms
         # In production with Redis, implement proper TTL
-        pass
 
 
 # Global rate limiter instance

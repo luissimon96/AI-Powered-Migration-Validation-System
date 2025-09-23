@@ -1,5 +1,4 @@
-"""
-Integration tests for API endpoints.
+"""Integration tests for API endpoints.
 """
 
 import json
@@ -170,7 +169,7 @@ class TestAPIErrorHandling:
 
         with TestClient(app) as client:
             response = client.post(
-                "/api/validate", data={"request_data": json.dumps(invalid_request)}
+                "/api/validate", data={"request_data": json.dumps(invalid_request)},
             )
 
             assert response.status_code == 400

@@ -1,11 +1,9 @@
-"""
-Database integration layer for the FastAPI application.
+"""Database integration layer for the FastAPI application.
 
 Provides integration between the existing in-memory system and the new
 database persistence layer, allowing for gradual migration and fallback.
 """
 
-import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, Tuple
@@ -13,16 +11,15 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import Depends, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import ValidationResult, ValidationSession
-from .service import ValidationDatabaseService, get_validation_service
+from ..core.models import ValidationSession
+from .service import ValidationDatabaseService
 from .session import close_database, get_db_session, initialize_database
 
 logger = logging.getLogger(__name__)
 
 
 class DatabaseIntegration:
-    """
-    Integration layer that bridges the existing system with database persistence.
+    """Integration layer that bridges the existing system with database persistence.
 
     Provides methods to gradually migrate from in-memory storage to database
     persistence while maintaining backward compatibility.
@@ -34,11 +31,11 @@ class DatabaseIntegration:
         self.fallback_to_memory = True
 
     async def is_database_available(self) -> bool:
-        """
-        Check if database is available and responding.
+        """Check if database is available and responding.
 
         Returns:
             True if database is available, False otherwise
+
         """
         try:
             async for session in get_db_session():
@@ -54,14 +51,14 @@ class DatabaseIntegration:
         self,
         validation_session: ValidationSession,
     ) -> bool:
-        """
-        Save validation session to database.
+        """Save validation session to database.
 
         Args:
             validation_session: ValidationSession to save
 
         Returns:
             True if saved successfully, False otherwise
+
         """
         if not self.enabled:
             return False
@@ -78,7 +75,7 @@ class DatabaseIntegration:
                 # Save result if available
                 if validation_session.result:
                     await service.save_validation_result(
-                        validation_session.request.request_id, validation_session.result
+                        validation_session.request.request_id, validation_session.result,
                     )
 
                 return True
@@ -91,14 +88,14 @@ class DatabaseIntegration:
         self,
         request_id: str,
     ) -> Optional[ValidationSession]:
-        """
-        Load validation session from database.
+        """Load validation session from database.
 
         Args:
             request_id: Request identifier
 
         Returns:
             ValidationSession if found, None otherwise
+
         """
         if not self.enabled:
             return None
@@ -117,8 +114,7 @@ class DatabaseIntegration:
         request_id: str,
         status: str,
     ) -> bool:
-        """
-        Update validation session status in database.
+        """Update validation session status in database.
 
         Args:
             request_id: Request identifier
@@ -126,6 +122,7 @@ class DatabaseIntegration:
 
         Returns:
             True if updated successfully
+
         """
         if not self.enabled:
             return False
@@ -144,8 +141,7 @@ class DatabaseIntegration:
         request_id: str,
         message: str,
     ) -> bool:
-        """
-        Add log entry to validation session in database.
+        """Add log entry to validation session in database.
 
         Args:
             request_id: Request identifier
@@ -153,6 +149,7 @@ class DatabaseIntegration:
 
         Returns:
             True if added successfully
+
         """
         if not self.enabled:
             return False
@@ -167,10 +164,9 @@ class DatabaseIntegration:
             return False
 
     async def list_sessions(
-        self, limit: int = 50, offset: int = 0, **filters
+        self, limit: int = 50, offset: int = 0, **filters,
     ) -> Tuple[List[Dict[str, Any]], int]:
-        """
-        List validation sessions from database.
+        """List validation sessions from database.
 
         Args:
             limit: Maximum sessions to return
@@ -179,6 +175,7 @@ class DatabaseIntegration:
 
         Returns:
             Tuple of (session list, total count)
+
         """
         if not self.enabled:
             return [], 0
@@ -187,7 +184,7 @@ class DatabaseIntegration:
             async for session in get_db_session():
                 service = ValidationDatabaseService(session)
                 return await service.list_validation_sessions(
-                    limit=limit, offset=offset, **filters
+                    limit=limit, offset=offset, **filters,
                 )
 
         except Exception as e:
@@ -195,14 +192,14 @@ class DatabaseIntegration:
             return [], 0
 
     async def delete_session(self, request_id: str) -> bool:
-        """
-        Delete validation session from database.
+        """Delete validation session from database.
 
         Args:
             request_id: Request identifier
 
         Returns:
             True if deleted successfully
+
         """
         if not self.enabled:
             return False
@@ -217,11 +214,11 @@ class DatabaseIntegration:
             return False
 
     async def get_statistics(self) -> Dict[str, Any]:
-        """
-        Get validation statistics from database.
+        """Get validation statistics from database.
 
         Returns:
             Dictionary with statistics
+
         """
         if not self.enabled:
             return {}
@@ -241,11 +238,11 @@ _db_integration: Optional[DatabaseIntegration] = None
 
 
 def get_database_integration() -> DatabaseIntegration:
-    """
-    Get global database integration instance.
+    """Get global database integration instance.
 
     Returns:
         DatabaseIntegration: Global integration instance
+
     """
     global _db_integration
     if _db_integration is None:
@@ -254,8 +251,7 @@ def get_database_integration() -> DatabaseIntegration:
 
 
 class HybridSessionManager:
-    """
-    Hybrid session manager that uses both in-memory and database storage.
+    """Hybrid session manager that uses both in-memory and database storage.
 
     This manager provides a transition layer between the existing in-memory
     system and the new database persistence, allowing for gradual migration.
@@ -271,12 +267,12 @@ class HybridSessionManager:
         request_id: str,
         validation_session: ValidationSession,
     ) -> None:
-        """
-        Store validation session in both memory and database.
+        """Store validation session in both memory and database.
 
         Args:
             request_id: Request identifier
             validation_session: ValidationSession to store
+
         """
         # Always store in memory for immediate access
         self.memory_sessions[request_id] = validation_session
@@ -288,14 +284,14 @@ class HybridSessionManager:
             logger.warning(f"Failed to save session {request_id} to database: {e}")
 
     async def get_session(self, request_id: str) -> Optional[ValidationSession]:
-        """
-        Get validation session, preferring memory but falling back to database.
+        """Get validation session, preferring memory but falling back to database.
 
         Args:
             request_id: Request identifier
 
         Returns:
             ValidationSession if found, None otherwise
+
         """
         # Check memory first
         if request_id in self.memory_sessions:
@@ -313,12 +309,12 @@ class HybridSessionManager:
             return None
 
     async def update_session_status(self, request_id: str, status: str) -> None:
-        """
-        Update session status in both memory and database.
+        """Update session status in both memory and database.
 
         Args:
             request_id: Request identifier
             status: New status
+
         """
         # Update memory if exists
         if request_id in self.memory_sessions:
@@ -332,12 +328,12 @@ class HybridSessionManager:
             logger.warning(f"Failed to update session {request_id} status in database: {e}")
 
     async def add_session_log(self, request_id: str, message: str) -> None:
-        """
-        Add log entry to session in both memory and database.
+        """Add log entry to session in both memory and database.
 
         Args:
             request_id: Request identifier
             message: Log message
+
         """
         # Update memory if exists
         if request_id in self.memory_sessions:
@@ -350,10 +346,9 @@ class HybridSessionManager:
             logger.warning(f"Failed to add log to session {request_id} in database: {e}")
 
     async def list_sessions(
-        self, include_memory: bool = True, include_database: bool = True, **filters
+        self, include_memory: bool = True, include_database: bool = True, **filters,
     ) -> List[Dict[str, Any]]:
-        """
-        List sessions from both memory and database sources.
+        """List sessions from both memory and database sources.
 
         Args:
             include_memory: Include in-memory sessions
@@ -362,6 +357,7 @@ class HybridSessionManager:
 
         Returns:
             List of session dictionaries
+
         """
         sessions = []
 
@@ -393,14 +389,14 @@ class HybridSessionManager:
         return sessions
 
     async def delete_session(self, request_id: str) -> bool:
-        """
-        Delete session from both memory and database.
+        """Delete session from both memory and database.
 
         Args:
             request_id: Request identifier
 
         Returns:
             True if deleted from at least one location
+
         """
         memory_deleted = False
         database_deleted = False
@@ -429,11 +425,11 @@ _hybrid_manager: Optional[HybridSessionManager] = None
 
 
 def get_hybrid_session_manager() -> HybridSessionManager:
-    """
-    Get global hybrid session manager.
+    """Get global hybrid session manager.
 
     Returns:
         HybridSessionManager: Global manager instance
+
     """
     global _hybrid_manager
     if _hybrid_manager is None:
@@ -443,8 +439,7 @@ def get_hybrid_session_manager() -> HybridSessionManager:
 
 @asynccontextmanager
 async def database_lifespan(app: FastAPI):
-    """
-    Database lifespan manager for FastAPI application.
+    """Database lifespan manager for FastAPI application.
 
     Handles database initialization and cleanup during application lifecycle.
     """
@@ -461,7 +456,7 @@ async def database_lifespan(app: FastAPI):
             logger.info("Database initialization completed successfully")
         else:
             logger.warning(
-                "Database initialization completed but database may not be fully available"
+                "Database initialization completed but database may not be fully available",
             )
 
         yield
@@ -487,13 +482,13 @@ async def database_lifespan(app: FastAPI):
 async def get_db_service(
     session: AsyncSession = Depends(get_db_session),
 ) -> ValidationDatabaseService:
-    """
-    FastAPI dependency for getting database service.
+    """FastAPI dependency for getting database service.
 
     Args:
         session: Database session
 
     Returns:
         ValidationDatabaseService: Database service instance
+
     """
     return ValidationDatabaseService(session)

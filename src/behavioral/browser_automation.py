@@ -1,26 +1,23 @@
-"""
-Browser automation module for AI-Powered Migration Validation System.
+"""Browser automation module for AI-Powered Migration Validation System.
 
 This module provides robust browser automation capabilities using Playwright
 and browser-use for intelligent web interaction and behavioral validation.
 """
 
 import asyncio
-import json
 import tempfile
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 import structlog
 
 try:
     from browser_use.browser import Browser as BrowserUseAgent
     from browser_use.controller import Controller
-    from playwright.async_api import (Browser, BrowserContext, Page,
-                                      async_playwright)
+    from playwright.async_api import Browser, BrowserContext, Page, async_playwright
 except ImportError:
     # Graceful fallback for environments without browser dependencies
     async_playwright = None
@@ -85,21 +82,20 @@ class BrowserSession:
 
 
 class BrowserAutomationEngine:
-    """
-    Advanced browser automation engine using Playwright and browser-use.
+    """Advanced browser automation engine using Playwright and browser-use.
 
     Provides intelligent browser control for migration validation scenarios
     including authentication, form interactions, and behavioral capture.
     """
 
     def __init__(self, headless: bool = True, slow_mo: int = 0, timeout: int = 30000):
-        """
-        Initialize browser automation engine.
+        """Initialize browser automation engine.
 
         Args:
             headless: Run browser in headless mode
             slow_mo: Slow down operations by milliseconds
             timeout: Default timeout for operations
+
         """
         self.headless = headless
         self.slow_mo = slow_mo
@@ -117,14 +113,14 @@ class BrowserAutomationEngine:
         self.screenshot_dir.mkdir(exist_ok=True)
 
     async def initialize(self, browser_type: str = "chromium") -> bool:
-        """
-        Initialize browser automation components.
+        """Initialize browser automation components.
 
         Args:
             browser_type: Browser type (chromium, firefox, webkit)
 
         Returns:
             True if initialization successful
+
         """
         if not async_playwright:
             self.logger.error("Playwright not available - browser automation disabled")
@@ -145,11 +141,11 @@ class BrowserAutomationEngine:
                 )
             elif browser_type == "firefox":
                 self.browser = await self.playwright.firefox.launch(
-                    headless=self.headless, slow_mo=self.slow_mo
+                    headless=self.headless, slow_mo=self.slow_mo,
                 )
             elif browser_type == "webkit":
                 self.browser = await self.playwright.webkit.launch(
-                    headless=self.headless, slow_mo=self.slow_mo
+                    headless=self.headless, slow_mo=self.slow_mo,
                 )
             else:
                 raise ValueError(f"Unsupported browser type: {browser_type}")
@@ -196,10 +192,9 @@ class BrowserAutomationEngine:
             return False
 
     async def start_session(
-        self, url: str, session_metadata: Optional[Dict[str, Any]] = None
+        self, url: str, session_metadata: Optional[Dict[str, Any]] = None,
     ) -> str:
-        """
-        Start a new browser automation session.
+        """Start a new browser automation session.
 
         Args:
             url: Starting URL for the session
@@ -207,6 +202,7 @@ class BrowserAutomationEngine:
 
         Returns:
             Session ID
+
         """
         session_id = f"session_{int(time.time())}_{id(self)}"
 
@@ -223,11 +219,11 @@ class BrowserAutomationEngine:
         return session_id
 
     async def end_session(self) -> Optional[BrowserSession]:
-        """
-        End the current browser automation session.
+        """End the current browser automation session.
 
         Returns:
             Completed session data
+
         """
         if not self.current_session:
             return None
@@ -245,14 +241,14 @@ class BrowserAutomationEngine:
         return session
 
     async def execute_action(self, action: BrowserAction) -> BrowserActionResult:
-        """
-        Execute a single browser action.
+        """Execute a single browser action.
 
         Args:
             action: Browser action to execute
 
         Returns:
             Action execution result
+
         """
         start_time = time.time()
         result = BrowserActionResult(success=False, action=action, execution_time=0.0)
@@ -298,11 +294,11 @@ class BrowserAutomationEngine:
             if action.wait_for and result.success:
                 try:
                     await self.current_page.wait_for_selector(
-                        action.wait_for, timeout=action.timeout
+                        action.wait_for, timeout=action.timeout,
                     )
                 except Exception as e:
                     self.logger.warning(
-                        "Wait for element failed", element=action.wait_for, error=str(e)
+                        "Wait for element failed", element=action.wait_for, error=str(e),
                     )
 
             result.page_url = self.current_page.url
@@ -311,7 +307,7 @@ class BrowserAutomationEngine:
         except Exception as e:
             result.error_message = str(e)
             self.logger.error(
-                "Browser action failed", action_type=action.action_type, error=str(e)
+                "Browser action failed", action_type=action.action_type, error=str(e),
             )
 
         finally:
@@ -378,7 +374,7 @@ class BrowserAutomationEngine:
         if action.target:
             # Capture specific element
             element = await self.current_page.wait_for_selector(
-                action.target, timeout=action.timeout
+                action.target, timeout=action.timeout,
             )
             await element.screenshot(path=str(screenshot_path))
         else:
@@ -404,7 +400,7 @@ class BrowserAutomationEngine:
         try:
             # Use browser-use for intelligent interaction
             intelligent_result = await self.browser_use_agent.execute_task(
-                action.description or action.target, page=self.current_page
+                action.description or action.target, page=self.current_page,
             )
 
             result.result_data = {
@@ -421,10 +417,9 @@ class BrowserAutomationEngine:
             await self._execute_click(action, result)
 
     async def execute_scenario(
-        self, scenario_name: str, actions: List[BrowserAction]
+        self, scenario_name: str, actions: List[BrowserAction],
     ) -> List[BrowserActionResult]:
-        """
-        Execute a complete behavioral scenario.
+        """Execute a complete behavioral scenario.
 
         Args:
             scenario_name: Name of the scenario
@@ -432,6 +427,7 @@ class BrowserAutomationEngine:
 
         Returns:
             List of action results
+
         """
         self.logger.info(
             "Executing behavioral scenario",
@@ -483,8 +479,7 @@ class BrowserAutomationEngine:
         password_selector: str = 'input[name="password"], input[type="password"]',
         submit_selector: str = 'button[type="submit"], input[type="submit"]',
     ) -> bool:
-        """
-        Perform authentication on the current page.
+        """Perform authentication on the current page.
 
         Args:
             username: Username or email
@@ -496,6 +491,7 @@ class BrowserAutomationEngine:
 
         Returns:
             True if authentication appears successful
+
         """
         try:
             # Navigate to login page if specified
@@ -518,7 +514,7 @@ class BrowserAutomationEngine:
                 await self.current_page.wait_for_load_state("networkidle", timeout=10000)
             except Exception as e:
                 logger.warning(
-                    f"Network idle timeout: {e}"
+                    f"Network idle timeout: {e}",
                 )  # Continue even if network idle timeout
 
             # Check for common success indicators
@@ -561,11 +557,11 @@ class BrowserAutomationEngine:
             return False
 
     async def capture_page_state(self) -> Dict[str, Any]:
-        """
-        Capture comprehensive page state for comparison.
+        """Capture comprehensive page state for comparison.
 
         Returns:
             Dictionary containing page state information
+
         """
         if not self.current_page:
             return {}
@@ -595,7 +591,7 @@ class BrowserAutomationEngine:
                         }))
                     }));
                 }
-            """
+            """,
             )
             state["forms"] = forms
 
@@ -603,7 +599,7 @@ class BrowserAutomationEngine:
             text_content = await self.current_page.evaluate(
                 """
                 () => document.body.innerText
-            """
+            """,
             )
             state["text_content"] = text_content[:1000]  # Limit size
 
@@ -630,7 +626,7 @@ class BrowserAutomationEngine:
                     });
                     return messages;
                 }
-            """
+            """,
             )
             state["messages"] = messages
 
@@ -645,7 +641,7 @@ class BrowserAutomationEngine:
                     buttons: document.querySelectorAll('button').length,
                     links: document.querySelectorAll('a').length
                 })
-            """
+            """,
             )
             state["metrics"] = metrics
 
@@ -656,10 +652,9 @@ class BrowserAutomationEngine:
             return {"error": str(e)}
 
     async def compare_page_states(
-        self, state1: Dict[str, Any], state2: Dict[str, Any]
+        self, state1: Dict[str, Any], state2: Dict[str, Any],
     ) -> List[ValidationDiscrepancy]:
-        """
-        Compare two page states and identify discrepancies.
+        """Compare two page states and identify discrepancies.
 
         Args:
             state1: First page state (source system)
@@ -667,6 +662,7 @@ class BrowserAutomationEngine:
 
         Returns:
             List of validation discrepancies
+
         """
         discrepancies = []
 
@@ -688,7 +684,7 @@ class BrowserAutomationEngine:
                         source_element=title1,
                         target_element=title2,
                         recommendation="Review if title differences are intentional",
-                    )
+                    ),
                 )
 
             # Compare form structures
@@ -702,7 +698,7 @@ class BrowserAutomationEngine:
                         severity=SeverityLevel.WARNING,
                         description=f"Different number of forms: {len(forms1)} vs {len(forms2)}",
                         recommendation="Verify all forms were migrated correctly",
-                    )
+                    ),
                 )
 
             # Compare form elements (simplified)
@@ -717,7 +713,7 @@ class BrowserAutomationEngine:
                             severity=SeverityLevel.WARNING,
                             description=f"Form {i} has different element count: {len(elements1)} vs {len(elements2)}",
                             recommendation="Check form field migration",
-                        )
+                        ),
                     )
 
             # Compare messages (errors, success, warnings)
@@ -739,7 +735,7 @@ class BrowserAutomationEngine:
                         description=f"Message only in source: '{msg}'",
                         source_element=msg,
                         recommendation="Check if message logic was migrated",
-                    )
+                    ),
                 )
 
             for msg in only_in_target:
@@ -750,7 +746,7 @@ class BrowserAutomationEngine:
                         description=f"Additional message in target: '{msg}'",
                         target_element=msg,
                         recommendation="Verify if additional message is intentional",
-                    )
+                    ),
                 )
 
             # Compare page metrics
@@ -773,7 +769,7 @@ class BrowserAutomationEngine:
                             severity=severity,
                             description=f"Different {metric} count: {val1} vs {val2}",
                             recommendation=f"Review {metric} migration",
-                        )
+                        ),
                     )
 
         except Exception as e:
@@ -782,9 +778,9 @@ class BrowserAutomationEngine:
                 ValidationDiscrepancy(
                     type="comparison_error",
                     severity=SeverityLevel.CRITICAL,
-                    description=f"Failed to compare page states: {str(e)}",
+                    description=f"Failed to compare page states: {e!s}",
                     recommendation="Manual verification required",
-                )
+                ),
             )
 
         return discrepancies
@@ -824,8 +820,7 @@ class BrowserAutomationEngine:
 
 
 def create_login_scenario(username: str, password: str, login_url: str) -> List[BrowserAction]:
-    """
-    Create a standard login scenario.
+    """Create a standard login scenario.
 
     Args:
         username: Username or email
@@ -834,6 +829,7 @@ def create_login_scenario(username: str, password: str, login_url: str) -> List[
 
     Returns:
         List of browser actions for login scenario
+
     """
     return [
         BrowserAction(
@@ -865,10 +861,9 @@ def create_login_scenario(username: str, password: str, login_url: str) -> List[
 
 
 def create_form_submission_scenario(
-    form_selector: str, form_data: Dict[str, str]
+    form_selector: str, form_data: Dict[str, str],
 ) -> List[BrowserAction]:
-    """
-    Create a form submission scenario.
+    """Create a form submission scenario.
 
     Args:
         form_selector: CSS selector for the form
@@ -876,6 +871,7 @@ def create_form_submission_scenario(
 
     Returns:
         List of browser actions for form submission
+
     """
     actions = []
 
@@ -887,7 +883,7 @@ def create_form_submission_scenario(
                 target=f'{form_selector} input[name="{field_name}"], {form_selector} textarea[name="{field_name}"], {form_selector} select[name="{field_name}"]',
                 value=field_value,
                 description=f"Fill {field_name} field",
-            )
+            ),
         )
 
     # Submit form
@@ -897,22 +893,21 @@ def create_form_submission_scenario(
             target=form_selector,
             description="Submit form",
             wait_for="body",
-        )
+        ),
     )
 
     # Capture result
     actions.append(
-        BrowserAction(action_type="capture", description="Capture form submission result")
+        BrowserAction(action_type="capture", description="Capture form submission result"),
     )
 
     return actions
 
 
 def create_comprehensive_validation_scenario(
-    url: str, credentials: Optional[Dict[str, str]] = None
+    url: str, credentials: Optional[Dict[str, str]] = None,
 ) -> List[BrowserAction]:
-    """
-    Create a comprehensive validation scenario for a web application.
+    """Create a comprehensive validation scenario for a web application.
 
     Args:
         url: Base URL of the application
@@ -920,6 +915,7 @@ def create_comprehensive_validation_scenario(
 
     Returns:
         List of browser actions for comprehensive testing
+
     """
     actions = []
 
@@ -937,14 +933,14 @@ def create_comprehensive_validation_scenario(
                 value="2000",
                 description="Wait for page to fully load",
             ),
-        ]
+        ],
     )
 
     # Authentication if credentials provided
     if credentials and "username" in credentials and "password" in credentials:
         login_url = credentials.get("login_url", url + "/login")
         actions.extend(
-            create_login_scenario(credentials["username"], credentials["password"], login_url)
+            create_login_scenario(credentials["username"], credentials["password"], login_url),
         )
 
     # Common navigation and interaction tests
@@ -986,7 +982,7 @@ def create_comprehensive_validation_scenario(
             ),
             BrowserAction(action_type="wait", value="2000", description="Wait for error response"),
             BrowserAction(action_type="capture", description="Capture error state"),
-        ]
+        ],
     )
 
     return actions
@@ -998,8 +994,7 @@ async def execute_migration_validation_workflow(
     scenarios: List[str],
     credentials: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
-    """
-    Execute complete migration validation workflow using browser automation.
+    """Execute complete migration validation workflow using browser automation.
 
     Args:
         source_url: Source system URL
@@ -1009,6 +1004,7 @@ async def execute_migration_validation_workflow(
 
     Returns:
         Comprehensive validation results
+
     """
     logger = structlog.get_logger("migration_validation_workflow")
     results = {
@@ -1028,7 +1024,7 @@ async def execute_migration_validation_workflow(
             # Execute comprehensive scenario
             source_actions = create_comprehensive_validation_scenario(source_url, credentials)
             source_results = await source_engine.execute_scenario(
-                "comprehensive_validation", source_actions
+                "comprehensive_validation", source_actions,
             )
 
             # Capture final state
@@ -1048,7 +1044,7 @@ async def execute_migration_validation_workflow(
             # Execute same scenario
             target_actions = create_comprehensive_validation_scenario(target_url, credentials)
             target_results = await target_engine.execute_scenario(
-                "comprehensive_validation", target_actions
+                "comprehensive_validation", target_actions,
             )
 
             # Capture final state
@@ -1082,7 +1078,7 @@ async def execute_migration_validation_workflow(
             "source_success_rate": (successful_source / total_actions if total_actions > 0 else 0),
             "target_success_rate": (successful_target / total_actions if total_actions > 0 else 0),
             "critical_discrepancies": len(
-                [d for d in discrepancies if d.severity.value == "critical"]
+                [d for d in discrepancies if d.severity.value == "critical"],
             ),
             "total_discrepancies": len(discrepancies),
         }

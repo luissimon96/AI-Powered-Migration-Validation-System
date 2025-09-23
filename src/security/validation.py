@@ -1,27 +1,23 @@
-"""
-Security validation module for input sanitization and validation.
+"""Security validation module for input sanitization and validation.
 
 Provides comprehensive input validation, sanitization, and security checks
 to prevent injection attacks, malicious file uploads, and other security threats.
 """
 
 import mimetypes
-import os
 import re
-import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 import magic
-from fastapi import HTTPException, UploadFile, status
-from pydantic import BaseModel, EmailStr, validator
+from fastapi import UploadFile
+from pydantic import BaseModel, EmailStr
 
 
 class SecurityValidationError(Exception):
     """Security validation error."""
 
-    pass
 
 
 class FileValidationResult(BaseModel):
@@ -89,7 +85,7 @@ class SecurityValidator:
         self.sql_injection_patterns = [
             re.compile(r"('|(\\'))|(;|--|\s+or\s+|\s+and\s+)", re.IGNORECASE),
             re.compile(
-                r"(union\s+select|insert\s+into|delete\s+from|drop\s+table)", re.IGNORECASE
+                r"(union\s+select|insert\s+into|delete\s+from|drop\s+table)", re.IGNORECASE,
             ),
             re.compile(r"(exec\s*\(|execute\s*\(|sp_|xp_)", re.IGNORECASE),
         ]
@@ -121,14 +117,14 @@ class SecurityValidator:
         # Length check
         if len(value) > self.rules.max_string_length:
             raise SecurityValidationError(
-                f"{field_name} exceeds maximum length of {self.rules.max_string_length}"
+                f"{field_name} exceeds maximum length of {self.rules.max_string_length}",
             )
 
         # Check for SQL injection patterns
         for pattern in self.sql_injection_patterns:
             if pattern.search(value):
                 raise SecurityValidationError(
-                    f"{field_name} contains potential SQL injection pattern"
+                    f"{field_name} contains potential SQL injection pattern",
                 )
 
         # Check for XSS patterns
@@ -140,14 +136,14 @@ class SecurityValidator:
         for pattern in self.path_traversal_patterns:
             if pattern.search(value):
                 raise SecurityValidationError(
-                    f"{field_name} contains potential path traversal pattern"
+                    f"{field_name} contains potential path traversal pattern",
                 )
 
         # Check for command injection
         for pattern in self.command_injection_patterns:
             if pattern.search(value):
                 raise SecurityValidationError(
-                    f"{field_name} contains potential command injection pattern"
+                    f"{field_name} contains potential command injection pattern",
                 )
 
         return value.strip()
@@ -163,7 +159,7 @@ class SecurityValidator:
         """Validate URL input."""
         if len(url) > self.rules.max_url_length:
             raise SecurityValidationError(
-                f"{field_name} exceeds maximum length of {self.rules.max_url_length}"
+                f"{field_name} exceeds maximum length of {self.rules.max_url_length}",
             )
 
         try:
@@ -173,7 +169,7 @@ class SecurityValidator:
 
         if parsed.scheme not in self.rules.url_schemes:
             raise SecurityValidationError(
-                f"{field_name} scheme must be one of: {self.rules.url_schemes}"
+                f"{field_name} scheme must be one of: {self.rules.url_schemes}",
             )
 
         if not parsed.netloc:
@@ -253,7 +249,7 @@ class SecurityValidator:
         declared_type = file.content_type
         if declared_type and declared_type != detected_type:
             warnings.append(
-                f"Declared type {declared_type} differs from detected type {detected_type}"
+                f"Declared type {declared_type} differs from detected type {detected_type}",
             )
 
         # Scan for suspicious content patterns
@@ -346,17 +342,17 @@ class InputValidator:
         # Validate specific fields
         if "source_technology" in validated_data:
             validated_data["source_technology"] = self.security_validator.validate_string_input(
-                validated_data["source_technology"], "source_technology"
+                validated_data["source_technology"], "source_technology",
             )
 
         if "target_technology" in validated_data:
             validated_data["target_technology"] = self.security_validator.validate_string_input(
-                validated_data["target_technology"], "target_technology"
+                validated_data["target_technology"], "target_technology",
             )
 
         if "validation_scope" in validated_data:
             validated_data["validation_scope"] = self.security_validator.validate_string_input(
-                validated_data["validation_scope"], "validation_scope"
+                validated_data["validation_scope"], "validation_scope",
             )
 
         return validated_data
@@ -369,12 +365,12 @@ class InputValidator:
         # Validate URLs
         if "source_url" in validated_data:
             validated_data["source_url"] = self.security_validator.validate_url(
-                validated_data["source_url"], "source_url"
+                validated_data["source_url"], "source_url",
             )
 
         if "target_url" in validated_data:
             validated_data["target_url"] = self.security_validator.validate_url(
-                validated_data["target_url"], "target_url"
+                validated_data["target_url"], "target_url",
             )
 
         # Validate scenarios
@@ -384,14 +380,14 @@ class InputValidator:
                 validated_scenarios = []
                 for scenario in scenarios:
                     validated_scenarios.append(
-                        self.security_validator.validate_string_input(scenario, "scenario")
+                        self.security_validator.validate_string_input(scenario, "scenario"),
                     )
                 validated_data["validation_scenarios"] = validated_scenarios
 
         return validated_data
 
     async def validate_file_uploads(
-        self, files: List[UploadFile], max_files: Optional[int] = None
+        self, files: List[UploadFile], max_files: Optional[int] = None,
     ) -> List[Tuple[UploadFile, FileValidationResult]]:
         """Validate multiple file uploads."""
         max_files = max_files or self.security_validator.rules.max_files_per_request

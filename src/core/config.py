@@ -1,5 +1,4 @@
-"""
-Configuration management for AI-Powered Migration Validation System.
+"""Configuration management for AI-Powered Migration Validation System.
 
 Handles environment variables, LLM provider settings, and system configuration.
 """
@@ -8,7 +7,7 @@ import os
 import tempfile
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 try:
     import structlog
@@ -99,7 +98,7 @@ class SystemSettings(BaseSettings):
     redis_db: int = 0
     redis_password: Optional[str] = None
     redis_enabled: bool = True
-    
+
     # Celery Settings
     celery_worker_concurrency: int = 4
     celery_task_time_limit: int = 1800  # 30 minutes
@@ -108,7 +107,7 @@ class SystemSettings(BaseSettings):
     # Performance Settings
     async_concurrency_limit: int = 10
     request_timeout: float = 300.0
-    
+
     # Cache Settings
     cache_ttl: int = 3600  # 1 hour
     cache_enabled: bool = True
@@ -136,7 +135,7 @@ class ValidationConfig:
         """Redis host for task queue and caching."""
         return self.settings.redis_host
 
-    @property 
+    @property
     def redis_port(self) -> int:
         """Redis port."""
         return self.settings.redis_port
@@ -149,12 +148,12 @@ class ValidationConfig:
     @property
     def celery_broker_url(self) -> str:
         """Celery broker URL."""
-        return f'redis://{self.redis_host}:{self.redis_port}/{self.redis_db}'
+        return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
     @property
     def celery_result_backend(self) -> str:
         """Celery result backend URL."""
-        return f'redis://{self.redis_host}:{self.redis_port}/{self.redis_db}'
+        return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
     def _initialize_llm_providers(self) -> Dict[str, LLMProviderConfig]:
         """Initialize LLM provider configurations."""

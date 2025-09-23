@@ -1,17 +1,21 @@
-"""
-Database models for security-related entities.
+"""Database models for security-related entities.
 
 Defines SQLAlchemy models for API keys, audit logs, and security configurations.
 """
 
-from datetime import datetime
-from typing import Any, Dict
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, Index, Integer,
-                        String, Text, UniqueConstraint)
-from sqlalchemy.sql import func
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 
-from .config import metadata
 from .models import Base, TimestampMixin
 
 

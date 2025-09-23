@@ -1,15 +1,13 @@
-"""
-Test script for browser automation functionality.
+"""Test script for browser automation functionality.
 
 This script demonstrates the browser automation capabilities and can be used
 to verify the implementation works correctly.
 """
 
 import asyncio
-import json
+
 # Import the browser automation module
 import sys
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -17,9 +15,12 @@ import pytest
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
 from behavioral.browser_automation import (
-    BrowserAction, BrowserAutomationEngine,
-    create_comprehensive_validation_scenario, create_form_submission_scenario,
-    create_login_scenario, execute_migration_validation_workflow)
+    BrowserAction,
+    BrowserAutomationEngine,
+    create_comprehensive_validation_scenario,
+    create_form_submission_scenario,
+    create_login_scenario,
+)
 
 
 class TestBrowserAutomation:
@@ -234,8 +235,7 @@ def test_browser_tool_integration():
 
 
 async def demo_browser_automation():
-    """
-    Demonstration of browser automation capabilities.
+    """Demonstration of browser automation capabilities.
 
     This function shows how to use the browser automation system
     for migration validation testing.
@@ -322,7 +322,7 @@ async def demo_browser_automation():
         print("\n🎉 Browser automation demo completed successfully!")
 
     except Exception as e:
-        print(f"\n❌ Demo failed: {str(e)}")
+        print(f"\n❌ Demo failed: {e!s}")
 
     finally:
         await engine.cleanup()

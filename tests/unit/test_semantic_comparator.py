@@ -1,8 +1,7 @@
-"""
-Unit tests for semantic comparator.
+"""Unit tests for semantic comparator.
 """
 
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -29,7 +28,7 @@ class TestSemanticComparator:
 
     @pytest.mark.asyncio
     async def test_compare_code_semantics(
-        self, mock_llm_service, sample_python_code, sample_java_code
+        self, mock_llm_service, sample_python_code, sample_java_code,
     ):
         """Test comparing code semantics."""
         comparator = SemanticComparator(llm_service=mock_llm_service)
@@ -70,7 +69,7 @@ class TestSemanticComparator:
         comparator = SemanticComparator()
 
         features = comparator.extract_semantic_features(
-            sample_python_code, TechnologyType.PYTHON_FLASK
+            sample_python_code, TechnologyType.PYTHON_FLASK,
         )
 
         assert features is not None
@@ -85,7 +84,7 @@ class TestSemanticComparator:
         comparator = SemanticComparator()
 
         features = comparator.extract_semantic_features(
-            sample_java_code, TechnologyType.JAVA_SPRING
+            sample_java_code, TechnologyType.JAVA_SPRING,
         )
 
         assert features is not None
@@ -98,10 +97,10 @@ class TestSemanticComparator:
         comparator = SemanticComparator()
 
         python_features = comparator.extract_semantic_features(
-            sample_python_code, TechnologyType.PYTHON_FLASK
+            sample_python_code, TechnologyType.PYTHON_FLASK,
         )
         java_features = comparator.extract_semantic_features(
-            sample_java_code, TechnologyType.JAVA_SPRING
+            sample_java_code, TechnologyType.JAVA_SPRING,
         )
 
         similarity = comparator.calculate_structural_similarity(python_features, java_features)
@@ -130,7 +129,7 @@ class TestSemanticComparator:
         """
 
         python_features = comparator.extract_semantic_features(
-            python_func, TechnologyType.PYTHON_FLASK
+            python_func, TechnologyType.PYTHON_FLASK,
         )
         java_features = comparator.extract_semantic_features(java_func, TechnologyType.JAVA_SPRING)
 
@@ -175,7 +174,7 @@ class TestSemanticComparator:
                     "name": "calculate_tax",
                     "parameters": ["amount", "rate"],
                     "returns": "float",
-                }
+                },
             ],
             "business_logic": ["tax_calculation"],
         }
@@ -244,7 +243,7 @@ class TestSemanticComparator:
         }
 
         enhanced_comparison = await comparator.llm_enhanced_comparison(
-            source_features, target_features
+            source_features, target_features,
         )
 
         assert enhanced_comparison is not None
@@ -281,7 +280,7 @@ class TestSemanticComparator:
 
         # Invalid syntax
         features_invalid = comparator.extract_semantic_features(
-            "invalid syntax {{{", TechnologyType.PYTHON_FLASK
+            "invalid syntax {{{", TechnologyType.PYTHON_FLASK,
         )
         assert features_invalid is not None
         assert "syntax_errors" in features_invalid
@@ -289,7 +288,7 @@ class TestSemanticComparator:
         # Very large code
         large_code = "\n".join([f"def func_{i}(): pass" for i in range(1000)])
         features_large = comparator.extract_semantic_features(
-            large_code, TechnologyType.PYTHON_FLASK
+            large_code, TechnologyType.PYTHON_FLASK,
         )
         assert features_large is not None
 

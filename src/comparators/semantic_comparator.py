@@ -1,19 +1,22 @@
-"""
-Semantic comparator for migration validation.
+"""Semantic comparator for migration validation.
 
 Implements the core comparison logic using LLM to analyze abstract representations
 and identify discrepancies between source and target systems.
 """
 
-import json
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from ..core.models import (AbstractRepresentation, BackendFunction, DataField,
-                           SeverityLevel, UIElement, ValidationDiscrepancy,
-                           ValidationScope)
-from ..services.llm_service import (AnalysisType, LLMService, LLMServiceError,
-                                    create_llm_service)
+from ..core.models import (
+    AbstractRepresentation,
+    BackendFunction,
+    DataField,
+    SeverityLevel,
+    UIElement,
+    ValidationDiscrepancy,
+    ValidationScope,
+)
+from ..services.llm_service import create_llm_service
 
 
 class SemanticComparator:
@@ -75,8 +78,7 @@ class SemanticComparator:
         target: AbstractRepresentation,
         scope: ValidationScope,
     ) -> List[ValidationDiscrepancy]:
-        """
-        Compare source and target representations and identify discrepancies.
+        """Compare source and target representations and identify discrepancies.
 
         Args:
             source: Source system representation
@@ -85,50 +87,51 @@ class SemanticComparator:
 
         Returns:
             List of validation discrepancies found
+
         """
         discrepancies = []
 
         # Get weights for this scope
         weights = self.comparison_weights.get(
-            scope, self.comparison_weights[ValidationScope.FULL_SYSTEM]
+            scope, self.comparison_weights[ValidationScope.FULL_SYSTEM],
         )
 
         # Compare different aspects based on scope weights
         if weights["ui_elements"] > 0:
             ui_discrepancies = await self._compare_ui_elements(
-                source.ui_elements, target.ui_elements
+                source.ui_elements, target.ui_elements,
             )
             discrepancies.extend(ui_discrepancies)
 
         if weights["data_fields"] > 0:
             data_discrepancies = await self._compare_data_fields(
-                source.data_fields, target.data_fields
+                source.data_fields, target.data_fields,
             )
             discrepancies.extend(data_discrepancies)
 
         if weights["backend_functions"] > 0:
             function_discrepancies = await self._compare_backend_functions(
-                source.backend_functions, target.backend_functions
+                source.backend_functions, target.backend_functions,
             )
             discrepancies.extend(function_discrepancies)
 
         if weights["api_endpoints"] > 0:
             api_discrepancies = await self._compare_api_endpoints(
-                source.api_endpoints, target.api_endpoints
+                source.api_endpoints, target.api_endpoints,
             )
             discrepancies.extend(api_discrepancies)
 
         # Enhance discrepancies with LLM analysis if available
         if self.llm_service:
             enhanced_discrepancies = await self._enhance_with_llm_analysis(
-                source, target, discrepancies, scope
+                source, target, discrepancies, scope,
             )
             return enhanced_discrepancies
 
         return discrepancies
 
     async def _compare_ui_elements(
-        self, source_elements: List[UIElement], target_elements: List[UIElement]
+        self, source_elements: List[UIElement], target_elements: List[UIElement],
     ) -> List[ValidationDiscrepancy]:
         """Compare UI elements between source and target."""
         discrepancies = []
@@ -190,10 +193,9 @@ class SemanticComparator:
         """Generate a key for UI element comparison."""
         if element.id:
             return f"{element.type}#{element.id}"
-        elif element.text:
+        if element.text:
             return f"{element.type}:{element.text[:50]}"
-        else:
-            return f"{element.type}:anonymous"
+        return f"{element.type}:anonymous"
 
     def _describe_ui_element(self, element: UIElement) -> str:
         """Generate human-readable description of UI element."""
@@ -205,7 +207,7 @@ class SemanticComparator:
         return " ".join(desc_parts)
 
     def _find_fuzzy_ui_match(
-        self, source_elem: UIElement, target_elements: List[UIElement]
+        self, source_elem: UIElement, target_elements: List[UIElement],
     ) -> Optional[UIElement]:
         """Find potential fuzzy match for a UI element."""
         if not target_elements:
@@ -245,7 +247,7 @@ class SemanticComparator:
         return self._find_fuzzy_ui_match(target_elem, source_elements) is not None
 
     def _compare_ui_element_attributes(
-        self, source_elem: UIElement, target_elem: UIElement
+        self, source_elem: UIElement, target_elem: UIElement,
     ) -> List[ValidationDiscrepancy]:
         """Compare attributes of matching UI elements."""
         discrepancies = []
@@ -269,7 +271,7 @@ class SemanticComparator:
         return discrepancies
 
     async def _compare_data_fields(
-        self, source_fields: List[DataField], target_fields: List[DataField]
+        self, source_fields: List[DataField], target_fields: List[DataField],
     ) -> List[ValidationDiscrepancy]:
         """Compare data fields between source and target."""
         discrepancies = []
@@ -306,7 +308,7 @@ class SemanticComparator:
         # Find additional fields
         for name, target_field in target_map.items():
             if name not in source_map and not self._is_likely_field_rename(
-                target_field, source_fields
+                target_field, source_fields,
             ):
                 discrepancy = ValidationDiscrepancy(
                     type="additional_field",
@@ -353,7 +355,7 @@ class SemanticComparator:
         return discrepancies
 
     def _find_fuzzy_field_match(
-        self, source_field: DataField, target_fields: List[DataField]
+        self, source_field: DataField, target_fields: List[DataField],
     ) -> Optional[DataField]:
         """Find potential fuzzy match for a data field."""
         # Look for fields with similar names and same type
@@ -378,7 +380,7 @@ class SemanticComparator:
         return self._text_similarity(name1, name2)
 
     def _is_likely_field_rename(
-        self, target_field: DataField, source_fields: List[DataField]
+        self, target_field: DataField, source_fields: List[DataField],
     ) -> bool:
         """Check if target field is likely a rename of a source field."""
         return self._find_fuzzy_field_match(target_field, source_fields) is not None
@@ -430,7 +432,7 @@ class SemanticComparator:
         return discrepancies
 
     def _find_fuzzy_function_match(
-        self, source_func: BackendFunction, target_functions: List[BackendFunction]
+        self, source_func: BackendFunction, target_functions: List[BackendFunction],
     ) -> Optional[BackendFunction]:
         """Find potential fuzzy match for a backend function."""
         # Look for functions with similar names and parameters
@@ -460,7 +462,7 @@ class SemanticComparator:
         return len(common_params) / len(total_params) if total_params else 0.0
 
     async def _compare_function_details(
-        self, source_func: BackendFunction, target_func: BackendFunction
+        self, source_func: BackendFunction, target_func: BackendFunction,
     ) -> List[ValidationDiscrepancy]:
         """Compare details of matching functions using enhanced LLM analysis."""
         discrepancies = []
@@ -490,7 +492,7 @@ class SemanticComparator:
                     target_code=target_func.logic_summary,
                     context=f"Comparing business logic for function '{source_func.name}'",
                     source_language="pseudocode",
-                    target_language="pseudocode"
+                    target_language="pseudocode",
                 )
 
                 similarity_score = logic_analysis.result.get("similarity_score", 0.5)
@@ -513,6 +515,7 @@ class SemanticComparator:
 
             except Exception as e:
                 # Fallback to simple comparison if LLM analysis fails
+                print(f"LLM analysis failed with error: {e}")
                 if source_func.logic_summary != target_func.logic_summary:
                     discrepancy = ValidationDiscrepancy(
                         type="logic_change",
@@ -612,7 +615,7 @@ class SemanticComparator:
                 source_analysis=source_data,
                 target_analysis=target_data,
                 discrepancies=discrepancies_data,
-                validation_scope=scope.value
+                validation_scope=scope.value,
             )
 
             # Create enhanced discrepancies based on LLM analysis
@@ -671,7 +674,7 @@ class SemanticComparator:
                         type="high_priority_recommendation",
                         severity=SeverityLevel.WARNING,
                         description=f"High priority: {rec.get('description', '')}",
-                        recommendation=rec.get('description', ''),
+                        recommendation=rec.get("description", ""),
                         confidence=fidelity_analysis.confidence,
                     )
                     enhanced_discrepancies.append(enhanced_discrepancy)
@@ -705,10 +708,9 @@ class SemanticComparator:
         source: AbstractRepresentation,
         target: AbstractRepresentation,
         discrepancies: List[ValidationDiscrepancy],
-        scope: ValidationScope
+        scope: ValidationScope,
     ) -> Dict[str, Any]:
-        """
-        Assess overall migration quality using comprehensive LLM analysis.
+        """Assess overall migration quality using comprehensive LLM analysis.
 
         Returns detailed quality assessment including fidelity scores,
         risk analysis, and recommendations.
@@ -727,7 +729,7 @@ class SemanticComparator:
                 source_analysis=source_data,
                 target_analysis=target_data,
                 discrepancies=discrepancies_data,
-                validation_scope=scope.value
+                validation_scope=scope.value,
             )
 
             # Extract and structure the results
@@ -746,8 +748,8 @@ class SemanticComparator:
                 "recommendations": results.get("recommendations", []),
                 "analysis_metadata": {
                     "analysis_type": fidelity_analysis.analysis_type.value,
-                    "llm_metadata": fidelity_analysis.metadata
-                }
+                    "llm_metadata": fidelity_analysis.metadata,
+                },
             }
 
             return quality_assessment
@@ -790,14 +792,14 @@ class SemanticComparator:
                 "critical_issues": critical_count,
                 "warnings": warning_count,
                 "info_items": info_count,
-                "highest_risk_area": "manual_review_required" if critical_count > 0 else "low_risk"
+                "highest_risk_area": "manual_review_required" if critical_count > 0 else "low_risk",
             },
             "recommendations": [
                 {
                     "priority": "high" if critical_count > 0 else "medium",
                     "category": "analysis",
                     "description": "Manual review recommended due to limited analysis capabilities",
-                    "estimated_effort": "high" if critical_count > 0 else "medium"
-                }
-            ]
+                    "estimated_effort": "high" if critical_count > 0 else "medium",
+                },
+            ],
         }

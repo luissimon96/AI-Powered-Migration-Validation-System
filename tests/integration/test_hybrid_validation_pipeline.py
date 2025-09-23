@@ -1,23 +1,30 @@
-"""
-Integration tests for hybrid validation pipeline.
+"""Integration tests for hybrid validation pipeline.
 
 Tests the complete workflow combining static analysis and behavioral testing.
 """
 
-import asyncio
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.behavioral.crews import (BehavioralValidationCrew,
-                                  BehavioralValidationRequest,
-                                  BehavioralValidationResult)
+from src.behavioral.crews import (
+    BehavioralValidationCrew,
+    BehavioralValidationRequest,
+    BehavioralValidationResult,
+)
 from src.core.migration_validator import MigrationValidator
-from src.core.models import (InputData, InputType, MigrationValidationRequest,
-                             SeverityLevel, TechnologyContext, TechnologyType,
-                             ValidationDiscrepancy, ValidationResult,
-                             ValidationScope)
+from src.core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    SeverityLevel,
+    TechnologyContext,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationScope,
+)
 from src.reporters.validation_reporter import ValidationReporter
 
 
@@ -90,7 +97,7 @@ class TestHybridValidationPipeline:
             target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
             validation_scope=ValidationScope.FULL_SYSTEM,
             source_input=InputData(
-                type=InputType.CODE_FILES, files=["src/auth.py", "src/models.py"]
+                type=InputType.CODE_FILES, files=["src/auth.py", "src/models.py"],
             ),
             target_input=InputData(
                 type=InputType.CODE_FILES,
@@ -106,7 +113,6 @@ class TestHybridValidationPipeline:
         sample_migration_request,
     ):
         """Test complete hybrid validation pipeline with both static and behavioral validation."""
-
         # Mock static validation
         with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
@@ -115,7 +121,7 @@ class TestHybridValidationPipeline:
 
             # Mock behavioral validation
             with patch.object(
-                BehavioralValidationCrew, "validate_migration"
+                BehavioralValidationCrew, "validate_migration",
             ) as mock_behavioral_validation:
                 mock_behavioral_validation.return_value = sample_behavioral_result
 
@@ -126,7 +132,7 @@ class TestHybridValidationPipeline:
 
                 # Execute static validation
                 static_session = await static_validator.validate_migration(
-                    sample_migration_request
+                    sample_migration_request,
                 )
                 static_result = static_session.result
 
@@ -191,10 +197,9 @@ class TestHybridValidationPipeline:
                 assert "Behavioral testing:" in summary
 
     async def test_hybrid_validation_pipeline_static_only(
-        self, mock_llm_service, sample_static_result, sample_migration_request
+        self, mock_llm_service, sample_static_result, sample_migration_request,
     ):
         """Test hybrid validation pipeline with static validation only."""
-
         with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
             mock_session.result = sample_static_result
@@ -235,12 +240,11 @@ class TestHybridValidationPipeline:
             assert all(f["validation_source"] == "static" for f in all_findings)
 
     async def test_hybrid_validation_pipeline_behavioral_only(
-        self, mock_llm_service, sample_behavioral_result
+        self, mock_llm_service, sample_behavioral_result,
     ):
         """Test hybrid validation pipeline with behavioral validation only."""
-
         with patch.object(
-            BehavioralValidationCrew, "validate_migration"
+            BehavioralValidationCrew, "validate_migration",
         ) as mock_behavioral_validation:
             mock_behavioral_validation.return_value = sample_behavioral_result
 
@@ -258,7 +262,7 @@ class TestHybridValidationPipeline:
 
             # Generate unified report with behavioral only
             unified_report = reporter.generate_unified_report(
-                static_result=None, behavioral_result=behavioral_result
+                static_result=None, behavioral_result=behavioral_result,
             )
 
             # Verify report structure
@@ -281,10 +285,9 @@ class TestHybridValidationPipeline:
             assert all(f["validation_source"] == "behavioral" for f in all_findings)
 
     async def test_hybrid_validation_pipeline_with_errors(
-        self, mock_llm_service, sample_static_result, sample_migration_request
+        self, mock_llm_service, sample_static_result, sample_migration_request,
     ):
         """Test hybrid validation pipeline when behavioral validation fails."""
-
         # Mock successful static validation
         with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
@@ -293,7 +296,7 @@ class TestHybridValidationPipeline:
 
             # Mock failed behavioral validation
             with patch.object(
-                BehavioralValidationCrew, "validate_migration"
+                BehavioralValidationCrew, "validate_migration",
             ) as mock_behavioral_validation:
                 error_result = BehavioralValidationResult(
                     overall_status="error",
@@ -304,7 +307,7 @@ class TestHybridValidationPipeline:
                             severity=SeverityLevel.CRITICAL,
                             description="Browser automation failed to initialize",
                             recommendation="Check browser installation and configuration",
-                        )
+                        ),
                     ],
                     execution_log=["Browser initialization failed"],
                     execution_time=5.0,
@@ -319,7 +322,7 @@ class TestHybridValidationPipeline:
 
                 # Execute validations
                 static_session = await static_validator.validate_migration(
-                    sample_migration_request
+                    sample_migration_request,
                 )
                 static_result = static_session.result
 
@@ -332,7 +335,7 @@ class TestHybridValidationPipeline:
 
                 # Generate unified report
                 unified_report = reporter.generate_unified_report(
-                    static_result=static_result, behavioral_result=behavioral_result
+                    static_result=static_result, behavioral_result=behavioral_result,
                 )
 
                 # Verify report reflects mixed results
@@ -355,14 +358,13 @@ class TestHybridValidationPipeline:
         sample_migration_request,
     ):
         """Test hybrid validation pipeline with custom scoring weights."""
-
         with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
             mock_session.result = sample_static_result
             mock_static_validation.return_value = mock_session
 
             with patch.object(
-                BehavioralValidationCrew, "validate_migration"
+                BehavioralValidationCrew, "validate_migration",
             ) as mock_behavioral_validation:
                 mock_behavioral_validation.return_value = sample_behavioral_result
 
@@ -373,7 +375,7 @@ class TestHybridValidationPipeline:
 
                 # Execute validations
                 static_session = await static_validator.validate_migration(
-                    sample_migration_request
+                    sample_migration_request,
                 )
                 static_result = static_session.result
 
@@ -413,14 +415,13 @@ class TestHybridValidationPipeline:
         sample_migration_request,
     ):
         """Test hybrid validation pipeline tracks performance metrics."""
-
         with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
             mock_session.result = sample_static_result
             mock_static_validation.return_value = mock_session
 
             with patch.object(
-                BehavioralValidationCrew, "validate_migration"
+                BehavioralValidationCrew, "validate_migration",
             ) as mock_behavioral_validation:
                 mock_behavioral_validation.return_value = sample_behavioral_result
 
@@ -434,7 +435,7 @@ class TestHybridValidationPipeline:
 
                 # Execute validations
                 static_session = await static_validator.validate_migration(
-                    sample_migration_request
+                    sample_migration_request,
                 )
                 static_result = static_session.result
 
@@ -447,7 +448,7 @@ class TestHybridValidationPipeline:
 
                 # Generate unified report
                 unified_report = reporter.generate_unified_report(
-                    static_result=static_result, behavioral_result=behavioral_result
+                    static_result=static_result, behavioral_result=behavioral_result,
                 )
 
                 end_time = datetime.now()
@@ -481,17 +482,16 @@ class TestHybridValidationPipeline:
                 assert abs(performance_metrics["total_execution_time"] - expected_total) < 1.0
 
     async def test_hybrid_validation_pipeline_report_formats(
-        self, mock_llm_service, sample_static_result, sample_behavioral_result
+        self, mock_llm_service, sample_static_result, sample_behavioral_result,
     ):
         """Test hybrid validation pipeline supports multiple report formats."""
-
         with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
             mock_session.result = sample_static_result
             mock_static_validation.return_value = mock_session
 
             with patch.object(
-                BehavioralValidationCrew, "validate_migration"
+                BehavioralValidationCrew, "validate_migration",
             ) as mock_behavioral_validation:
                 mock_behavioral_validation.return_value = sample_behavioral_result
 
@@ -534,21 +534,20 @@ class TestHybridValidationPipeline:
                 assert "### 🧪 Behavioral Testing" in markdown_report
 
     async def test_hybrid_validation_pipeline_error_recovery(
-        self, mock_llm_service, sample_migration_request
+        self, mock_llm_service, sample_migration_request,
     ):
         """Test hybrid validation pipeline graceful error recovery."""
-
         # Mock both validations failing
         with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_static_validation.side_effect = Exception(
-                "Static validation infrastructure failure"
+                "Static validation infrastructure failure",
             )
 
             with patch.object(
-                BehavioralValidationCrew, "validate_migration"
+                BehavioralValidationCrew, "validate_migration",
             ) as mock_behavioral_validation:
                 mock_behavioral_validation.side_effect = Exception(
-                    "Behavioral validation infrastructure failure"
+                    "Behavioral validation infrastructure failure",
                 )
 
                 # Create components
@@ -562,7 +561,7 @@ class TestHybridValidationPipeline:
 
                 try:
                     static_session = await static_validator.validate_migration(
-                        sample_migration_request
+                        sample_migration_request,
                     )
                     static_result = static_session.result
                 except Exception:
@@ -577,7 +576,7 @@ class TestHybridValidationPipeline:
                                 severity=SeverityLevel.CRITICAL,
                                 description="Static validation infrastructure failure",
                                 recommendation="Check static validation system configuration",
-                            )
+                            ),
                         ],
                     )
 
@@ -588,7 +587,7 @@ class TestHybridValidationPipeline:
                         validation_scenarios=["basic_test"],
                     )
                     behavioral_result = await behavioral_crew.validate_migration(
-                        behavioral_request
+                        behavioral_request,
                     )
                 except Exception:
                     # Create error result for behavioral validation
@@ -601,7 +600,7 @@ class TestHybridValidationPipeline:
                                 severity=SeverityLevel.CRITICAL,
                                 description="Behavioral validation infrastructure failure",
                                 recommendation="Check behavioral validation system configuration",
-                            )
+                            ),
                         ],
                         execution_log=["Infrastructure failure occurred"],
                         execution_time=0.0,
@@ -610,7 +609,7 @@ class TestHybridValidationPipeline:
 
                 # Generate unified report even with errors
                 unified_report = reporter.generate_unified_report(
-                    static_result=static_result, behavioral_result=behavioral_result
+                    static_result=static_result, behavioral_result=behavioral_result,
                 )
 
                 # Verify error handling in unified report

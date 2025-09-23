@@ -1,5 +1,4 @@
-"""
-Integration tests for behavioral validation pipeline.
+"""Integration tests for behavioral validation pipeline.
 
 Tests the complete workflow from behavioral validation request to final results.
 """
@@ -10,11 +9,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.behavioral.browser_automation import BrowserAutomationEngine
-from src.behavioral.crews import (BehavioralValidationCrew,
-                                  BehavioralValidationRequest,
-                                  BehavioralValidationResult,
-                                  create_behavioral_validation_crew)
+from src.behavioral.crews import (
+    BehavioralValidationCrew,
+    BehavioralValidationRequest,
+    BehavioralValidationResult,
+    create_behavioral_validation_crew,
+)
 from src.core.models import SeverityLevel, ValidationDiscrepancy
 
 
@@ -64,7 +64,7 @@ class TestBehavioralValidationPipeline:
         )
 
     async def test_behavioral_validation_pipeline_success(
-        self, mock_llm_service, sample_behavioral_request, mock_browser_automation
+        self, mock_llm_service, sample_behavioral_request, mock_browser_automation,
     ):
         """Test successful behavioral validation pipeline."""
         # Mock CrewAI crew execution results
@@ -155,7 +155,7 @@ class TestBehavioralValidationPipeline:
             assert mock_crew_instance.kickoff.call_count == 4
 
     async def test_behavioral_validation_pipeline_with_critical_issues(
-        self, mock_llm_service, sample_behavioral_request, mock_browser_automation
+        self, mock_llm_service, sample_behavioral_request, mock_browser_automation,
     ):
         """Test behavioral validation pipeline with critical issues."""
         with patch("src.behavioral.crews.Crew") as mock_crew_class:
@@ -213,7 +213,7 @@ class TestBehavioralValidationPipeline:
             assert result.discrepancies[0].severity == SeverityLevel.CRITICAL
 
     async def test_behavioral_validation_pipeline_browser_failure(
-        self, mock_llm_service, sample_behavioral_request
+        self, mock_llm_service, sample_behavioral_request,
     ):
         """Test behavioral validation pipeline when browser automation fails."""
         with patch("src.behavioral.crews.Crew") as mock_crew_class:
@@ -222,7 +222,7 @@ class TestBehavioralValidationPipeline:
 
             # Mock browser initialization failure
             mock_crew_instance.kickoff.side_effect = Exception(
-                "Browser automation failed: Could not launch browser"
+                "Browser automation failed: Could not launch browser",
             )
 
             crew = BehavioralValidationCrew(mock_llm_service)
@@ -238,7 +238,7 @@ class TestBehavioralValidationPipeline:
             assert "Browser automation failed" in error_discrepancy.description
 
     async def test_behavioral_validation_pipeline_partial_success(
-        self, mock_llm_service, sample_behavioral_request, mock_browser_automation
+        self, mock_llm_service, sample_behavioral_request, mock_browser_automation,
     ):
         """Test behavioral validation pipeline with partial success."""
         with patch("src.behavioral.crews.Crew") as mock_crew_class:
@@ -291,7 +291,7 @@ class TestBehavioralValidationPipeline:
             assert result.discrepancies[0].severity == SeverityLevel.WARNING
 
     async def test_behavioral_validation_cleanup_on_success(
-        self, mock_llm_service, sample_behavioral_request, mock_browser_automation
+        self, mock_llm_service, sample_behavioral_request, mock_browser_automation,
     ):
         """Test that browser resources are cleaned up after successful validation."""
         with patch("src.behavioral.crews.Crew") as mock_crew_class:
@@ -305,7 +305,7 @@ class TestBehavioralValidationPipeline:
 
             # Mock cleanup method
             with patch.object(
-                crew, "cleanup_browser_resources", new_callable=AsyncMock
+                crew, "cleanup_browser_resources", new_callable=AsyncMock,
             ) as mock_cleanup:
                 result = await crew.validate_migration(sample_behavioral_request)
 
@@ -315,7 +315,7 @@ class TestBehavioralValidationPipeline:
             assert result.overall_status == "approved"
 
     async def test_behavioral_validation_cleanup_on_error(
-        self, mock_llm_service, sample_behavioral_request
+        self, mock_llm_service, sample_behavioral_request,
     ):
         """Test that browser resources are cleaned up even when validation fails."""
         with patch("src.behavioral.crews.Crew") as mock_crew_class:
@@ -327,7 +327,7 @@ class TestBehavioralValidationPipeline:
 
             # Mock cleanup method
             with patch.object(
-                crew, "cleanup_browser_resources", new_callable=AsyncMock
+                crew, "cleanup_browser_resources", new_callable=AsyncMock,
             ) as mock_cleanup:
                 result = await crew.validate_migration(sample_behavioral_request)
 
@@ -464,7 +464,7 @@ class TestBehavioralValidationPerformance:
             # Execute concurrent validations
             start_time = datetime.now()
             results = await asyncio.gather(
-                *[crew.validate_migration(request) for crew, request in zip(crews, requests)]
+                *[crew.validate_migration(request) for crew, request in zip(crews, requests)],
             )
             end_time = datetime.now()
 

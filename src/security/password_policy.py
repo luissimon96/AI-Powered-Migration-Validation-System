@@ -1,5 +1,4 @@
-"""
-Password policy enforcement for S002 authentication system.
+"""Password policy enforcement for S002 authentication system.
 Ultra-compressed implementation with essential security policies.
 """
 
@@ -11,6 +10,7 @@ from pydantic import BaseModel
 
 class PasswordPolicy(BaseModel):
     """Password policy configuration."""
+
     min_length: int = 12
     require_uppercase: bool = True
     require_lowercase: bool = True
@@ -36,13 +36,13 @@ class PasswordValidator:
             errors.append(f"Password must be at least {self.policy.min_length} characters")
 
         # Character requirements
-        if self.policy.require_uppercase and not re.search(r'[A-Z]', password):
+        if self.policy.require_uppercase and not re.search(r"[A-Z]", password):
             errors.append("Password must contain at least one uppercase letter")
 
-        if self.policy.require_lowercase and not re.search(r'[a-z]', password):
+        if self.policy.require_lowercase and not re.search(r"[a-z]", password):
             errors.append("Password must contain at least one lowercase letter")
 
-        if self.policy.require_digits and not re.search(r'\d', password):
+        if self.policy.require_digits and not re.search(r"\d", password):
             errors.append("Password must contain at least one digit")
 
         if self.policy.require_special:

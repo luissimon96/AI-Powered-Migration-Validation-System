@@ -1,18 +1,15 @@
-"""
-Authentication security tests.
+"""Authentication security tests.
 
 Tests for JWT authentication, user management, role-based access control,
 and authentication security features.
 """
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 
-from src.security.auth import (AuthenticationError, AuthManager,
-                               JWTAuthenticator, User, UserRole)
+from src.security.auth import AuthenticationError, AuthManager, JWTAuthenticator, User, UserRole
 from src.security.config import get_security_config
 
 
@@ -343,7 +340,7 @@ class TestAuthenticationAPI:
         """Test login endpoint security."""
         # Test with invalid credentials
         response = client.post(
-            "/api/auth/login", json={"username": "invalid", "password": "wrong"}
+            "/api/auth/login", json={"username": "invalid", "password": "wrong"},
         )
         assert response.status_code == 401
 
@@ -356,7 +353,7 @@ class TestAuthenticationAPI:
         # Make multiple rapid requests
         for _ in range(10):
             response = client.post(
-                "/api/auth/login", json={"username": "test", "password": "wrong"}
+                "/api/auth/login", json={"username": "test", "password": "wrong"},
             )
 
         # Should eventually get rate limited

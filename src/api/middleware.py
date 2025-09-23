@@ -1,5 +1,4 @@
-"""
-Comprehensive security middleware for input validation, authentication, and audit logging.
+"""Comprehensive security middleware for input validation, authentication, and audit logging.
 
 Integrates all security components including input validation, API key authentication,
 rate limiting, and comprehensive audit logging.
@@ -8,7 +7,6 @@ rate limiting, and comprehensive audit logging.
 import json
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -56,7 +54,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             "command_injection": [
                 r"[;&|`$\(\){}]",
                 r"(rm\s|del\s|format\s|mkfs\s)",
-            ]
+            ],
         }
 
     async def dispatch(self, request: Request, call_next):
@@ -104,11 +102,11 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             self.logger.error(
                 "Unhandled error in security middleware",
                 error=str(e),
-                request_id=request_id
+                request_id=request_id,
             )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Internal server error"
+                detail="Internal server error",
             )
 
     def _get_client_ip(self, request: Request) -> str:
@@ -152,7 +150,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             await self._log_validation_failure(request, str(e))
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Input validation failed: {str(e)}"
+                detail=f"Input validation failed: {e!s}",
             )
 
     async def _validate_url_path(self, request: Request):
@@ -181,7 +179,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 if isinstance(value, str):
                     self.security_validator.validate_string_input(value, f"query_value_{param}")
             except SecurityValidationError as e:
-                raise SecurityValidationError(f"Query parameter validation failed: {str(e)}")
+                raise SecurityValidationError(f"Query parameter validation failed: {e!s}")
 
     async def _validate_headers(self, request: Request):
         """Validate request headers."""
@@ -195,10 +193,10 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 try:
                     self.security_validator.validate_string_input(
                         header_value,
-                        f"header_{header_name}"
+                        f"header_{header_name}",
                     )
                 except SecurityValidationError as e:
-                    raise SecurityValidationError(f"Header validation failed: {str(e)}")
+                    raise SecurityValidationError(f"Header validation failed: {e!s}")
 
     async def _validate_json_payload(self, request: Request):
         """Validate JSON payload."""
@@ -217,12 +215,12 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 except json.JSONDecodeError:
                     raise SecurityValidationError("Invalid JSON format")
                 except SecurityValidationError as e:
-                    raise SecurityValidationError(f"JSON validation failed: {str(e)}")
+                    raise SecurityValidationError(f"JSON validation failed: {e!s}")
 
         except Exception as e:
             if isinstance(e, SecurityValidationError):
                 raise
-            raise SecurityValidationError(f"JSON payload validation error: {str(e)}")
+            raise SecurityValidationError(f"JSON payload validation error: {e!s}")
 
     async def _validate_multipart_data(self, request: Request):
         """Validate multipart form data."""
@@ -236,7 +234,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 self.security_validator.validate_string_input(field_name, f"form_field_{field_name}")
 
                 # Handle file uploads
-                if hasattr(field_value, 'filename') and field_value.filename:
+                if hasattr(field_value, "filename") and field_value.filename:
                     file_count += 1
                     if file_count > self.settings.MAX_UPLOAD_FILES_PER_REQUEST:
                         raise SecurityValidationError("Too many files in upload")
@@ -259,20 +257,20 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     validation_result = await self.security_validator.validate_file_upload(field_value)
                     if not validation_result.is_valid:
                         raise SecurityValidationError(
-                            f"File validation failed: {', '.join(validation_result.security_issues)}"
+                            f"File validation failed: {', '.join(validation_result.security_issues)}",
                         )
 
                 # Handle text fields
                 elif isinstance(field_value, str):
                     self.security_validator.validate_string_input(
                         field_value,
-                        f"form_value_{field_name}"
+                        f"form_value_{field_name}",
                     )
 
         except Exception as e:
             if isinstance(e, SecurityValidationError):
                 raise
-            raise SecurityValidationError(f"Multipart data validation error: {str(e)}")
+            raise SecurityValidationError(f"Multipart data validation error: {e!s}")
 
     async def _validate_form_data(self, request: Request):
         """Validate URL-encoded form data."""
@@ -283,12 +281,12 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 if isinstance(field_value, str):
                     self.security_validator.validate_string_input(
                         field_value,
-                        f"form_value_{field_name}"
+                        f"form_value_{field_name}",
                     )
         except Exception as e:
             if isinstance(e, SecurityValidationError):
                 raise
-            raise SecurityValidationError(f"Form data validation error: {str(e)}")
+            raise SecurityValidationError(f"Form data validation error: {e!s}")
 
     async def _detect_attacks(self, request: Request):
         """Detect potential attack patterns."""
@@ -308,7 +306,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             if "application/json" in request.headers.get("content-type", ""):
                 body = await request.body()
                 if body:
-                    analysis_data.append(body.decode('utf-8', errors='ignore'))
+                    analysis_data.append(body.decode("utf-8", errors="ignore"))
         except:
             pass  # Skip body analysis if it fails
 
@@ -324,27 +322,27 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                             user_agent=request.state.user_agent,
                             details={
                                 "pattern_matched": pattern,
-                                "data_sample": data_item[:100]
+                                "data_sample": data_item[:100],
                             },
-                            request_id=request.state.request_id
+                            request_id=request.state.request_id,
                         )
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Potential {attack_type} detected"
+                            detail=f"Potential {attack_type} detected",
                         )
 
     async def _log_successful_request(
         self,
         request: Request,
         response: Response,
-        start_time: datetime
+        start_time: datetime,
     ):
         """Log successful request."""
         execution_time = (datetime.utcnow() - start_time).total_seconds()
 
         # Extract user/API key information if available
-        user_id = getattr(request.state, 'user_id', None)
-        api_key_id = getattr(request.state, 'api_key_id', None)
+        user_id = getattr(request.state, "user_id", None)
+        api_key_id = getattr(request.state, "api_key_id", None)
 
         await security_audit.log_data_access(
             user_id=user_id,
@@ -352,18 +350,18 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             resource=request.url.path,
             action=request.method,
             source_ip=request.state.client_ip,
-            request_id=request.state.request_id
+            request_id=request.state.request_id,
         )
 
     async def _log_security_violation(
         self,
         request: Request,
         exception: HTTPException,
-        start_time: datetime
+        start_time: datetime,
     ):
         """Log security violation."""
-        user_id = getattr(request.state, 'user_id', None)
-        api_key_id = getattr(request.state, 'api_key_id', None)
+        user_id = getattr(request.state, "user_id", None)
+        api_key_id = getattr(request.state, "api_key_id", None)
 
         await security_audit.log_event(
             event_type=AuditEventType.SECURITY_VIOLATION,
@@ -379,19 +377,19 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 "method": request.method,
                 "status_code": exception.status_code,
                 "detail": exception.detail,
-                "execution_time": (datetime.utcnow() - start_time).total_seconds()
+                "execution_time": (datetime.utcnow() - start_time).total_seconds(),
             },
-            request_id=request.state.request_id
+            request_id=request.state.request_id,
         )
 
     async def _log_validation_failure(
         self,
         request: Request,
-        error_message: str
+        error_message: str,
     ):
         """Log input validation failure."""
-        user_id = getattr(request.state, 'user_id', None)
-        api_key_id = getattr(request.state, 'api_key_id', None)
+        user_id = getattr(request.state, "user_id", None)
+        api_key_id = getattr(request.state, "api_key_id", None)
 
         await security_audit.log_input_validation_failure(
             user_id=user_id,
@@ -400,18 +398,18 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             violation_type="input_validation",
             value_sample=error_message,
             source_ip=request.state.client_ip,
-            request_id=request.state.request_id
+            request_id=request.state.request_id,
         )
 
     async def _log_system_error(
         self,
         request: Request,
         exception: Exception,
-        start_time: datetime
+        start_time: datetime,
     ):
         """Log system error."""
-        user_id = getattr(request.state, 'user_id', None)
-        api_key_id = getattr(request.state, 'api_key_id', None)
+        user_id = getattr(request.state, "user_id", None)
+        api_key_id = getattr(request.state, "api_key_id", None)
 
         await security_audit.log_event(
             event_type=AuditEventType.SYSTEM_ERROR,
@@ -426,9 +424,9 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             details={
                 "method": request.method,
                 "error": str(exception),
-                "execution_time": (datetime.utcnow() - start_time).total_seconds()
+                "execution_time": (datetime.utcnow() - start_time).total_seconds(),
             },
-            request_id=request.state.request_id
+            request_id=request.state.request_id,
         )
 
 
@@ -442,7 +440,7 @@ class InputValidationMiddleware(BaseHTTPMiddleware):
             app,
             enable_input_validation=True,
             enable_audit_logging=False,
-            enable_attack_detection=enable_path_traversal_prevention
+            enable_attack_detection=enable_path_traversal_prevention,
         )
 
     async def dispatch(self, request: Request, call_next):

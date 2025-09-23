@@ -1,11 +1,9 @@
-"""
-Comprehensive security audit logging system.
+"""Comprehensive security audit logging system.
 
 Provides detailed audit trails for all security-related events including
 authentication, authorization, data access, and security violations.
 """
 
-import json
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
@@ -109,7 +107,7 @@ class SecurityAuditLogger:
         resource: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
         request_id: Optional[str] = None,
-        session_id: Optional[str] = None
+        session_id: Optional[str] = None,
     ):
         """Log a security audit event."""
         import uuid
@@ -128,7 +126,7 @@ class SecurityAuditLogger:
             result=result,
             details=details or {},
             request_id=request_id,
-            session_id=session_id
+            session_id=session_id,
         )
 
         try:
@@ -145,7 +143,7 @@ class SecurityAuditLogger:
                 action=action,
                 result=result,
                 resource=resource,
-                source_ip=source_ip
+                source_ip=source_ip,
             )
 
             # Alert on critical events
@@ -161,7 +159,7 @@ class SecurityAuditLogger:
         self.logger.critical(
             f"CRITICAL SECURITY EVENT: {event.event_type.value}",
             event_id=event.event_id,
-            details=event.details
+            details=event.details,
         )
 
     # Authentication audit methods
@@ -170,7 +168,7 @@ class SecurityAuditLogger:
         user_id: str,
         source_ip: str,
         user_agent: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log successful login."""
         await self.log_event(
@@ -181,7 +179,7 @@ class SecurityAuditLogger:
             user_id=user_id,
             source_ip=source_ip,
             user_agent=user_agent,
-            request_id=request_id
+            request_id=request_id,
         )
 
     async def log_login_failure(
@@ -190,7 +188,7 @@ class SecurityAuditLogger:
         reason: str,
         source_ip: str,
         user_agent: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log failed login attempt."""
         await self.log_event(
@@ -201,14 +199,14 @@ class SecurityAuditLogger:
             source_ip=source_ip,
             user_agent=user_agent,
             details={"username": username, "failure_reason": reason},
-            request_id=request_id
+            request_id=request_id,
         )
 
     async def log_logout(
         self,
         user_id: str,
         source_ip: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log user logout."""
         await self.log_event(
@@ -218,7 +216,7 @@ class SecurityAuditLogger:
             result="success",
             user_id=user_id,
             source_ip=source_ip,
-            request_id=request_id
+            request_id=request_id,
         )
 
     # API key audit methods
@@ -228,7 +226,7 @@ class SecurityAuditLogger:
         created_by: str,
         scopes: list,
         source_ip: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log API key creation."""
         await self.log_event(
@@ -240,7 +238,7 @@ class SecurityAuditLogger:
             api_key_id=api_key_id,
             source_ip=source_ip,
             details={"scopes": scopes},
-            request_id=request_id
+            request_id=request_id,
         )
 
     async def log_api_key_used(
@@ -249,7 +247,7 @@ class SecurityAuditLogger:
         action: str,
         resource: str,
         source_ip: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log API key usage."""
         await self.log_event(
@@ -260,7 +258,7 @@ class SecurityAuditLogger:
             api_key_id=api_key_id,
             source_ip=source_ip,
             resource=resource,
-            request_id=request_id
+            request_id=request_id,
         )
 
     async def log_api_key_invalid(
@@ -268,7 +266,7 @@ class SecurityAuditLogger:
         provided_key: str,
         source_ip: str,
         user_agent: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log invalid API key usage."""
         await self.log_event(
@@ -279,7 +277,7 @@ class SecurityAuditLogger:
             source_ip=source_ip,
             user_agent=user_agent,
             details={"provided_key_prefix": provided_key[:8] if provided_key else ""},
-            request_id=request_id
+            request_id=request_id,
         )
 
     async def log_api_key_rate_limited(
@@ -287,7 +285,7 @@ class SecurityAuditLogger:
         api_key_id: str,
         rate_limit: int,
         source_ip: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log API key rate limiting."""
         await self.log_event(
@@ -298,7 +296,7 @@ class SecurityAuditLogger:
             api_key_id=api_key_id,
             source_ip=source_ip,
             details={"rate_limit": rate_limit},
-            request_id=request_id
+            request_id=request_id,
         )
 
     # Authorization audit methods
@@ -309,7 +307,7 @@ class SecurityAuditLogger:
         resource: str,
         required_permission: str,
         source_ip: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log access denied event."""
         await self.log_event(
@@ -322,7 +320,7 @@ class SecurityAuditLogger:
             source_ip=source_ip,
             resource=resource,
             details={"required_permission": required_permission},
-            request_id=request_id
+            request_id=request_id,
         )
 
     async def log_scope_violation(
@@ -332,7 +330,7 @@ class SecurityAuditLogger:
         available_scopes: list,
         resource: str,
         source_ip: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log scope violation."""
         await self.log_event(
@@ -345,9 +343,9 @@ class SecurityAuditLogger:
             resource=resource,
             details={
                 "required_scope": required_scope,
-                "available_scopes": available_scopes
+                "available_scopes": available_scopes,
             },
-            request_id=request_id
+            request_id=request_id,
         )
 
     # Data access audit methods
@@ -360,16 +358,16 @@ class SecurityAuditLogger:
         content_type: str,
         validation_result: dict,
         source_ip: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log file upload event."""
-        severity = AuditSeverity.HIGH if not validation_result.get('is_valid') else AuditSeverity.LOW
+        severity = AuditSeverity.HIGH if not validation_result.get("is_valid") else AuditSeverity.LOW
 
         await self.log_event(
             event_type=AuditEventType.FILE_UPLOAD,
             severity=severity,
             action="file_upload",
-            result="success" if validation_result.get('is_valid') else "validation_failed",
+            result="success" if validation_result.get("is_valid") else "validation_failed",
             user_id=user_id,
             api_key_id=api_key_id,
             source_ip=source_ip,
@@ -377,9 +375,9 @@ class SecurityAuditLogger:
             details={
                 "file_size": file_size,
                 "content_type": content_type,
-                "validation_result": validation_result
+                "validation_result": validation_result,
             },
-            request_id=request_id
+            request_id=request_id,
         )
 
     async def log_data_access(
@@ -389,7 +387,7 @@ class SecurityAuditLogger:
         resource: str,
         action: str,
         source_ip: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log data access event."""
         await self.log_event(
@@ -401,7 +399,7 @@ class SecurityAuditLogger:
             api_key_id=api_key_id,
             source_ip=source_ip,
             resource=resource,
-            request_id=request_id
+            request_id=request_id,
         )
 
     # Security violation audit methods
@@ -413,7 +411,7 @@ class SecurityAuditLogger:
         violation_type: str,
         value_sample: str,
         source_ip: str,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log input validation failure."""
         await self.log_event(
@@ -427,9 +425,9 @@ class SecurityAuditLogger:
             details={
                 "field_name": field_name,
                 "violation_type": violation_type,
-                "value_sample": value_sample[:100]  # Limit sample size
+                "value_sample": value_sample[:100],  # Limit sample size
             },
-            request_id=request_id
+            request_id=request_id,
         )
 
     async def log_attack_attempt(
@@ -438,7 +436,7 @@ class SecurityAuditLogger:
         source_ip: str,
         user_agent: str,
         details: dict,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log potential attack attempt."""
         await self.log_event(
@@ -450,9 +448,9 @@ class SecurityAuditLogger:
             user_agent=user_agent,
             details={
                 "attack_type": attack_type,
-                **details
+                **details,
             },
-            request_id=request_id
+            request_id=request_id,
         )
 
     async def log_suspicious_activity(
@@ -462,7 +460,7 @@ class SecurityAuditLogger:
         activity_type: str,
         source_ip: str,
         details: dict,
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
     ):
         """Log suspicious activity."""
         await self.log_event(
@@ -475,9 +473,9 @@ class SecurityAuditLogger:
             source_ip=source_ip,
             details={
                 "activity_type": activity_type,
-                **details
+                **details,
             },
-            request_id=request_id
+            request_id=request_id,
         )
 
     # Query methods
@@ -489,7 +487,7 @@ class SecurityAuditLogger:
         user_id: Optional[str] = None,
         api_key_id: Optional[str] = None,
         severity: Optional[AuditSeverity] = None,
-        limit: int = 100
+        limit: int = 100,
     ) -> list:
         """Query audit events with filters."""
         try:
@@ -500,7 +498,7 @@ class SecurityAuditLogger:
                 user_id=user_id,
                 api_key_id=api_key_id,
                 severity=severity,
-                limit=limit
+                limit=limit,
             )
         except Exception as e:
             self.logger.error("Failed to query audit events", error=str(e))
@@ -509,7 +507,7 @@ class SecurityAuditLogger:
     async def get_security_metrics(
         self,
         start_date: datetime,
-        end_date: datetime
+        end_date: datetime,
     ) -> dict:
         """Get security metrics for a date range."""
         try:
@@ -522,12 +520,12 @@ class SecurityAuditLogger:
                 "failed_logins": 0,
                 "api_key_violations": 0,
                 "input_validation_failures": 0,
-                "attack_attempts": 0
+                "attack_attempts": 0,
             }
 
             for event in events:
-                event_type = event.get('event_type')
-                severity = event.get('severity')
+                event_type = event.get("event_type")
+                severity = event.get("severity")
 
                 # Count by type
                 metrics["events_by_type"][event_type] = metrics["events_by_type"].get(event_type, 0) + 1

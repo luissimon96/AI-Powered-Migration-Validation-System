@@ -1,5 +1,4 @@
-"""
-Visual analyzer for extracting features from screenshots and images.
+"""Visual analyzer for extracting features from screenshots and images.
 
 Implements analysis of UI screenshots using computer vision and multimodal LLMs
 to extract UI elements, layout information, visual structure, and element relationships.
@@ -9,15 +8,20 @@ import base64
 import io
 import os
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from PIL import Image
 
-from ..core.models import (AbstractRepresentation, InputData, InputType,
-                           TechnologyContext, UIElement, ValidationScope)
+from ..core.models import (
+    AbstractRepresentation,
+    InputData,
+    InputType,
+    TechnologyContext,
+    UIElement,
+    ValidationScope,
+)
 from ..services.llm_service import AnalysisType, LLMService, create_llm_service
-from .base import (BaseAnalyzer, ExtractionError, InvalidInputError,
-                   UnsupportedScopeError)
+from .base import BaseAnalyzer, ExtractionError, InvalidInputError, UnsupportedScopeError
 
 
 class VisualAnalyzer(BaseAnalyzer):
@@ -31,7 +35,7 @@ class VisualAnalyzer(BaseAnalyzer):
         self.llm_service: LLMService = create_llm_service(providers="openai,google,anthropic")
 
     async def analyze(
-        self, input_data: InputData, scope: ValidationScope
+        self, input_data: InputData, scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze screenshots and extract UI representation."""
         if not self.supports_scope(scope):
@@ -60,13 +64,13 @@ class VisualAnalyzer(BaseAnalyzer):
             # Enhanced analysis with element relationships
             if representation.ui_elements:
                 representation = await self._enhance_with_relationship_analysis(
-                    representation, scope
+                    representation, scope,
                 )
 
             return representation
 
         except Exception as e:
-            raise ExtractionError(f"Failed to analyze screenshots: {str(e)}")
+            raise ExtractionError(f"Failed to analyze screenshots: {e!s}")
 
     def _is_supported_image(self, file_path: str) -> bool:
         """Check if image format is supported."""
@@ -74,7 +78,7 @@ class VisualAnalyzer(BaseAnalyzer):
         return ext in self.supported_image_formats
 
     async def _analyze_screenshot(
-        self, image_path: str, scope: ValidationScope
+        self, image_path: str, scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Analyze a single screenshot with comprehensive UI element extraction."""
         try:
@@ -108,10 +112,10 @@ class VisualAnalyzer(BaseAnalyzer):
                 return representation
 
         except Exception as e:
-            raise ExtractionError(f"Failed to analyze image {image_path}: {str(e)}")
+            raise ExtractionError(f"Failed to analyze image {image_path}: {e!s}")
 
     async def _extract_ui_elements_with_llm(
-        self, image: Image.Image, image_path: str
+        self, image: Image.Image, image_path: str,
     ) -> List[UIElement]:
         """Extract UI elements using advanced multimodal LLM analysis."""
         elements = []
@@ -125,8 +129,8 @@ class VisualAnalyzer(BaseAnalyzer):
                 AnalysisType.UI_ELEMENT_EXTRACTION,
                 {
                     "additional_context": f"Screenshot from {os.path.basename(image_path)}. "
-                                        "Focus on interactive elements, form controls, navigation, and content areas."
-                }
+                                        "Focus on interactive elements, form controls, navigation, and content areas.",
+                },
             )
 
             # Convert LLM response to UIElement objects
@@ -141,7 +145,7 @@ class VisualAnalyzer(BaseAnalyzer):
                             **elem_data.get("attributes", {}),
                             "llm_confidence": analysis_result.confidence,
                             "llm_provider": analysis_result.provider_used,
-                            "extraction_method": "multimodal_llm"
+                            "extraction_method": "multimodal_llm",
                         },
                     )
                     elements.append(element)
@@ -159,8 +163,8 @@ class VisualAnalyzer(BaseAnalyzer):
                             attributes={
                                 "section_type": section,
                                 "contains_elements": element_ids,
-                                "extraction_method": "layout_analysis"
-                            }
+                                "extraction_method": "layout_analysis",
+                            },
                         )
                         elements.append(layout_element)
 
@@ -171,7 +175,7 @@ class VisualAnalyzer(BaseAnalyzer):
         return elements
 
     async def _analyze_with_multimodal_llm(
-        self, image_base64: str, image_path: str
+        self, image_base64: str, image_path: str,
     ) -> Dict[str, Any]:
         """Analyze image using the multimodal LLM service with structured prompts."""
         try:
@@ -181,7 +185,7 @@ class VisualAnalyzer(BaseAnalyzer):
             # Use the LLM service for screenshot analysis
             analysis_result = await self.llm_service.analyze_ui_screenshot(
                 image_base64=image_base64,
-                prompt=prompt
+                prompt=prompt,
             )
 
             return analysis_result.result
@@ -251,8 +255,8 @@ class VisualAnalyzer(BaseAnalyzer):
                 attributes={
                     "analysis_method": "basic_cv",
                     "confidence": region.get("confidence", 0.3),
-                    "region_type": region.get("region_type", "unknown")
-                }
+                    "region_type": region.get("region_type", "unknown"),
+                },
             )
             elements.append(element)
 
@@ -264,8 +268,8 @@ class VisualAnalyzer(BaseAnalyzer):
                 position={"x": 0, "y": 0, "width": width, "height": height},
                 attributes={
                     "analysis_method": "basic_cv_fallback",
-                    "total_pixels": width * height
-                }
+                    "total_pixels": width * height,
+                },
             )
             elements.append(element)
 
@@ -311,7 +315,7 @@ class VisualAnalyzer(BaseAnalyzer):
                 "type": "header_region",
                 "position": {"x": 0, "y": 0, "width": width, "height": min(80, height // 10)},
                 "confidence": 0.4,
-                "region_type": "navigation"
+                "region_type": "navigation",
             })
 
         # Main content area
@@ -322,7 +326,7 @@ class VisualAnalyzer(BaseAnalyzer):
                 "type": "main_content",
                 "position": {"x": 0, "y": main_start_y, "width": width, "height": main_height},
                 "confidence": 0.5,
-                "region_type": "content"
+                "region_type": "content",
             })
 
         # Bottom region (potential footer)
@@ -332,13 +336,13 @@ class VisualAnalyzer(BaseAnalyzer):
                 "type": "footer_region",
                 "position": {"x": 0, "y": height - footer_height, "width": width, "height": footer_height},
                 "confidence": 0.3,
-                "region_type": "navigation"
+                "region_type": "navigation",
             })
 
         return regions
 
     async def _enhance_with_relationship_analysis(
-        self, representation: AbstractRepresentation, scope: ValidationScope
+        self, representation: AbstractRepresentation, scope: ValidationScope,
     ) -> AbstractRepresentation:
         """Enhance the representation with UI element relationship analysis."""
         if not representation.ui_elements:
@@ -351,14 +355,14 @@ class VisualAnalyzer(BaseAnalyzer):
             # Analyze element relationships using LLM
             relationship_analysis = await self.llm_service.analyze_ui_element_relationships(
                 elements_data,
-                f"Screenshot analysis for {scope.value} validation"
+                f"Screenshot analysis for {scope.value} validation",
             )
 
             # Enhance representation with relationship data
             representation.metadata["relationship_analysis"] = {
                 "confidence": relationship_analysis.confidence,
                 "provider": relationship_analysis.provider_used,
-                "analysis_results": relationship_analysis.result
+                "analysis_results": relationship_analysis.result,
             }
 
             # Update elements with relationship information
@@ -388,7 +392,7 @@ class VisualAnalyzer(BaseAnalyzer):
                     elem.attributes["relationships"].append({
                         "target": target_id,
                         "type": rel_type,
-                        "description": relationship.get("description", "")
+                        "description": relationship.get("description", ""),
                     })
 
             # Add workflow information to relevant elements
@@ -405,7 +409,7 @@ class VisualAnalyzer(BaseAnalyzer):
                             elem.attributes["workflows"].append({
                                 "name": workflow.get("workflow_name", ""),
                                 "step": step,
-                                "critical_path": workflow.get("critical_path", False)
+                                "critical_path": workflow.get("critical_path", False),
                             })
 
             # Add form group information
@@ -423,7 +427,7 @@ class VisualAnalyzer(BaseAnalyzer):
 
                         elem.attributes["form_group"] = {
                             "name": form_group.get("group_name", ""),
-                            "validation_rules": validation_rules
+                            "validation_rules": validation_rules,
                         }
 
         except Exception as e:
@@ -432,7 +436,7 @@ class VisualAnalyzer(BaseAnalyzer):
         return representation
 
     def _merge_visual_analysis(
-        self, target: AbstractRepresentation, source: AbstractRepresentation
+        self, target: AbstractRepresentation, source: AbstractRepresentation,
     ):
         """Merge visual analysis results from multiple images."""
         target.ui_elements.extend(source.ui_elements)

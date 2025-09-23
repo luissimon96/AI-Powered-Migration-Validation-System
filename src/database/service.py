@@ -1,44 +1,47 @@
-"""
-Database service layer for AI-Powered Migration Validation System.
+"""Database service layer for AI-Powered Migration Validation System.
 
 Provides high-level business logic methods that integrate the repository
 pattern with the existing Pydantic models and system architecture.
 """
 
-import json
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import (InputType, MigrationValidationRequest,
-                           SeverityLevel, TechnologyType,
-                           ValidationDiscrepancy, ValidationResult,
-                           ValidationScope, ValidationSession)
-from .models import (DiscrepancyModel, ValidationResultModel,
-                     ValidationSessionModel)
-from .repositories import (BehavioralTestRepository, DiscrepancyRepository,
-                           MetricsRepository, ValidationResultRepository,
-                           ValidationSessionRepository)
+from ..core.models import (
+    MigrationValidationRequest,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationSession,
+)
+from .models import ValidationSessionModel
+from .repositories import (
+    BehavioralTestRepository,
+    DiscrepancyRepository,
+    MetricsRepository,
+    ValidationResultRepository,
+    ValidationSessionRepository,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class ValidationDatabaseService:
-    """
-    High-level database service for validation operations.
+    """High-level database service for validation operations.
 
     Bridges between the Pydantic models used by the application
     and the SQLAlchemy models used for persistence.
     """
 
     def __init__(self, session: AsyncSession):
-        """
-        Initialize service with database session.
+        """Initialize service with database session.
 
         Args:
             session: AsyncSession for database operations
+
         """
         self.session = session
         self.session_repo = ValidationSessionRepository(session)
@@ -51,14 +54,14 @@ class ValidationDatabaseService:
         self,
         validation_request: MigrationValidationRequest,
     ) -> ValidationSession:
-        """
-        Create a new validation session from a validation request.
+        """Create a new validation session from a validation request.
 
         Args:
             validation_request: The migration validation request
 
         Returns:
             ValidationSession: Created session with database persistence
+
         """
         try:
             # Create database session model
@@ -100,14 +103,14 @@ class ValidationDatabaseService:
             raise
 
     async def get_validation_session(self, request_id: str) -> Optional[ValidationSession]:
-        """
-        Retrieve a validation session by request ID.
+        """Retrieve a validation session by request ID.
 
         Args:
             request_id: Request identifier
 
         Returns:
             ValidationSession or None if not found
+
         """
         try:
             session_model = await self.session_repo.get_by_request_id(request_id)
@@ -123,8 +126,7 @@ class ValidationDatabaseService:
             return None
 
     async def update_session_status(self, request_id: str, status: str) -> bool:
-        """
-        Update validation session status.
+        """Update validation session status.
 
         Args:
             request_id: Request identifier
@@ -132,6 +134,7 @@ class ValidationDatabaseService:
 
         Returns:
             True if updated successfully
+
         """
         try:
             updated = await self.session_repo.update_status(request_id, status)
@@ -146,8 +149,7 @@ class ValidationDatabaseService:
             return False
 
     async def add_session_log(self, request_id: str, message: str) -> bool:
-        """
-        Add log entry to validation session.
+        """Add log entry to validation session.
 
         Args:
             request_id: Request identifier
@@ -155,6 +157,7 @@ class ValidationDatabaseService:
 
         Returns:
             True if added successfully
+
         """
         try:
             added = await self.session_repo.add_log_entry(request_id, message)
@@ -175,8 +178,7 @@ class ValidationDatabaseService:
         source_representation: Optional[Dict[str, Any]] = None,
         target_representation: Optional[Dict[str, Any]] = None,
     ) -> bool:
-        """
-        Save validation result to database.
+        """Save validation result to database.
 
         Args:
             request_id: Request identifier
@@ -187,6 +189,7 @@ class ValidationDatabaseService:
 
         Returns:
             True if saved successfully
+
         """
         try:
             # Get session
@@ -239,8 +242,7 @@ class ValidationDatabaseService:
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
     ) -> Tuple[List[Dict[str, Any]], int]:
-        """
-        List validation sessions with filtering and pagination.
+        """List validation sessions with filtering and pagination.
 
         Args:
             limit: Maximum sessions to return
@@ -253,6 +255,7 @@ class ValidationDatabaseService:
 
         Returns:
             Tuple of (session list, total count)
+
         """
         try:
             # Convert technology strings to enums
@@ -264,7 +267,7 @@ class ValidationDatabaseService:
                     technology_pair = (source_tech, target_tech)
                 except ValueError:
                     logger.warning(
-                        f"Invalid technology types: {source_technology}, {target_technology}"
+                        f"Invalid technology types: {source_technology}, {target_technology}",
                     )
 
             sessions, total_count = await self.session_repo.list_sessions(
@@ -301,8 +304,7 @@ class ValidationDatabaseService:
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
     ) -> Dict[str, Any]:
-        """
-        Get validation session statistics.
+        """Get validation session statistics.
 
         Args:
             date_from: Start date for statistics
@@ -310,6 +312,7 @@ class ValidationDatabaseService:
 
         Returns:
             Dictionary with session statistics
+
         """
         try:
             # Get result statistics
@@ -317,7 +320,7 @@ class ValidationDatabaseService:
 
             # Get discrepancy trends
             discrepancy_trends = await self.discrepancy_repo.get_discrepancy_trends(
-                days=30 if not date_from else (datetime.utcnow() - date_from).days
+                days=30 if not date_from else (datetime.utcnow() - date_from).days,
             )
 
             # Combine statistics
@@ -332,14 +335,14 @@ class ValidationDatabaseService:
             return {"error": str(e)}
 
     async def delete_validation_session(self, request_id: str) -> bool:
-        """
-        Delete validation session and all related data.
+        """Delete validation session and all related data.
 
         Args:
             request_id: Request identifier
 
         Returns:
             True if deleted successfully
+
         """
         try:
             deleted = await self.session_repo.delete_session(request_id)
@@ -354,14 +357,14 @@ class ValidationDatabaseService:
             return False
 
     async def cleanup_old_sessions(self, days_old: int = 30) -> int:
-        """
-        Cleanup old validation sessions.
+        """Cleanup old validation sessions.
 
         Args:
             days_old: Delete sessions older than this many days
 
         Returns:
             Number of sessions deleted
+
         """
         try:
             deleted_count = await self.session_repo.cleanup_old_sessions(days_old)
@@ -379,18 +382,17 @@ class ValidationDatabaseService:
         self,
         session_model: ValidationSessionModel,
     ) -> ValidationSession:
-        """
-        Convert database session model to Pydantic ValidationSession.
+        """Convert database session model to Pydantic ValidationSession.
 
         Args:
             session_model: Database session model
 
         Returns:
             ValidationSession: Pydantic model
+
         """
         # Reconstruct the validation request
-        from ..core.models import (InputData, MigrationValidationRequest,
-                                   TechnologyContext)
+        from ..core.models import InputData, MigrationValidationRequest, TechnologyContext
 
         source_technology = TechnologyContext(
             type=session_model.source_technology,
@@ -469,13 +471,13 @@ class ValidationDatabaseService:
 
 # Dependency injection helper
 async def get_validation_service(session: AsyncSession) -> ValidationDatabaseService:
-    """
-    FastAPI dependency for getting validation database service.
+    """FastAPI dependency for getting validation database service.
 
     Args:
         session: Database session
 
     Returns:
         ValidationDatabaseService: Service instance
+
     """
     return ValidationDatabaseService(session)

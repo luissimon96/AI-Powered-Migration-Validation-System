@@ -1,5 +1,4 @@
-"""
-Database migration utilities and helpers.
+"""Database migration utilities and helpers.
 
 Provides utilities for database migrations, schema updates,
 and data migration between different system versions.
@@ -9,14 +8,11 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from sqlalchemy import MetaData, text
-from sqlalchemy.ext.asyncio import AsyncConnection
 
 from alembic import command
-from alembic.config import Config
-from alembic.migration import MigrationContext
-from alembic.operations import Operations
-from alembic.script import ScriptDirectory
 
 from .models import Base
 from .session import DatabaseManager
@@ -25,20 +21,19 @@ logger = logging.getLogger(__name__)
 
 
 class MigrationManager:
-    """
-    Database migration manager for handling schema changes.
+    """Database migration manager for handling schema changes.
 
     Provides methods for running migrations, checking migration status,
     and handling data migrations between system versions.
     """
 
     def __init__(self, db_manager: DatabaseManager, alembic_config_path: str = "alembic.ini"):
-        """
-        Initialize migration manager.
+        """Initialize migration manager.
 
         Args:
             db_manager: Database manager instance
             alembic_config_path: Path to Alembic configuration file
+
         """
         self.db_manager = db_manager
         self.alembic_config_path = alembic_config_path
@@ -54,11 +49,11 @@ class MigrationManager:
         return self._alembic_config
 
     async def get_current_revision(self) -> Optional[str]:
-        """
-        Get current database revision.
+        """Get current database revision.
 
         Returns:
             Current revision ID or None if no migrations applied
+
         """
         try:
             async with self.db_manager.get_session() as session:
@@ -71,8 +66,8 @@ class MigrationManager:
                             SELECT FROM information_schema.tables
                             WHERE table_name = 'alembic_version'
                         )
-                        """
-                        )
+                        """,
+                        ),
                     )
                     table_exists = result.scalar()
 
@@ -81,7 +76,7 @@ class MigrationManager:
 
                     # Get current revision
                     result = await conn.execute(
-                        text("SELECT version_num FROM alembic_version LIMIT 1")
+                        text("SELECT version_num FROM alembic_version LIMIT 1"),
                     )
                     revision = result.scalar()
                     return revision
@@ -91,11 +86,11 @@ class MigrationManager:
             return None
 
     async def get_head_revision(self) -> Optional[str]:
-        """
-        Get head revision from migration scripts.
+        """Get head revision from migration scripts.
 
         Returns:
             Head revision ID or None if no migrations
+
         """
         try:
             script_dir = ScriptDirectory.from_config(self.alembic_config)
@@ -105,11 +100,11 @@ class MigrationManager:
             return None
 
     async def is_migration_needed(self) -> bool:
-        """
-        Check if database migration is needed.
+        """Check if database migration is needed.
 
         Returns:
             True if migration is needed, False otherwise
+
         """
         current = await self.get_current_revision()
         head = await self.get_head_revision()
@@ -120,14 +115,14 @@ class MigrationManager:
         return current != head
 
     async def run_migrations(self, target_revision: str = "head") -> bool:
-        """
-        Run database migrations.
+        """Run database migrations.
 
         Args:
             target_revision: Target revision to migrate to
 
         Returns:
             True if successful, False otherwise
+
         """
         try:
             logger.info(f"Running migrations to revision: {target_revision}")
@@ -147,8 +142,7 @@ class MigrationManager:
         message: str,
         autogenerate: bool = True,
     ) -> Optional[str]:
-        """
-        Generate new migration script.
+        """Generate new migration script.
 
         Args:
             message: Migration message
@@ -156,6 +150,7 @@ class MigrationManager:
 
         Returns:
             Generated migration revision ID or None if failed
+
         """
         try:
             logger.info(f"Generating migration: {message}")
@@ -181,11 +176,11 @@ class MigrationManager:
             return None
 
     async def create_tables_if_not_exist(self) -> bool:
-        """
-        Create all tables if they don't exist (for initial setup).
+        """Create all tables if they don't exist (for initial setup).
 
         Returns:
             True if successful, False otherwise
+
         """
         try:
             logger.info("Creating database tables if they don't exist")
@@ -198,11 +193,11 @@ class MigrationManager:
             return False
 
     async def validate_schema(self) -> Dict[str, Any]:
-        """
-        Validate database schema against expected schema.
+        """Validate database schema against expected schema.
 
         Returns:
             Dictionary with validation results
+
         """
         try:
             async with self.db_manager.get_session() as session:
@@ -235,29 +230,28 @@ class MigrationManager:
 
 
 class DataMigrator:
-    """
-    Data migration utilities for handling data transformations
+    """Data migration utilities for handling data transformations
     between different system versions.
     """
 
     def __init__(self, db_manager: DatabaseManager):
-        """
-        Initialize data migrator.
+        """Initialize data migrator.
 
         Args:
             db_manager: Database manager instance
+
         """
         self.db_manager = db_manager
 
     async def migrate_validation_sessions_v1_to_v2(self) -> bool:
-        """
-        Example data migration: Migrate validation sessions from v1 to v2 format.
+        """Example data migration: Migrate validation sessions from v1 to v2 format.
 
         This is an example of how to handle data migrations when
         the schema or data format changes between versions.
 
         Returns:
             True if successful, False otherwise
+
         """
         try:
             logger.info("Starting validation sessions v1 to v2 migration")
@@ -270,8 +264,8 @@ class DataMigrator:
                     UPDATE validation_sessions
                     SET behavioral_timeout = 300
                     WHERE behavioral_timeout IS NULL
-                    """
-                    )
+                    """,
+                    ),
                 )
 
                 # Example: Convert old JSON format to new format
@@ -281,8 +275,8 @@ class DataMigrator:
                     UPDATE validation_sessions
                     SET source_metadata = COALESCE(source_metadata, '{}')
                     WHERE source_metadata IS NULL
-                    """
-                    )
+                    """,
+                    ),
                 )
 
                 await session.commit()
@@ -295,11 +289,11 @@ class DataMigrator:
             return False
 
     async def migrate_discrepancies_add_component_type(self) -> bool:
-        """
-        Example: Add component_type field to existing discrepancies.
+        """Example: Add component_type field to existing discrepancies.
 
         Returns:
             True if successful, False otherwise
+
         """
         try:
             logger.info("Starting discrepancies component_type migration")
@@ -318,7 +312,7 @@ class DataMigrator:
 
                 for component_type, discrepancy_types in mappings:
                     type_conditions = " OR ".join(
-                        [f"discrepancy_type = '{dt}'" for dt in discrepancy_types]
+                        [f"discrepancy_type = '{dt}'" for dt in discrepancy_types],
                     )
                     await session.execute(
                         text(
@@ -326,8 +320,8 @@ class DataMigrator:
                         UPDATE validation_discrepancies
                         SET component_type = '{component_type}'
                         WHERE component_type IS NULL AND ({type_conditions})
-                        """
-                        )
+                        """,
+                        ),
                     )
 
                 # Set default for any remaining records
@@ -337,8 +331,8 @@ class DataMigrator:
                     UPDATE validation_discrepancies
                     SET component_type = 'general'
                     WHERE component_type IS NULL
-                    """
-                    )
+                    """,
+                    ),
                 )
 
                 await session.commit()
@@ -351,11 +345,11 @@ class DataMigrator:
             return False
 
     async def cleanup_orphaned_records(self) -> Dict[str, int]:
-        """
-        Clean up orphaned records that might exist due to failed operations.
+        """Clean up orphaned records that might exist due to failed operations.
 
         Returns:
             Dictionary with count of cleaned records by type
+
         """
         cleanup_counts = {}
 
@@ -369,8 +363,8 @@ class DataMigrator:
                         """
                     DELETE FROM validation_results
                     WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-                    """
-                    )
+                    """,
+                    ),
                 )
                 cleanup_counts["orphaned_results"] = result.rowcount
 
@@ -380,8 +374,8 @@ class DataMigrator:
                         """
                     DELETE FROM validation_discrepancies
                     WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-                    """
-                    )
+                    """,
+                    ),
                 )
                 cleanup_counts["orphaned_discrepancies"] = result.rowcount
 
@@ -391,8 +385,8 @@ class DataMigrator:
                         """
                     DELETE FROM behavioral_test_results
                     WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-                    """
-                    )
+                    """,
+                    ),
                 )
                 cleanup_counts["orphaned_behavioral_tests"] = result.rowcount
 
@@ -408,14 +402,14 @@ class DataMigrator:
             return {"error": str(e)}
 
     async def backup_data(self, backup_tables: Optional[List[str]] = None) -> bool:
-        """
-        Create backup of important data before migrations.
+        """Create backup of important data before migrations.
 
         Args:
             backup_tables: List of table names to backup, or None for all tables
 
         Returns:
             True if successful, False otherwise
+
         """
         try:
             backup_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -439,8 +433,8 @@ class DataMigrator:
                             f"""
                         CREATE TABLE {backup_table_name} AS
                         SELECT * FROM {table_name}
-                        """
-                        )
+                        """,
+                        ),
                     )
 
                     logger.info(f"Backed up table: {table_name} -> {backup_table_name}")

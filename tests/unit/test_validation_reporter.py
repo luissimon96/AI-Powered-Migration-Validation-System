@@ -1,5 +1,4 @@
-"""
-Unit tests for ValidationReporter - unified reporting functionality.
+"""Unit tests for ValidationReporter - unified reporting functionality.
 """
 
 import json
@@ -9,12 +8,17 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.behavioral.crews import BehavioralValidationResult
-from src.core.models import (AbstractRepresentation, APIEndpoint,
-                             BackendFunction, DataField, InputData, InputType,
-                             MigrationValidationRequest, SeverityLevel,
-                             TechnologyContext, TechnologyType, UIElement,
-                             ValidationDiscrepancy, ValidationResult,
-                             ValidationScope)
+from src.core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    SeverityLevel,
+    TechnologyContext,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationScope,
+)
 from src.reporters.validation_reporter import ValidationReporter
 
 
@@ -53,7 +57,7 @@ class TestValidationReporter:
                 description="Warning error",
             ),
             ValidationDiscrepancy(
-                type="info_issue", severity=SeverityLevel.INFO, description="Info note"
+                type="info_issue", severity=SeverityLevel.INFO, description="Info note",
             ),
             ValidationDiscrepancy(
                 type="another_critical",
@@ -105,7 +109,7 @@ class TestValidationReporter:
                 type="critical_issue",
                 severity=SeverityLevel.CRITICAL,
                 description="Critical error",
-            )
+            ),
         ]
 
         recommendations = reporter._generate_general_recommendations(discrepancies)
@@ -168,7 +172,7 @@ class TestValidationReporter:
         weights = {"static": 0.6, "behavioral": 0.4}
 
         unified_score = reporter._calculate_unified_fidelity_score(
-            static_result, behavioral_result, weights
+            static_result, behavioral_result, weights,
         )
 
         # Expected: (0.8 * 0.6) + (0.9 * 0.4) = 0.48 + 0.36 = 0.84
@@ -197,7 +201,7 @@ class TestValidationReporter:
         weights = {"static": 0.6, "behavioral": 0.4}
 
         unified_score = reporter._calculate_unified_fidelity_score(
-            None, behavioral_result, weights
+            None, behavioral_result, weights,
         )
 
         assert unified_score == 0.85
@@ -265,7 +269,7 @@ class TestValidationReporter:
         behavioral_result.overall_status = "approved"
 
         status = reporter._determine_unified_status(
-            static_result, behavioral_result, 0.5  # Low fidelity
+            static_result, behavioral_result, 0.5,  # Low fidelity
         )
 
         assert status == "rejected"
@@ -369,7 +373,7 @@ class TestUnifiedReportGeneration:
                     severity=SeverityLevel.INFO,
                     description="Minor naming difference found",
                     recommendation="Consider standardizing names",
-                )
+                ),
             ],
             execution_time=45.2,
             timestamp=datetime.now(),
@@ -387,7 +391,7 @@ class TestUnifiedReportGeneration:
                     severity=SeverityLevel.WARNING,
                     description="Response time difference detected",
                     recommendation="Optimize target system performance",
-                )
+                ),
             ],
             execution_log=["Step 1", "Step 2", "Step 3"],
             execution_time=120.5,
@@ -406,7 +410,7 @@ class TestUnifiedReportGeneration:
         )
 
     def test_generate_unified_report_both_results(
-        self, sample_static_result, sample_behavioral_result
+        self, sample_static_result, sample_behavioral_result,
     ):
         """Test generating unified report with both static and behavioral results."""
         reporter = ValidationReporter()
@@ -442,7 +446,7 @@ class TestUnifiedReportGeneration:
         reporter = ValidationReporter()
 
         report = reporter.generate_unified_report(
-            static_result=sample_static_result, behavioral_result=None
+            static_result=sample_static_result, behavioral_result=None,
         )
 
         assert report["metadata"]["validation_types"]["static_analysis"] is True
@@ -462,7 +466,7 @@ class TestUnifiedReportGeneration:
         reporter = ValidationReporter()
 
         report = reporter.generate_unified_report(
-            static_result=None, behavioral_result=sample_behavioral_result
+            static_result=None, behavioral_result=sample_behavioral_result,
         )
 
         assert report["metadata"]["validation_types"]["static_analysis"] is False
@@ -486,7 +490,7 @@ class TestUnifiedReportGeneration:
             reporter.generate_unified_report(static_result=None, behavioral_result=None)
 
     def test_generate_unified_report_custom_weights(
-        self, sample_static_result, sample_behavioral_result
+        self, sample_static_result, sample_behavioral_result,
     ):
         """Test generating unified report with custom weights."""
         reporter = ValidationReporter()
@@ -541,7 +545,7 @@ class TestUnifiedReportGeneration:
         assert "Validation Breakdown" in html_report
 
     def test_generate_unified_markdown_report(
-        self, sample_static_result, sample_behavioral_result
+        self, sample_static_result, sample_behavioral_result,
     ):
         """Test generating unified Markdown report."""
         reporter = ValidationReporter()
@@ -586,17 +590,17 @@ class TestReportTemplateRendering:
                         "description": "Critical issue found",
                         "recommendation": "Fix immediately",
                         "validation_source": "static",
-                    }
+                    },
                 ],
                 "warning": [
                     {
                         "description": "Warning issue found",
                         "recommendation": "Review and fix",
                         "validation_source": "behavioral",
-                    }
+                    },
                 ],
                 "info": [],
-            }
+            },
         }
 
         markdown = reporter._render_unified_findings_markdown(findings)
@@ -612,7 +616,7 @@ class TestReportTemplateRendering:
 
         recommendations = {
             "immediate_actions": [
-                {"description": "Fix critical issue", "validation_source": "static"}
+                {"description": "Fix critical issue", "validation_source": "static"},
             ],
             "review_items": [{"description": "Review warning", "validation_source": "behavioral"}],
             "static_specific": [{"description": "Static-specific recommendation"}],

@@ -1,22 +1,25 @@
-"""
-Security database service for managing security-related data operations.
+"""Security database service for managing security-related data operations.
 
 Provides high-level methods for API keys, audit logs, and security configurations.
 """
 
-import hashlib
 import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, desc, func, or_
+from sqlalchemy import and_, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from .security_models import (APIKeyModel, AuditLogModel, ComplianceLogModel,
-                              FileUploadModel, RateLimitModel,
-                              SecurityConfigModel, SecurityIncidentModel,
-                              SecurityMetricsModel)
+from .security_models import (
+    APIKeyModel,
+    AuditLogModel,
+    ComplianceLogModel,
+    FileUploadModel,
+    RateLimitModel,
+    SecurityIncidentModel,
+    SecurityMetricsModel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +28,11 @@ class SecurityDatabaseService:
     """Database service for security operations."""
 
     def __init__(self, session: AsyncSession):
-        """
-        Initialize security database service.
+        """Initialize security database service.
 
         Args:
             session: AsyncSession for database operations
+
         """
         self.session = session
 
@@ -38,20 +41,20 @@ class SecurityDatabaseService:
         self,
         api_key_id: str,
         hashed_key: str,
-        metadata: Dict[str, Any]
+        metadata: Dict[str, Any],
     ) -> bool:
         """Store API key with metadata."""
         try:
             api_key = APIKeyModel(
                 id=api_key_id,
                 hashed_key=hashed_key,
-                name=metadata['name'],
-                description=metadata.get('description'),
-                scopes=metadata['scopes'],
-                expires_at=metadata.get('expires_at'),
-                rate_limit_per_minute=metadata['rate_limit_per_minute'],
-                is_active=metadata['is_active'],
-                created_by=metadata['created_by']
+                name=metadata["name"],
+                description=metadata.get("description"),
+                scopes=metadata["scopes"],
+                expires_at=metadata.get("expires_at"),
+                rate_limit_per_minute=metadata["rate_limit_per_minute"],
+                is_active=metadata["is_active"],
+                created_by=metadata["created_by"],
             )
 
             self.session.add(api_key)
@@ -67,25 +70,25 @@ class SecurityDatabaseService:
         """Retrieve API key by hash."""
         try:
             result = await self.session.execute(
-                select(APIKeyModel).where(APIKeyModel.hashed_key == hashed_key)
+                select(APIKeyModel).where(APIKeyModel.hashed_key == hashed_key),
             )
             api_key = result.scalar_one_or_none()
 
             if api_key:
                 return {
-                    'metadata': {
-                        'id': api_key.id,
-                        'name': api_key.name,
-                        'description': api_key.description,
-                        'scopes': api_key.scopes,
-                        'created_at': api_key.created_at,
-                        'expires_at': api_key.expires_at,
-                        'last_used_at': api_key.last_used_at,
-                        'rate_limit_per_minute': api_key.rate_limit_per_minute,
-                        'is_active': api_key.is_active,
-                        'created_by': api_key.created_by,
-                        'usage_count': api_key.usage_count
-                    }
+                    "metadata": {
+                        "id": api_key.id,
+                        "name": api_key.name,
+                        "description": api_key.description,
+                        "scopes": api_key.scopes,
+                        "created_at": api_key.created_at,
+                        "expires_at": api_key.expires_at,
+                        "last_used_at": api_key.last_used_at,
+                        "rate_limit_per_minute": api_key.rate_limit_per_minute,
+                        "is_active": api_key.is_active,
+                        "created_by": api_key.created_by,
+                        "usage_count": api_key.usage_count,
+                    },
                 }
             return None
 
@@ -97,7 +100,7 @@ class SecurityDatabaseService:
         """Update API key last used timestamp."""
         try:
             result = await self.session.execute(
-                select(APIKeyModel).where(APIKeyModel.id == api_key_id)
+                select(APIKeyModel).where(APIKeyModel.id == api_key_id),
             )
             api_key = result.scalar_one_or_none()
 
@@ -118,7 +121,7 @@ class SecurityDatabaseService:
         """Deactivate API key."""
         try:
             result = await self.session.execute(
-                select(APIKeyModel).where(APIKeyModel.id == api_key_id)
+                select(APIKeyModel).where(APIKeyModel.id == api_key_id),
             )
             api_key = result.scalar_one_or_none()
 
@@ -147,19 +150,19 @@ class SecurityDatabaseService:
 
             return [
                 {
-                    'metadata': {
-                        'id': api_key.id,
-                        'name': api_key.name,
-                        'description': api_key.description,
-                        'scopes': api_key.scopes,
-                        'created_at': api_key.created_at,
-                        'expires_at': api_key.expires_at,
-                        'last_used_at': api_key.last_used_at,
-                        'rate_limit_per_minute': api_key.rate_limit_per_minute,
-                        'is_active': api_key.is_active,
-                        'created_by': api_key.created_by,
-                        'usage_count': api_key.usage_count
-                    }
+                    "metadata": {
+                        "id": api_key.id,
+                        "name": api_key.name,
+                        "description": api_key.description,
+                        "scopes": api_key.scopes,
+                        "created_at": api_key.created_at,
+                        "expires_at": api_key.expires_at,
+                        "last_used_at": api_key.last_used_at,
+                        "rate_limit_per_minute": api_key.rate_limit_per_minute,
+                        "is_active": api_key.is_active,
+                        "created_by": api_key.created_by,
+                        "usage_count": api_key.usage_count,
+                    },
                 }
                 for api_key in api_keys
             ]
@@ -173,19 +176,19 @@ class SecurityDatabaseService:
         """Store audit event."""
         try:
             audit_log = AuditLogModel(
-                id=event_data['event_id'],
-                event_type=event_data['event_type'],
-                severity=event_data['severity'],
-                user_id=event_data.get('user_id'),
-                api_key_id=event_data.get('api_key_id'),
-                source_ip=event_data.get('source_ip'),
-                user_agent=event_data.get('user_agent'),
-                resource=event_data.get('resource'),
-                action=event_data['action'],
-                result=event_data['result'],
-                details=event_data.get('details'),
-                request_id=event_data.get('request_id'),
-                session_id=event_data.get('session_id')
+                id=event_data["event_id"],
+                event_type=event_data["event_type"],
+                severity=event_data["severity"],
+                user_id=event_data.get("user_id"),
+                api_key_id=event_data.get("api_key_id"),
+                source_ip=event_data.get("source_ip"),
+                user_agent=event_data.get("user_agent"),
+                resource=event_data.get("resource"),
+                action=event_data["action"],
+                result=event_data["result"],
+                details=event_data.get("details"),
+                request_id=event_data.get("request_id"),
+                session_id=event_data.get("session_id"),
             )
 
             self.session.add(audit_log)
@@ -205,15 +208,15 @@ class SecurityDatabaseService:
         user_id: Optional[str] = None,
         api_key_id: Optional[str] = None,
         severity: Optional[str] = None,
-        limit: int = 100
+        limit: int = 100,
     ) -> List[Dict[str, Any]]:
         """Query audit events with filters."""
         try:
             query = select(AuditLogModel).where(
                 and_(
                     AuditLogModel.created_at >= start_date,
-                    AuditLogModel.created_at <= end_date
-                )
+                    AuditLogModel.created_at <= end_date,
+                ),
             ).order_by(desc(AuditLogModel.created_at))
 
             if event_types:
@@ -235,20 +238,20 @@ class SecurityDatabaseService:
 
             return [
                 {
-                    'event_id': event.id,
-                    'event_type': event.event_type,
-                    'severity': event.severity,
-                    'timestamp': event.created_at,
-                    'user_id': event.user_id,
-                    'api_key_id': event.api_key_id,
-                    'source_ip': event.source_ip,
-                    'user_agent': event.user_agent,
-                    'resource': event.resource,
-                    'action': event.action,
-                    'result': event.result,
-                    'details': event.details,
-                    'request_id': event.request_id,
-                    'session_id': event.session_id
+                    "event_id": event.id,
+                    "event_type": event.event_type,
+                    "severity": event.severity,
+                    "timestamp": event.created_at,
+                    "user_id": event.user_id,
+                    "api_key_id": event.api_key_id,
+                    "source_ip": event.source_ip,
+                    "user_agent": event.user_agent,
+                    "resource": event.resource,
+                    "action": event.action,
+                    "result": event.result,
+                    "details": event.details,
+                    "request_id": event.request_id,
+                    "session_id": event.session_id,
                 }
                 for event in events
             ]
@@ -271,7 +274,7 @@ class SecurityDatabaseService:
         uploaded_by_api_key: Optional[str],
         source_ip: Optional[str],
         validation_result: Dict[str, Any],
-        storage_path: Optional[str] = None
+        storage_path: Optional[str] = None,
     ) -> bool:
         """Store file upload record."""
         try:
@@ -287,7 +290,7 @@ class SecurityDatabaseService:
                 uploaded_by_api_key=uploaded_by_api_key,
                 source_ip=source_ip,
                 validation_result=validation_result,
-                storage_path=storage_path
+                storage_path=storage_path,
             )
 
             self.session.add(file_upload)
@@ -303,7 +306,7 @@ class SecurityDatabaseService:
         """Quarantine a file upload."""
         try:
             result = await self.session.execute(
-                select(FileUploadModel).where(FileUploadModel.id == file_id)
+                select(FileUploadModel).where(FileUploadModel.id == file_id),
             )
             file_upload = result.scalar_one_or_none()
 
@@ -331,7 +334,7 @@ class SecurityDatabaseService:
         source_ip: Optional[str] = None,
         user_id: Optional[str] = None,
         api_key_id: Optional[str] = None,
-        attack_vectors: Optional[Dict[str, Any]] = None
+        attack_vectors: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Create security incident record."""
         try:
@@ -344,7 +347,7 @@ class SecurityDatabaseService:
                 source_ip=source_ip,
                 user_id=user_id,
                 api_key_id=api_key_id,
-                attack_vectors=attack_vectors
+                attack_vectors=attack_vectors,
             )
 
             self.session.add(incident)
@@ -361,12 +364,12 @@ class SecurityDatabaseService:
         incident_id: str,
         status: str,
         assigned_to: Optional[str] = None,
-        resolution_notes: Optional[str] = None
+        resolution_notes: Optional[str] = None,
     ) -> bool:
         """Update security incident status."""
         try:
             result = await self.session.execute(
-                select(SecurityIncidentModel).where(SecurityIncidentModel.id == incident_id)
+                select(SecurityIncidentModel).where(SecurityIncidentModel.id == incident_id),
             )
             incident = result.scalar_one_or_none()
 
@@ -395,7 +398,7 @@ class SecurityDatabaseService:
         identifier: str,
         identifier_type: str,
         endpoint: Optional[str] = None,
-        window_minutes: int = 1
+        window_minutes: int = 1,
     ) -> Dict[str, Any]:
         """Track rate limiting for identifier."""
         try:
@@ -410,9 +413,9 @@ class SecurityDatabaseService:
                         RateLimitModel.identifier == identifier,
                         RateLimitModel.identifier_type == identifier_type,
                         RateLimitModel.endpoint == endpoint,
-                        RateLimitModel.window_start == window_start
-                    )
-                )
+                        RateLimitModel.window_start == window_start,
+                    ),
+                ),
             )
             rate_limit = result.scalar_one_or_none()
 
@@ -425,23 +428,23 @@ class SecurityDatabaseService:
                     endpoint=endpoint,
                     request_count=1,
                     window_start=window_start,
-                    window_end=window_end
+                    window_end=window_end,
                 )
                 self.session.add(rate_limit)
 
             await self.session.commit()
 
             return {
-                'request_count': rate_limit.request_count,
-                'window_start': rate_limit.window_start,
-                'window_end': rate_limit.window_end,
-                'limit_exceeded': rate_limit.limit_exceeded
+                "request_count": rate_limit.request_count,
+                "window_start": rate_limit.window_start,
+                "window_end": rate_limit.window_end,
+                "limit_exceeded": rate_limit.limit_exceeded,
             }
 
         except Exception as e:
             await self.session.rollback()
             logger.error(f"Failed to track rate limit: {e}")
-            return {'request_count': 0, 'error': str(e)}
+            return {"request_count": 0, "error": str(e)}
 
     # Security Metrics
     async def store_security_metrics(
@@ -449,7 +452,7 @@ class SecurityDatabaseService:
         metric_date: datetime,
         metric_type: str,
         metric_value: Dict[str, Any],
-        aggregation_period: str = "day"
+        aggregation_period: str = "day",
     ) -> bool:
         """Store security metrics."""
         try:
@@ -457,7 +460,7 @@ class SecurityDatabaseService:
                 metric_date=metric_date,
                 metric_type=metric_type,
                 metric_value=metric_value,
-                aggregation_period=aggregation_period
+                aggregation_period=aggregation_period,
             )
 
             self.session.add(metrics)
@@ -473,15 +476,15 @@ class SecurityDatabaseService:
         self,
         start_date: datetime,
         end_date: datetime,
-        metric_type: Optional[str] = None
+        metric_type: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get security metrics for date range."""
         try:
             query = select(SecurityMetricsModel).where(
                 and_(
                     SecurityMetricsModel.metric_date >= start_date,
-                    SecurityMetricsModel.metric_date <= end_date
-                )
+                    SecurityMetricsModel.metric_date <= end_date,
+                ),
             ).order_by(SecurityMetricsModel.metric_date)
 
             if metric_type:
@@ -492,10 +495,10 @@ class SecurityDatabaseService:
 
             return [
                 {
-                    'metric_date': metric.metric_date,
-                    'metric_type': metric.metric_type,
-                    'metric_value': metric.metric_value,
-                    'aggregation_period': metric.aggregation_period
+                    "metric_date": metric.metric_date,
+                    "metric_type": metric.metric_type,
+                    "metric_value": metric.metric_value,
+                    "aggregation_period": metric.aggregation_period,
                 }
                 for metric in metrics
             ]
@@ -515,7 +518,7 @@ class SecurityDatabaseService:
         data_categories: Optional[List[str]] = None,
         processing_purpose: Optional[str] = None,
         legal_basis: Optional[str] = None,
-        additional_metadata: Optional[Dict[str, Any]] = None
+        additional_metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Log compliance event."""
         try:
@@ -528,7 +531,7 @@ class SecurityDatabaseService:
                 data_categories=data_categories,
                 processing_purpose=processing_purpose,
                 legal_basis=legal_basis,
-                additional_metadata=additional_metadata
+                additional_metadata=additional_metadata,
             )
 
             self.session.add(compliance_log)
@@ -548,15 +551,15 @@ class SecurityDatabaseService:
 
             result = await self.session.execute(
                 select(func.count(AuditLogModel.id)).where(
-                    AuditLogModel.created_at < cutoff_date
-                )
+                    AuditLogModel.created_at < cutoff_date,
+                ),
             )
             count_before = result.scalar()
 
             await self.session.execute(
                 AuditLogModel.__table__.delete().where(
-                    AuditLogModel.created_at < cutoff_date
-                )
+                    AuditLogModel.created_at < cutoff_date,
+                ),
             )
 
             await self.session.commit()
@@ -577,9 +580,9 @@ class SecurityDatabaseService:
                     and_(
                         APIKeyModel.expires_at.is_not(None),
                         APIKeyModel.expires_at < current_time,
-                        APIKeyModel.is_active == True
-                    )
-                )
+                        APIKeyModel.is_active == True,
+                    ),
+                ),
             )
             count_before = result.scalar()
 
@@ -589,9 +592,9 @@ class SecurityDatabaseService:
                     and_(
                         APIKeyModel.expires_at.is_not(None),
                         APIKeyModel.expires_at < current_time,
-                        APIKeyModel.is_active == True
-                    )
-                )
+                        APIKeyModel.is_active == True,
+                    ),
+                ),
             )
             expired_keys = result.scalars().all()
 

@@ -1,21 +1,29 @@
-"""
-Comprehensive unit tests for core data models.
+"""Comprehensive unit tests for core data models.
 
 Tests all model classes, validation logic, serialization/deserialization,
 and edge cases for the core data structures.
 """
 
-from datetime import datetime, timedelta
-from typing import Any, Dict
+from datetime import datetime
 
 import pytest
 
-from src.core.models import (AbstractRepresentation, BackendFunction,
-                             DataField, InputData, InputType,
-                             MigrationValidationRequest, SeverityLevel,
-                             TechnologyContext, TechnologyType, UIElement,
-                             ValidationDiscrepancy, ValidationResult,
-                             ValidationScope, ValidationSession)
+from src.core.models import (
+    AbstractRepresentation,
+    BackendFunction,
+    DataField,
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    SeverityLevel,
+    TechnologyContext,
+    TechnologyType,
+    UIElement,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationScope,
+    ValidationSession,
+)
 
 
 @pytest.mark.unit
@@ -108,7 +116,7 @@ class TestTechnologyContext:
         tech_context = TechnologyContext(
             type=TechnologyType.PYTHON_FLASK,
             version="2.0",
-            framework_details={"variant": "Flask-RESTful"}
+            framework_details={"variant": "Flask-RESTful"},
         )
 
         assert tech_context.type == TechnologyType.PYTHON_FLASK
@@ -139,14 +147,14 @@ class TestTechnologyContext:
             "extensions": ["Flask-SQLAlchemy", "Flask-Migrate"],
             "config": {
                 "database": "PostgreSQL",
-                "cache": "Redis"
-            }
+                "cache": "Redis",
+            },
         }
 
         tech_context = TechnologyContext(
             type=TechnologyType.PYTHON_FLASK,
             version="2.2",
-            framework_details=complex_details
+            framework_details=complex_details,
         )
 
         assert tech_context.framework_details["variant"] == "Flask-RESTful"
@@ -163,7 +171,7 @@ class TestInputData:
         input_data = InputData(
             type=InputType.CODE_FILES,
             files=["/path/to/file1.py", "/path/to/file2.py"],
-            metadata={"language": "python", "file_count": 2}
+            metadata={"language": "python", "file_count": 2},
         )
 
         assert input_data.type == InputType.CODE_FILES
@@ -193,7 +201,7 @@ class TestInputData:
             urls=["http://example.com"],
             credentials={"username": "test", "password": "secret"},
             validation_scenarios=["Login test", "Dashboard test"],
-            metadata={"mixed_type": True}
+            metadata={"mixed_type": True},
         )
 
         assert input_data.type == InputType.HYBRID
@@ -212,10 +220,10 @@ class TestInputData:
             validation_scenarios=[
                 "User login with valid credentials",
                 "User login with invalid credentials",
-                "Password reset flow"
+                "Password reset flow",
             ],
             credentials={"test_user": "test_pass"},
-            metadata={"timeout": 300, "browser": "chromium"}
+            metadata={"timeout": 300, "browser": "chromium"},
         )
 
         assert len(input_data.urls) == 2
@@ -236,7 +244,7 @@ class TestUIElement:
             id="submit-btn",
             text="Submit",
             position={"x": 100, "y": 200},
-            attributes={"class": "btn-primary", "disabled": False}
+            attributes={"class": "btn-primary", "disabled": False},
         )
 
         assert ui_element.type == "button"
@@ -262,15 +270,15 @@ class TestUIElement:
             "aria-label": "User email input",
             "styles": {
                 "width": "300px",
-                "border": "1px solid #ccc"
+                "border": "1px solid #ccc",
             },
-            "events": ["click", "focus", "blur"]
+            "events": ["click", "focus", "blur"],
         }
 
         ui_element = UIElement(
             type="input",
             id="email-input",
-            attributes=complex_attributes
+            attributes=complex_attributes,
         )
 
         assert ui_element.attributes["data-validation"] == "required"
@@ -292,7 +300,7 @@ class TestBackendFunction:
             logic_summary="Validates user credentials and returns authentication status",
             validation_rules=["email_format", "password_strength"],
             endpoint="/api/auth/validate",
-            http_method="POST"
+            http_method="POST",
         )
 
         assert backend_func.name == "validate_user"
@@ -323,7 +331,7 @@ class TestBackendFunction:
             parameters=["data: List[Dict[str, Any]]", "config: Optional[Config]"],
             return_type="ProcessingResult",
             logic_summary="Processes complex data structures with configuration",
-            validation_rules=["data_not_empty", "valid_config_format"]
+            validation_rules=["data_not_empty", "valid_config_format"],
         )
 
         assert len(backend_func.parameters) == 2
@@ -343,7 +351,7 @@ class TestDataField:
             type="string",
             required=True,
             constraints=["email_format", "max_length_255"],
-            default_value=None
+            default_value=None,
         )
 
         assert data_field.name == "email"
@@ -359,7 +367,7 @@ class TestDataField:
             type="string",
             required=False,
             constraints=["valid_status"],
-            default_value="active"
+            default_value="active",
         )
 
         assert data_field.name == "status"
@@ -373,7 +381,7 @@ class TestDataField:
             type="Dict[str, Any]",
             required=False,
             constraints=["valid_json"],
-            default_value={}
+            default_value={},
         )
 
         assert data_field.type == "Dict[str, Any]"
@@ -398,22 +406,22 @@ class TestAbstractRepresentation:
         """Test creating an abstract representation."""
         ui_elements = [
             UIElement(type="input", id="email"),
-            UIElement(type="button", id="submit")
+            UIElement(type="button", id="submit"),
         ]
 
         backend_functions = [
             BackendFunction(name="validate_user"),
-            BackendFunction(name="create_session")
+            BackendFunction(name="create_session"),
         ]
 
         data_fields = [
             DataField(name="email", type="string", required=True),
-            DataField(name="password", type="string", required=True)
+            DataField(name="password", type="string", required=True),
         ]
 
         api_endpoints = [
             {"path": "/api/auth", "method": "POST"},
-            {"path": "/api/users", "method": "GET"}
+            {"path": "/api/users", "method": "GET"},
         ]
 
         representation = AbstractRepresentation(
@@ -422,7 +430,7 @@ class TestAbstractRepresentation:
             backend_functions=backend_functions,
             data_fields=data_fields,
             api_endpoints=api_endpoints,
-            metadata={"complexity": "medium", "security_level": "high"}
+            metadata={"complexity": "medium", "security_level": "high"},
         )
 
         assert representation.screen_name == "Login Screen"
@@ -448,7 +456,7 @@ class TestAbstractRepresentation:
         representation = AbstractRepresentation(
             screen_name="Dashboard",
             ui_elements=[UIElement(type="chart", id="sales-chart")],
-            metadata={"type": "dashboard", "widgets": 5}
+            metadata={"type": "dashboard", "widgets": 5},
         )
 
         assert representation.screen_name == "Dashboard"
@@ -471,7 +479,7 @@ class TestValidationDiscrepancy:
             source_element="email_input",
             target_element=None,
             recommendation="Add email input field to target form",
-            confidence=0.95
+            confidence=0.95,
         )
 
         assert discrepancy.type == "missing_field"
@@ -487,7 +495,7 @@ class TestValidationDiscrepancy:
         discrepancy = ValidationDiscrepancy(
             type="type_mismatch",
             severity=SeverityLevel.WARNING,
-            description="Type mismatch detected"
+            description="Type mismatch detected",
         )
 
         assert discrepancy.type == "type_mismatch"
@@ -503,19 +511,19 @@ class TestValidationDiscrepancy:
         critical = ValidationDiscrepancy(
             type="critical_error",
             severity=SeverityLevel.CRITICAL,
-            description="Critical issue"
+            description="Critical issue",
         )
 
         warning = ValidationDiscrepancy(
             type="warning_issue",
             severity=SeverityLevel.WARNING,
-            description="Warning issue"
+            description="Warning issue",
         )
 
         info = ValidationDiscrepancy(
             type="info_note",
             severity=SeverityLevel.INFO,
-            description="Info note"
+            description="Info note",
         )
 
         assert critical.severity == SeverityLevel.CRITICAL
@@ -533,13 +541,13 @@ class TestValidationResult:
             ValidationDiscrepancy(
                 type="missing_field",
                 severity=SeverityLevel.WARNING,
-                description="Minor issue"
+                description="Minor issue",
             ),
             ValidationDiscrepancy(
                 type="type_mismatch",
                 severity=SeverityLevel.INFO,
-                description="Type difference"
-            )
+                description="Type difference",
+            ),
         ]
 
         result = ValidationResult(
@@ -547,7 +555,7 @@ class TestValidationResult:
             fidelity_score=0.85,
             summary="Migration validation completed with minor issues",
             discrepancies=discrepancies,
-            execution_time=45.5
+            execution_time=45.5,
         )
 
         assert result.overall_status == "approved_with_warnings"
@@ -562,7 +570,7 @@ class TestValidationResult:
         result = ValidationResult(
             overall_status="approved",
             fidelity_score=0.95,
-            summary="Migration validation passed successfully"
+            summary="Migration validation passed successfully",
         )
 
         assert result.overall_status == "approved"
@@ -575,14 +583,14 @@ class TestValidationResult:
         critical_discrepancy = ValidationDiscrepancy(
             type="critical_error",
             severity=SeverityLevel.CRITICAL,
-            description="Critical security vulnerability detected"
+            description="Critical security vulnerability detected",
         )
 
         result = ValidationResult(
             overall_status="rejected",
             fidelity_score=0.45,
             summary="Migration validation failed due to critical issues",
-            discrepancies=[critical_discrepancy]
+            discrepancies=[critical_discrepancy],
         )
 
         assert result.overall_status == "rejected"
@@ -595,13 +603,13 @@ class TestValidationResult:
         perfect_result = ValidationResult(
             overall_status="approved",
             fidelity_score=1.0,
-            summary="Perfect migration fidelity"
+            summary="Perfect migration fidelity",
         )
 
         zero_result = ValidationResult(
             overall_status="rejected",
             fidelity_score=0.0,
-            summary="Complete migration failure"
+            summary="Complete migration failure",
         )
 
         assert perfect_result.fidelity_score == 1.0
@@ -620,13 +628,13 @@ class TestMigrationValidationRequest:
         source_input = InputData(
             type=InputType.CODE_FILES,
             files=[temp_files["python_simple.py"]],
-            metadata={"language": "python"}
+            metadata={"language": "python"},
         )
 
         target_input = InputData(
             type=InputType.CODE_FILES,
             files=[temp_files["java_simple.java"]],
-            metadata={"language": "java"}
+            metadata={"language": "java"},
         )
 
         request = MigrationValidationRequest(
@@ -634,7 +642,7 @@ class TestMigrationValidationRequest:
             target_technology=target_tech,
             validation_scope=ValidationScope.BUSINESS_LOGIC,
             source_input=source_input,
-            target_input=target_input
+            target_input=target_input,
         )
 
         assert request.source_technology.type == TechnologyType.PYTHON_FLASK
@@ -657,7 +665,7 @@ class TestMigrationValidationRequest:
             target_technology=target_tech,
             validation_scope=ValidationScope.FULL_SYSTEM,
             source_input=source_input,
-            target_input=target_input
+            target_input=target_input,
         )
 
         request2 = MigrationValidationRequest(
@@ -665,7 +673,7 @@ class TestMigrationValidationRequest:
             target_technology=target_tech,
             validation_scope=ValidationScope.FULL_SYSTEM,
             source_input=source_input,
-            target_input=target_input
+            target_input=target_input,
         )
 
         assert request1.request_id != request2.request_id
@@ -686,7 +694,7 @@ class TestMigrationValidationRequest:
             ValidationScope.API_ENDPOINTS,
             ValidationScope.BUSINESS_LOGIC,
             ValidationScope.BEHAVIORAL_VALIDATION,
-            ValidationScope.FULL_SYSTEM
+            ValidationScope.FULL_SYSTEM,
         ]
 
         for scope in scopes_to_test:
@@ -695,7 +703,7 @@ class TestMigrationValidationRequest:
                 target_technology=target_tech,
                 validation_scope=scope,
                 source_input=source_input,
-                target_input=target_input
+                target_input=target_input,
             )
             assert request.validation_scope == scope
 
@@ -721,7 +729,7 @@ class TestValidationSession:
         result = ValidationResult(
             overall_status="approved",
             fidelity_score=0.9,
-            summary="Test result"
+            summary="Test result",
         )
 
         session = ValidationSession(
@@ -729,7 +737,7 @@ class TestValidationSession:
             source_representation=source_repr,
             target_representation=target_repr,
             result=result,
-            processing_log=["Initial log entry"]
+            processing_log=["Initial log entry"],
         )
 
         assert session.source_representation.screen_name == "Source"
@@ -786,7 +794,7 @@ class TestValidationSession:
         source_repr = AbstractRepresentation(
             screen_name="Login Form",
             ui_elements=[UIElement(type="input", id="email")],
-            backend_functions=[BackendFunction(name="validate_login")]
+            backend_functions=[BackendFunction(name="validate_login")],
         )
         session.source_representation = source_repr
         session.add_log("Source representation created")
@@ -795,7 +803,7 @@ class TestValidationSession:
         target_repr = AbstractRepresentation(
             screen_name="Login Form",
             ui_elements=[UIElement(type="input", id="username")],  # Different ID
-            backend_functions=[BackendFunction(name="authenticate_user")]  # Different name
+            backend_functions=[BackendFunction(name="authenticate_user")],  # Different name
         )
         session.target_representation = target_repr
         session.add_log("Target representation created")
@@ -804,7 +812,7 @@ class TestValidationSession:
         discrepancy = ValidationDiscrepancy(
             type="field_name_mismatch",
             severity=SeverityLevel.WARNING,
-            description="Input field ID changed from 'email' to 'username'"
+            description="Input field ID changed from 'email' to 'username'",
         )
 
         result = ValidationResult(
@@ -812,7 +820,7 @@ class TestValidationSession:
             fidelity_score=0.85,
             summary="Validation completed with minor naming differences",
             discrepancies=[discrepancy],
-            execution_time=30.5
+            execution_time=30.5,
         )
         session.result = result
         session.add_log("Validation completed successfully")
@@ -865,7 +873,7 @@ class TestModelEdgeCases:
         input_data = InputData(
             type=InputType.CODE_FILES,
             files=large_file_list,
-            metadata=large_metadata
+            metadata=large_metadata,
         )
 
         assert len(input_data.files) == 1000
@@ -878,7 +886,7 @@ class TestModelEdgeCases:
             type="button",
             id="botón-enviar",
             text="Enviar 📧",
-            attributes={"aria-label": "Botón para enviar correo electrónico"}
+            attributes={"aria-label": "Botón para enviar correo electrónico"},
         )
 
         assert ui_element.id == "botón-enviar"
@@ -887,7 +895,7 @@ class TestModelEdgeCases:
 
         backend_func = BackendFunction(
             name="función_validación",
-            logic_summary="Validación de datos con caracteres especiales: áéíóú"
+            logic_summary="Validación de datos con caracteres especiales: áéíóú",
         )
 
         assert backend_func.name == "función_validación"
@@ -900,7 +908,7 @@ class TestModelEdgeCases:
         ui_element = UIElement(
             type="input",
             id=f"special-{special_chars}",
-            text=special_chars
+            text=special_chars,
         )
 
         assert special_chars in ui_element.id
@@ -912,7 +920,7 @@ class TestModelEdgeCases:
 
         backend_func = BackendFunction(
             name="long_function",
-            logic_summary=long_string
+            logic_summary=long_string,
         )
 
         assert len(backend_func.logic_summary) == 10000
@@ -925,7 +933,7 @@ class TestModelEdgeCases:
             type="test",
             severity=SeverityLevel.INFO,
             description="Test",
-            confidence=0.0
+            confidence=0.0,
         )
         assert discrepancy_min.confidence == 0.0
 
@@ -934,7 +942,7 @@ class TestModelEdgeCases:
             type="test",
             severity=SeverityLevel.INFO,
             description="Test",
-            confidence=1.0
+            confidence=1.0,
         )
         assert discrepancy_max.confidence == 1.0
 
@@ -942,14 +950,14 @@ class TestModelEdgeCases:
         result_min = ValidationResult(
             overall_status="rejected",
             fidelity_score=0.0,
-            summary="Minimum fidelity"
+            summary="Minimum fidelity",
         )
         assert result_min.fidelity_score == 0.0
 
         result_max = ValidationResult(
             overall_status="approved",
             fidelity_score=1.0,
-            summary="Maximum fidelity"
+            summary="Maximum fidelity",
         )
         assert result_max.fidelity_score == 1.0
 
@@ -961,7 +969,7 @@ class TestModelEdgeCases:
             result = ValidationResult(
                 overall_status="approved",
                 fidelity_score=0.9,
-                summary=f"Test result {i}"
+                summary=f"Test result {i}",
             )
             results.append(result)
 
@@ -1013,7 +1021,7 @@ class TestValidationResult:
                 type="type_mismatch",
                 severity=SeverityLevel.WARNING,
                 description="Field type changed from string to integer",
-            )
+            ),
         ]
 
         result = ValidationResult(
@@ -1033,7 +1041,7 @@ class TestValidationResult:
     def test_fidelity_score_bounds(self):
         """Test fidelity score is within valid bounds."""
         result = ValidationResult(
-            overall_status="approved", fidelity_score=0.85, summary="Test result"
+            overall_status="approved", fidelity_score=0.85, summary="Test result",
         )
 
         assert 0.0 <= result.fidelity_score <= 1.0
@@ -1088,7 +1096,7 @@ class TestMigrationValidationRequest:
         source_input = InputData(type=InputType.CODE_FILES, files=["views.py", "models.py"])
 
         target_input = InputData(
-            type=InputType.CODE_FILES, files=["Controller.java", "Entity.java"]
+            type=InputType.CODE_FILES, files=["Controller.java", "Entity.java"],
         )
 
         request = MigrationValidationRequest(

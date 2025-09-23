@@ -1,5 +1,4 @@
-"""
-Database session management for AI-Powered Migration Validation System.
+"""Database session management for AI-Powered Migration Validation System.
 
 Provides async database session handling, connection management,
 and transaction support for the FastAPI application.
@@ -7,12 +6,17 @@ and transaction support for the FastAPI application.
 
 import asyncio
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional
+from typing import Optional
 
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
-                                    async_sessionmaker, create_async_engine)
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.pool import NullPool
 
 from .config import DatabaseConfig, get_database_config
@@ -22,19 +26,18 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
-    """
-    Database manager for handling connections and sessions.
+    """Database manager for handling connections and sessions.
 
     Provides centralized database connection management with
     connection pooling, health checks, and session lifecycle management.
     """
 
     def __init__(self, config: Optional[DatabaseConfig] = None):
-        """
-        Initialize database manager.
+        """Initialize database manager.
 
         Args:
             config: Database configuration. If None, loads from environment.
+
         """
         self.config = config or get_database_config()
         self._engine: Optional[AsyncEngine] = None
@@ -56,8 +59,7 @@ class DatabaseManager:
         return self._session_factory
 
     async def initialize(self) -> None:
-        """
-        Initialize database engine and session factory.
+        """Initialize database engine and session factory.
 
         Creates the async engine with appropriate connection pooling
         and session factory for the application.
@@ -109,11 +111,11 @@ class DatabaseManager:
         self._is_initialized = False
 
     async def health_check(self) -> bool:
-        """
-        Perform database health check.
+        """Perform database health check.
 
         Returns:
             True if database is healthy, False otherwise
+
         """
         try:
             async with self.get_session() as session:
@@ -128,14 +130,14 @@ class DatabaseManager:
 
     @asynccontextmanager
     async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
-        """
-        Get database session with automatic transaction management.
+        """Get database session with automatic transaction management.
 
         Yields:
             AsyncSession: Database session
 
         Raises:
             SQLAlchemyError: If database operation fails
+
         """
         if not self._is_initialized:
             await self.initialize()
@@ -152,8 +154,7 @@ class DatabaseManager:
             await session.close()
 
     async def create_tables(self) -> None:
-        """
-        Create all database tables.
+        """Create all database tables.
 
         This method creates all tables defined in the models.
         Should be called during application startup or migrations.
@@ -172,8 +173,7 @@ class DatabaseManager:
             raise
 
     async def drop_tables(self) -> None:
-        """
-        Drop all database tables.
+        """Drop all database tables.
 
         WARNING: This will delete all data. Use with caution!
         """
@@ -191,8 +191,7 @@ class DatabaseManager:
             raise
 
     async def reset_database(self) -> None:
-        """
-        Reset database by dropping and recreating all tables.
+        """Reset database by dropping and recreating all tables.
 
         WARNING: This will delete all data. Use with caution!
         """
@@ -200,8 +199,7 @@ class DatabaseManager:
         await self.create_tables()
 
     async def execute_with_retry(self, operation, max_retries: int = None) -> any:
-        """
-        Execute database operation with retry logic.
+        """Execute database operation with retry logic.
 
         Args:
             operation: Async callable to execute
@@ -209,6 +207,7 @@ class DatabaseManager:
 
         Returns:
             Operation result
+
         """
         max_retries = max_retries or self.config.connect_retries
         last_exception = None
@@ -222,7 +221,7 @@ class DatabaseManager:
                     wait_time = self.config.retry_interval * (2**attempt)
                     logger.warning(
                         f"Database operation failed (attempt {attempt + 1}/{max_retries + 1}), "
-                        f"retrying in {wait_time}s: {e}"
+                        f"retrying in {wait_time}s: {e}",
                     )
                     await asyncio.sleep(wait_time)
                 else:
@@ -236,11 +235,11 @@ _db_manager: Optional[DatabaseManager] = None
 
 
 def get_database_manager() -> DatabaseManager:
-    """
-    Get global database manager instance.
+    """Get global database manager instance.
 
     Returns:
         DatabaseManager: Global database manager
+
     """
     global _db_manager
     if _db_manager is None:
@@ -249,8 +248,7 @@ def get_database_manager() -> DatabaseManager:
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
-    """
-    FastAPI dependency for getting database sessions.
+    """FastAPI dependency for getting database sessions.
 
     This function is designed to be used as a FastAPI dependency
     to provide database sessions to route handlers.
@@ -263,6 +261,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
         async def list_sessions(db: AsyncSession = Depends(get_db_session)):
             # Use db session here
             pass
+
     """
     db_manager = get_database_manager()
     async with db_manager.get_session() as session:
@@ -270,8 +269,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def initialize_database() -> None:
-    """
-    Initialize database for application startup.
+    """Initialize database for application startup.
 
     This function should be called during FastAPI application startup
     to ensure database connectivity and table creation.
@@ -284,8 +282,7 @@ async def initialize_database() -> None:
 
 
 async def close_database() -> None:
-    """
-    Close database connections for application shutdown.
+    """Close database connections for application shutdown.
 
     This function should be called during FastAPI application shutdown
     to properly close database connections and cleanup resources.
@@ -299,8 +296,7 @@ async def close_database() -> None:
 # Context manager for database lifecycle
 @asynccontextmanager
 async def database_lifespan():
-    """
-    Database lifecycle context manager.
+    """Database lifecycle context manager.
 
     Can be used with FastAPI lifespan events to manage database
     initialization and cleanup.
@@ -310,6 +306,7 @@ async def database_lifespan():
         async def lifespan(app: FastAPI):
             async with database_lifespan():
                 yield
+
     """
     try:
         await initialize_database()

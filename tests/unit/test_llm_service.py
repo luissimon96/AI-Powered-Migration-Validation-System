@@ -1,15 +1,18 @@
-"""
-Unit tests for LLM service.
+"""Unit tests for LLM service.
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.services.llm_service import (LLMConfig, LLMProvider,
-                                      LLMProviderNotAvailable, LLMResponse,
-                                      LLMService, LLMServiceError,
-                                      create_llm_service)
+from src.services.llm_service import (
+    LLMConfig,
+    LLMProvider,
+    LLMProviderNotAvailable,
+    LLMResponse,
+    LLMService,
+    create_llm_service,
+)
 
 
 class TestLLMConfig:
@@ -151,11 +154,11 @@ class TestLLMService:
         """Test handling of invalid JSON response."""
         # Mock invalid JSON response
         mock_llm_service.generate_response.return_value = LLMResponse(
-            content="Invalid JSON response", model="mock-model", provider="mock"
+            content="Invalid JSON response", model="mock-model", provider="mock",
         )
 
         result = await mock_llm_service.analyze_code_semantic_similarity(
-            "code1", "code2", "context"
+            "code1", "code2", "context",
         )
 
         # Should return fallback result

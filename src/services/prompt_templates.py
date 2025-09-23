@@ -1,5 +1,4 @@
-"""
-Prompt template management system for LLM-based analysis.
+"""Prompt template management system for LLM-based analysis.
 
 Provides structured prompts for different types of analysis tasks including
 code comparison, UI analysis, and business logic validation.
@@ -8,7 +7,7 @@ code comparison, UI analysis, and business logic validation.
 import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 class AnalysisType(Enum):
@@ -50,7 +49,7 @@ class PromptTemplateManager:
     def format_prompt(
         self,
         analysis_type: AnalysisType,
-        context: Dict[str, Any]
+        context: Dict[str, Any],
     ) -> tuple[str, str]:
         """Format system and user prompts with context data."""
         template = self.get_template(analysis_type)
@@ -114,14 +113,14 @@ Provide detailed analysis in the specified JSON format. Focus on functional equi
                 "data_flow_preserved": "boolean",
                 "error_handling_equivalent": "boolean",
                 "performance_considerations": ["string"],
-                "recommendations": ["string"]
+                "recommendations": ["string"],
             },
             confidence_factors=[
                 "Code structure similarity",
                 "Variable naming consistency",
                 "Logic flow preservation",
                 "Error handling completeness",
-                "Business rule implementation"
+                "Business rule implementation",
             ],
             fallback_response={
                 "similarity_score": 0.5,
@@ -133,8 +132,8 @@ Provide detailed analysis in the specified JSON format. Focus on functional equi
                 "data_flow_preserved": False,
                 "error_handling_equivalent": False,
                 "performance_considerations": ["Manual review required"],
-                "recommendations": ["Manual code review required"]
-            }
+                "recommendations": ["Manual code review required"],
+            },
         )
 
         # UI Element Extraction Template
@@ -169,23 +168,23 @@ Identify the purpose and type of each element, providing stable IDs and accurate
                         "form_element": "boolean",
                         "navigation": "boolean",
                         "placeholder": "string or null",
-                        "validation_required": "boolean"
-                    }
+                        "validation_required": "boolean",
+                    },
                 }],
                 "layout_structure": {
                     "header_elements": ["string"],
                     "main_content_elements": ["string"],
                     "sidebar_elements": ["string"],
-                    "footer_elements": ["string"]
+                    "footer_elements": ["string"],
                 },
                 "accessibility_notes": ["string"],
-                "confidence": "float (0.0-1.0)"
+                "confidence": "float (0.0-1.0)",
             },
             confidence_factors=[
                 "Element visibility clarity",
                 "Text readability",
                 "UI pattern recognition",
-                "Interactive element identification"
+                "Interactive element identification",
             ],
             fallback_response={
                 "elements": [],
@@ -193,11 +192,11 @@ Identify the purpose and type of each element, providing stable IDs and accurate
                     "header_elements": [],
                     "main_content_elements": [],
                     "sidebar_elements": [],
-                    "footer_elements": []
+                    "footer_elements": [],
                 },
                 "accessibility_notes": ["Manual analysis required"],
-                "confidence": 0.1
-            }
+                "confidence": 0.1,
+            },
         )
 
         # UI Relationship Analysis Template
@@ -229,31 +228,31 @@ Identify element relationships, user workflows, and interaction patterns.""",
                     "source_element_id": "string",
                     "target_element_id": "string",
                     "relationship_type": "string (parent_child, form_validation, navigation, data_binding)",
-                    "description": "string"
+                    "description": "string",
                 }],
                 "user_workflows": [{
                     "workflow_name": "string",
                     "steps": ["string"],
-                    "critical_path": "boolean"
+                    "critical_path": "boolean",
                 }],
                 "form_groups": [{
                     "group_name": "string",
                     "elements": ["string"],
-                    "validation_rules": ["string"]
+                    "validation_rules": ["string"],
                 }],
                 "navigation_structure": {
                     "primary_navigation": ["string"],
                     "secondary_navigation": ["string"],
-                    "breadcrumbs": ["string"]
+                    "breadcrumbs": ["string"],
                 },
                 "interaction_patterns": ["string"],
-                "confidence": "float (0.0-1.0)"
+                "confidence": "float (0.0-1.0)",
             },
             confidence_factors=[
                 "Element naming consistency",
                 "Standard UI pattern recognition",
                 "Form structure clarity",
-                "Navigation pattern identification"
+                "Navigation pattern identification",
             ],
             fallback_response={
                 "element_relationships": [],
@@ -262,11 +261,11 @@ Identify element relationships, user workflows, and interaction patterns.""",
                 "navigation_structure": {
                     "primary_navigation": [],
                     "secondary_navigation": [],
-                    "breadcrumbs": []
+                    "breadcrumbs": [],
                 },
                 "interaction_patterns": [],
-                "confidence": 0.2
-            }
+                "confidence": 0.2,
+            },
         )
 
         # Business Logic Validation Template
@@ -304,27 +303,27 @@ Analyze business logic preservation and identify critical discrepancies.""",
                     "discrepancy_type": "string",
                     "severity": "string (critical, warning, info)",
                     "description": "string",
-                    "business_impact": "string"
+                    "business_impact": "string",
                 }],
                 "validation_gaps": ["string"],
                 "workflow_integrity": {
                     "preserved": "boolean",
                     "missing_steps": ["string"],
-                    "modified_steps": ["string"]
+                    "modified_steps": ["string"],
                 },
                 "data_consistency": {
                     "validation_rules_preserved": "boolean",
-                    "constraint_changes": ["string"]
+                    "constraint_changes": ["string"],
                 },
                 "risk_assessment": "string (low, medium, high, critical)",
                 "recommendations": ["string"],
-                "confidence": "float (0.0-1.0)"
+                "confidence": "float (0.0-1.0)",
             },
             confidence_factors=[
                 "Function mapping clarity",
                 "Business rule documentation",
                 "Validation logic completeness",
-                "Error handling coverage"
+                "Error handling coverage",
             ],
             fallback_response={
                 "business_logic_preserved": False,
@@ -333,22 +332,22 @@ Analyze business logic preservation and identify critical discrepancies.""",
                     "discrepancy_type": "analysis_failed",
                     "severity": "critical",
                     "description": "Analysis failed",
-                    "business_impact": "unknown"
+                    "business_impact": "unknown",
                 }],
                 "validation_gaps": ["Manual review required"],
                 "workflow_integrity": {
                     "preserved": False,
                     "missing_steps": ["unknown"],
-                    "modified_steps": ["unknown"]
+                    "modified_steps": ["unknown"],
                 },
                 "data_consistency": {
                     "validation_rules_preserved": False,
-                    "constraint_changes": ["unknown"]
+                    "constraint_changes": ["unknown"],
                 },
                 "risk_assessment": "critical",
                 "recommendations": ["Comprehensive manual business logic review required"],
-                "confidence": 0.1
-            }
+                "confidence": 0.1,
+            },
         )
 
         # Migration Fidelity Template
@@ -388,39 +387,39 @@ Provide comprehensive fidelity assessment and recommendations.""",
                 "feature_completeness": {
                     "score": "float (0.0-1.0)",
                     "missing_features": ["string"],
-                    "additional_features": ["string"]
+                    "additional_features": ["string"],
                 },
                 "functional_equivalence": {
                     "score": "float (0.0-1.0)",
-                    "critical_differences": ["string"]
+                    "critical_differences": ["string"],
                 },
                 "user_experience": {
                     "score": "float (0.0-1.0)",
-                    "ux_issues": ["string"]
+                    "ux_issues": ["string"],
                 },
                 "data_integrity": {
                     "score": "float (0.0-1.0)",
-                    "integrity_risks": ["string"]
+                    "integrity_risks": ["string"],
                 },
                 "risk_summary": {
                     "critical_issues": "int",
                     "warnings": "int",
                     "info_items": "int",
-                    "highest_risk_area": "string"
+                    "highest_risk_area": "string",
                 },
                 "recommendations": [{
                     "priority": "string (high, medium, low)",
                     "category": "string",
                     "description": "string",
-                    "estimated_effort": "string"
+                    "estimated_effort": "string",
                 }],
-                "confidence": "float (0.0-1.0)"
+                "confidence": "float (0.0-1.0)",
             },
             confidence_factors=[
                 "Analysis completeness",
                 "Data quality",
                 "Pattern recognition accuracy",
-                "Cross-validation consistency"
+                "Cross-validation consistency",
             ],
             fallback_response={
                 "overall_fidelity_score": 0.5,
@@ -428,34 +427,34 @@ Provide comprehensive fidelity assessment and recommendations.""",
                 "feature_completeness": {
                     "score": 0.5,
                     "missing_features": ["unknown"],
-                    "additional_features": ["unknown"]
+                    "additional_features": ["unknown"],
                 },
                 "functional_equivalence": {
                     "score": 0.5,
-                    "critical_differences": ["unknown"]
+                    "critical_differences": ["unknown"],
                 },
                 "user_experience": {
                     "score": 0.5,
-                    "ux_issues": ["unknown"]
+                    "ux_issues": ["unknown"],
                 },
                 "data_integrity": {
                     "score": 0.5,
-                    "integrity_risks": ["unknown"]
+                    "integrity_risks": ["unknown"],
                 },
                 "risk_summary": {
                     "critical_issues": 0,
                     "warnings": 1,
                     "info_items": 0,
-                    "highest_risk_area": "analysis_incomplete"
+                    "highest_risk_area": "analysis_incomplete",
                 },
                 "recommendations": [{
                     "priority": "high",
                     "category": "analysis",
                     "description": "Manual review required due to analysis failure",
-                    "estimated_effort": "unknown"
+                    "estimated_effort": "unknown",
                 }],
-                "confidence": 0.2
-            }
+                "confidence": 0.2,
+            },
         )
 
         return templates
@@ -467,7 +466,7 @@ Provide comprehensive fidelity assessment and recommendations.""",
     def validate_response_format(
         self,
         analysis_type: AnalysisType,
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> bool:
         """Validate that a response matches the expected format."""
         expected = self.get_expected_format(analysis_type)
@@ -482,7 +481,7 @@ Provide comprehensive fidelity assessment and recommendations.""",
     def enhance_context(
         self,
         base_context: Dict[str, Any],
-        analysis_type: AnalysisType
+        analysis_type: AnalysisType,
     ) -> Dict[str, Any]:
         """Enhance context with analysis-type specific information."""
         template = self.get_template(analysis_type)

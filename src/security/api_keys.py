@@ -1,5 +1,4 @@
-"""
-Comprehensive API key management system with scopes, permissions, and rate limiting.
+"""Comprehensive API key management system with scopes, permissions, and rate limiting.
 
 Provides secure API key authentication for service-to-service communication
 with proper scope-based authorization and audit logging.
@@ -7,8 +6,8 @@ with proper scope-based authorization and audit logging.
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Set
+from datetime import datetime
+from typing import Dict, List, Optional
 
 from fastapi import HTTPException, Security, status
 from fastapi.security import APIKeyHeader
@@ -17,7 +16,6 @@ from pydantic import BaseModel
 from ..core.config import get_settings
 from ..core.logging import logger
 from ..database.service import get_database_service
-from .encryption import decrypt_sensitive_data, encrypt_sensitive_data
 from .schemas import APIKeyCreateRequest, APIKeyResponse, APIKeyScope
 
 
@@ -48,7 +46,7 @@ class APIKeyManager:
     def _hash_api_key(self, api_key: str) -> str:
         """Hash API key for secure storage."""
         salt = self.settings.SECRET_KEY.encode()
-        return hashlib.pbkdf2_hmac('sha256', api_key.encode(), salt, 100000).hex()
+        return hashlib.pbkdf2_hmac("sha256", api_key.encode(), salt, 100000).hex()
 
     def _generate_api_key(self) -> str:
         """Generate a secure API key."""
@@ -57,7 +55,7 @@ class APIKeyManager:
     async def create_api_key(
         self,
         request: APIKeyCreateRequest,
-        created_by: str
+        created_by: str,
     ) -> tuple[str, APIKeyMetadata]:
         """Create a new API key with metadata."""
         try:
@@ -79,14 +77,14 @@ class APIKeyManager:
                 last_used_at=None,
                 rate_limit_per_minute=request.rate_limit_per_minute,
                 is_active=True,
-                created_by=created_by
+                created_by=created_by,
             )
 
             # Store in database
             await self.db.store_api_key(
                 api_key_id=api_key_id,
                 hashed_key=hashed_key,
-                metadata=metadata.dict()
+                metadata=metadata.dict(),
             )
 
             self.logger.info(
@@ -94,7 +92,7 @@ class APIKeyManager:
                 api_key_id=api_key_id,
                 name=request.name,
                 scopes=request.scopes,
-                created_by=created_by
+                created_by=created_by,
             )
 
             return api_key, metadata
@@ -103,7 +101,7 @@ class APIKeyManager:
             self.logger.error("Failed to create API key", error=str(e))
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to create API key"
+                detail="Failed to create API key",
             )
 
     async def validate_api_key(self, api_key: str) -> APIKeyMetadata:
@@ -112,7 +110,7 @@ class APIKeyManager:
             if not api_key or not api_key.startswith("amvs_"):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid API key format"
+                    detail="Invalid API key format",
                 )
 
             # Hash the provided key
@@ -124,17 +122,17 @@ class APIKeyManager:
                 self.logger.warning("Invalid API key provided")
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid API key"
+                    detail="Invalid API key",
                 )
 
-            metadata = APIKeyMetadata(**stored_data['metadata'])
+            metadata = APIKeyMetadata(**stored_data["metadata"])
 
             # Check if key is active
             if not metadata.is_active:
                 self.logger.warning("Inactive API key used", api_key_id=metadata.id)
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="API key is inactive"
+                    detail="API key is inactive",
                 )
 
             # Check expiration
@@ -142,7 +140,7 @@ class APIKeyManager:
                 self.logger.warning("Expired API key used", api_key_id=metadata.id)
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="API key has expired"
+                    detail="API key has expired",
                 )
 
             # Update last used timestamp
@@ -156,7 +154,7 @@ class APIKeyManager:
             self.logger.error("API key validation failed", error=str(e))
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="API key validation failed"
+                detail="API key validation failed",
             )
 
     async def _update_last_used(self, api_key_id: str):
@@ -174,7 +172,7 @@ class APIKeyManager:
                 self.logger.info(
                     "API key revoked",
                     api_key_id=api_key_id,
-                    revoked_by=revoked_by
+                    revoked_by=revoked_by,
                 )
             return success
         except Exception as e:
@@ -188,7 +186,7 @@ class APIKeyManager:
 
             api_keys = []
             for data in api_keys_data:
-                metadata = APIKeyMetadata(**data['metadata'])
+                metadata = APIKeyMetadata(**data["metadata"])
                 api_keys.append(APIKeyResponse(
                     id=metadata.id,
                     name=metadata.name,
@@ -198,7 +196,7 @@ class APIKeyManager:
                     expires_at=metadata.expires_at,
                     last_used_at=metadata.last_used_at,
                     rate_limit_per_minute=metadata.rate_limit_per_minute,
-                    is_active=metadata.is_active
+                    is_active=metadata.is_active,
                 ))
 
             return api_keys
@@ -207,7 +205,7 @@ class APIKeyManager:
             self.logger.error("Failed to list API keys", error=str(e))
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to list API keys"
+                detail="Failed to list API keys",
             )
 
     async def check_scope_permission(self, api_key_metadata: APIKeyMetadata, required_scope: APIKeyScope) -> bool:
@@ -227,7 +225,7 @@ async def get_api_key_metadata(api_key: str = Security(api_key_header)) -> APIKe
     if not api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="API key missing"
+            detail="API key missing",
         )
 
     return await api_key_manager.validate_api_key(api_key)
@@ -242,11 +240,11 @@ def require_api_scope(required_scope: APIKeyScope):
                 "Insufficient API key permissions",
                 api_key_id=api_key_metadata.id,
                 required_scope=required_scope,
-                available_scopes=api_key_metadata.scopes
+                available_scopes=api_key_metadata.scopes,
             )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"API key does not have required scope: {required_scope}"
+                detail=f"API key does not have required scope: {required_scope}",
             )
 
         return api_key_metadata
@@ -276,29 +274,29 @@ class APIKeyRateLimiter:
 
         if key_id not in self.usage_tracker:
             self.usage_tracker[key_id] = {
-                'minute': current_minute,
-                'count': 0
+                "minute": current_minute,
+                "count": 0,
             }
 
         tracker = self.usage_tracker[key_id]
 
         # Reset counter if minute has changed
-        if tracker['minute'] != current_minute:
-            tracker['minute'] = current_minute
-            tracker['count'] = 0
+        if tracker["minute"] != current_minute:
+            tracker["minute"] = current_minute
+            tracker["count"] = 0
 
         # Check rate limit
-        if tracker['count'] >= api_key_metadata.rate_limit_per_minute:
+        if tracker["count"] >= api_key_metadata.rate_limit_per_minute:
             self.logger.warning(
                 "API key rate limit exceeded",
                 api_key_id=key_id,
                 limit=api_key_metadata.rate_limit_per_minute,
-                current_count=tracker['count']
+                current_count=tracker["count"],
             )
             return False
 
         # Increment counter
-        tracker['count'] += 1
+        tracker["count"] += 1
         return True
 
     async def require_rate_limit_check(self, api_key_metadata: APIKeyMetadata = Security(get_api_key_metadata)):
@@ -306,7 +304,7 @@ class APIKeyRateLimiter:
         if not await self.check_rate_limit(api_key_metadata):
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="API key rate limit exceeded"
+                detail="API key rate limit exceeded",
             )
         return api_key_metadata
 

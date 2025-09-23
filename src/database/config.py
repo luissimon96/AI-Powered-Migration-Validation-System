@@ -1,5 +1,4 @@
-"""
-Database configuration management.
+"""Database configuration management.
 
 Handles database URL construction, connection pooling settings,
 and environment-specific database configurations.
@@ -11,7 +10,6 @@ from typing import Optional
 from urllib.parse import quote_plus
 
 from sqlalchemy import MetaData
-from sqlalchemy.engine import Engine
 from sqlalchemy.pool import QueuePool, StaticPool
 
 from ..core.config import get_settings
@@ -68,7 +66,7 @@ class DatabaseConfig:
                         "check_same_thread": False,
                         "timeout": self.pool_timeout,
                     },
-                }
+                },
             )
         else:
             # PostgreSQL and other databases
@@ -79,7 +77,7 @@ class DatabaseConfig:
                     "max_overflow": self.max_overflow,
                     "pool_timeout": self.pool_timeout,
                     "pool_recycle": self.pool_recycle,
-                }
+                },
             )
 
         return kwargs
@@ -94,8 +92,7 @@ def build_database_url(
     password: Optional[str] = None,
     **params,
 ) -> str:
-    """
-    Build database URL from components.
+    """Build database URL from components.
 
     Args:
         driver: Database driver (postgresql+asyncpg, sqlite+aiosqlite, etc.)
@@ -108,13 +105,13 @@ def build_database_url(
 
     Returns:
         Complete database URL
+
     """
     if driver.startswith("sqlite"):
         # SQLite URL format
         if database.startswith("/") or database == ":memory:":
             return f"{driver}:///{database}"
-        else:
-            return f"{driver}:///./{database}"
+        return f"{driver}:///./{database}"
 
     # PostgreSQL and other databases
     auth_part = ""
@@ -134,11 +131,11 @@ def build_database_url(
 
 
 def get_database_config() -> DatabaseConfig:
-    """
-    Get database configuration from environment.
+    """Get database configuration from environment.
 
     Returns:
         DatabaseConfig instance
+
     """
     settings = get_settings()
 
