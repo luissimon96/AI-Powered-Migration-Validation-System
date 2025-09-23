@@ -14,7 +14,8 @@ from src.analyzers.code_analyzer import CodeAnalyzer
 from src.analyzers.visual_analyzer import VisualAnalyzer
 from src.comparators.semantic_comparator import SemanticComparator
 from src.core.migration_validator import MigrationValidator
-from src.core.models import ValidationRequest, ValidationScope, ValidationStatus
+from src.core.models import (ValidationRequest, ValidationScope,
+                             ValidationStatus)
 from src.services.llm_service import LLMService
 
 

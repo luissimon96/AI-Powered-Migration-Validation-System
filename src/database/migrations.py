@@ -9,14 +9,14 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from alembic.config import Config
-from alembic.migration import MigrationContext
-from alembic.operations import Operations
-from alembic.script import ScriptDirectory
 from sqlalchemy import MetaData, text
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from alembic import command
+from alembic.config import Config
+from alembic.migration import MigrationContext
+from alembic.operations import Operations
+from alembic.script import ScriptDirectory
 
 from .models import Base
 from .session import DatabaseManager

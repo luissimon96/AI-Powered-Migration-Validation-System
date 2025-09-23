@@ -8,16 +8,9 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, Dict, Optional
 
-from prometheus_client import (
-    CONTENT_TYPE_LATEST,
-    CollectorRegistry,
-    Counter,
-    Gauge,
-    Histogram,
-    Info,
-    Summary,
-    generate_latest,
-)
+from prometheus_client import (CONTENT_TYPE_LATEST, CollectorRegistry, Counter,
+                               Gauge, Histogram, Info, Summary,
+                               generate_latest)
 
 from src.core.logging import logger
 
@@ -407,7 +400,7 @@ class MetricsCollector:
         """Update system resource metrics."""
         try:
             import psutil
-            
+
             # Memory usage
             memory = psutil.virtual_memory()
             self.memory_usage.set(memory.used)

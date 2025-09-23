@@ -17,14 +17,9 @@ from hypothesis import strategies as st
 from hypothesis.stateful import Bundle, RuleBasedStateMachine, invariant, rule
 
 from src.core.input_processor import InputProcessor
-from src.core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-)
+from src.core.models import (InputData, InputType, MigrationValidationRequest,
+                             TechnologyContext, TechnologyType,
+                             ValidationScope)
 
 
 @pytest.mark.unit

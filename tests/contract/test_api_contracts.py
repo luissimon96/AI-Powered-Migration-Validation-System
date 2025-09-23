@@ -16,16 +16,10 @@ from jsonschema import Draft7Validator
 from pydantic import ValidationError
 
 from src.api.routes import app
-from src.core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationResult,
-    ValidationScope,
-    ValidationStatus,
-)
+from src.core.models import (InputData, InputType, MigrationValidationRequest,
+                             TechnologyContext, TechnologyType,
+                             ValidationResult, ValidationScope,
+                             ValidationStatus)
 
 # ═══════════════════════════════════════════════════════════════
 # Contract Testing Framework

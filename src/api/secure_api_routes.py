@@ -8,60 +8,35 @@ authorization, rate limiting, and audit logging.
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    Depends,
-    File,
-    Form,
-    HTTPException,
-    Request,
-    UploadFile,
-    status,
-)
+from fastapi import (APIRouter, BackgroundTasks, Depends, File, Form,
+                     HTTPException, Request, UploadFile, status)
 from fastapi.responses import JSONResponse
 
-from ..behavioral.crews import (
-    BehavioralValidationRequest as CrewBehavioralRequest,
-)
-from ..behavioral.crews import (
-    create_behavioral_validation_crew,
-)
+from ..behavioral.crews import \
+    BehavioralValidationRequest as CrewBehavioralRequest
+from ..behavioral.crews import create_behavioral_validation_crew
 from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
 from ..core.models import ValidationSession
-from ..security.api_keys import (
-    APIKeyMetadata,
-    APIKeyScope,
-    api_key_manager,
-    api_key_rate_limiter,
-    get_api_key_metadata,
-    require_admin_scope,
-    require_read_scope,
-    require_validation_scope,
-)
+from ..security.api_keys import (APIKeyMetadata, APIKeyScope, api_key_manager,
+                                 api_key_rate_limiter, get_api_key_metadata,
+                                 require_admin_scope, require_read_scope,
+                                 require_validation_scope)
 from ..security.audit import security_audit
 from ..security.headers import create_security_headers
-from ..security.schemas import (
-    APIKeyCreateRequest,
-    APIKeyListResponse,
-    APIKeyResponse,
-    BehavioralValidationRequest,
-    BehavioralValidationResultResponse,
-    ErrorResponse,
-    FileUploadBatchResponse,
-    FileUploadMetadata,
-    FileUploadResponse,
-    HealthCheckResponse,
-    MigrationValidationRequest,
-    SystemStatsResponse,
-    ValidationListQuery,
-    ValidationResultResponse,
-    ValidationStatusResponse,
-    sanitize_response_data,
-    validate_request_schema,
-)
+from ..security.schemas import (APIKeyCreateRequest, APIKeyListResponse,
+                                APIKeyResponse, BehavioralValidationRequest,
+                                BehavioralValidationResultResponse,
+                                ErrorResponse, FileUploadBatchResponse,
+                                FileUploadMetadata, FileUploadResponse,
+                                HealthCheckResponse,
+                                MigrationValidationRequest,
+                                SystemStatsResponse, ValidationListQuery,
+                                ValidationResultResponse,
+                                ValidationStatusResponse,
+                                sanitize_response_data,
+                                validate_request_schema)
 from ..security.validation import SecurityValidationError, input_validator
 
 # Initialize components
@@ -714,13 +689,9 @@ async def _process_migration_validation(
         session.updated_at = datetime.utcnow()
 
         # Initialize real validation pipeline
-        from ..core.models import (
-            InputData,
-            InputType,
-            MigrationValidationRequest,
-            TechnologyContext,
-            TechnologyType,
-        )
+        from ..core.models import (InputData, InputType,
+                                   MigrationValidationRequest,
+                                   TechnologyContext, TechnologyType)
 
         # Create technology contexts
         source_tech = TechnologyContext(

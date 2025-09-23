@@ -11,13 +11,8 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from src.security.auth import (
-    AuthenticationError,
-    AuthManager,
-    JWTAuthenticator,
-    User,
-    UserRole,
-)
+from src.security.auth import (AuthenticationError, AuthManager,
+                               JWTAuthenticator, User, UserRole)
 from src.security.config import get_security_config
 
 

@@ -13,21 +13,11 @@ from typing import Any, Dict, List, Optional
 
 from PIL import Image
 
-from ..core.models import (
-    AbstractRepresentation,
-    InputData,
-    InputType,
-    TechnologyContext,
-    UIElement,
-    ValidationScope,
-)
+from ..core.models import (AbstractRepresentation, InputData, InputType,
+                           TechnologyContext, UIElement, ValidationScope)
 from ..services.llm_service import AnalysisType, LLMService, create_llm_service
-from .base import (
-    BaseAnalyzer,
-    ExtractionError,
-    InvalidInputError,
-    UnsupportedScopeError,
-)
+from .base import (BaseAnalyzer, ExtractionError, InvalidInputError,
+                   UnsupportedScopeError)
 
 
 class VisualAnalyzer(BaseAnalyzer):

@@ -15,23 +15,12 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .exceptions import (
-    ResourceError,
-    SecurityError,
-    ValidationInputError,
-    resource_error,
-    security_error,
-    validation_input_error,
-)
+from .exceptions import (ResourceError, SecurityError, ValidationInputError,
+                         resource_error, security_error,
+                         validation_input_error)
 from .logging import LoggerMixin, log_operation
-from .models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-)
+from .models import (InputData, InputType, MigrationValidationRequest,
+                     TechnologyContext, TechnologyType, ValidationScope)
 
 
 class InputProcessor(LoggerMixin):

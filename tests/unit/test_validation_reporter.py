@@ -9,22 +9,12 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.behavioral.crews import BehavioralValidationResult
-from src.core.models import (
-    AbstractRepresentation,
-    APIEndpoint,
-    BackendFunction,
-    DataField,
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    SeverityLevel,
-    TechnologyContext,
-    TechnologyType,
-    UIElement,
-    ValidationDiscrepancy,
-    ValidationResult,
-    ValidationScope,
-)
+from src.core.models import (AbstractRepresentation, APIEndpoint,
+                             BackendFunction, DataField, InputData, InputType,
+                             MigrationValidationRequest, SeverityLevel,
+                             TechnologyContext, TechnologyType, UIElement,
+                             ValidationDiscrepancy, ValidationResult,
+                             ValidationScope)
 from src.reporters.validation_reporter import ValidationReporter
 
 

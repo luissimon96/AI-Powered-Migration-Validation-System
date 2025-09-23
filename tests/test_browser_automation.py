@@ -7,7 +7,6 @@ to verify the implementation works correctly.
 
 import asyncio
 import json
-
 # Import the browser automation module
 import sys
 import tempfile
@@ -18,13 +17,9 @@ import pytest
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
 from behavioral.browser_automation import (
-    BrowserAction,
-    BrowserAutomationEngine,
-    create_comprehensive_validation_scenario,
-    create_form_submission_scenario,
-    create_login_scenario,
-    execute_migration_validation_workflow,
-)
+    BrowserAction, BrowserAutomationEngine,
+    create_comprehensive_validation_scenario, create_form_submission_scenario,
+    create_login_scenario, execute_migration_validation_workflow)
 
 
 class TestBrowserAutomation:

@@ -37,19 +37,14 @@ from src.analyzers.code_analyzer import CodeAnalyzer
 from src.behavioral.crews import BehavioralValidationCrew
 from src.core.input_processor import InputProcessor
 from src.core.migration_validator import MigrationValidator
-from src.core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationResult,
-    ValidationScope,
-    ValidationStatus,
-)
+from src.core.models import (InputData, InputType, MigrationValidationRequest,
+                             TechnologyContext, TechnologyType,
+                             ValidationResult, ValidationScope,
+                             ValidationStatus)
 from src.security.api_keys import APIKeyManager, APIKeyMetadata
 from src.security.schemas import APIKeyScope
-from src.services.llm_service import LLMConfig, LLMProvider, LLMResponse, LLMService
+from src.services.llm_service import (LLMConfig, LLMProvider, LLMResponse,
+                                      LLMService)
 
 # ═══════════════════════════════════════════════════════════════
 # Test Configuration and Setup

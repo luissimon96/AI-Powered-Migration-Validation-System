@@ -12,43 +12,22 @@ import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    File,
-    Form,
-    HTTPException,
-    Request,
-    UploadFile,
-    status,
-)
+from fastapi import (BackgroundTasks, Depends, FastAPI, File, Form,
+                     HTTPException, Request, UploadFile, status)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
-from ..behavioral.crews import (
-    BehavioralValidationRequest,
-    create_behavioral_validation_crew,
-)
+from ..behavioral.crews import (BehavioralValidationRequest,
+                                create_behavioral_validation_crew)
 from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
-from ..core.models import (
-    SeverityLevel,
-    ValidationDiscrepancy,
-    ValidationResult,
-    ValidationSession,
-)
-from ..security.auth import (
-    User,
-    UserRole,
-    get_current_user,
-    require_admin,
-    require_api_client,
-    require_validator,
-    require_viewer,
-)
+from ..core.models import (SeverityLevel, ValidationDiscrepancy,
+                           ValidationResult, ValidationSession)
+from ..security.auth import (User, UserRole, get_current_user, require_admin,
+                             require_api_client, require_validator,
+                             require_viewer)
 from ..security.headers import create_security_headers
 from ..security.middleware import SecurityMiddleware
 from ..security.rate_limiter import RateLimitConfig, rate_limit

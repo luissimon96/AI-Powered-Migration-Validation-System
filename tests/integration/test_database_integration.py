@@ -182,11 +182,10 @@ class TestDatabaseMigrations:
 
     def test_migration_version_tracking(self, db_session):
         """Test migration version tracking."""
+        from alembic import command
         from alembic.config import Config
         from alembic.runtime.migration import MigrationContext
 
-        from alembic import command
-        
         # Get current migration version
         context = MigrationContext.configure(db_session.connection())
         current_rev = context.get_current_revision()

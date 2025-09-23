@@ -12,45 +12,25 @@ import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    File,
-    Form,
-    HTTPException,
-    Query,
-    UploadFile,
-)
+from fastapi import (BackgroundTasks, Depends, FastAPI, File, Form,
+                     HTTPException, Query, UploadFile)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..behavioral.crews import (
-    BehavioralValidationRequest,
-    create_behavioral_validation_crew,
-)
+from ..behavioral.crews import (BehavioralValidationRequest,
+                                create_behavioral_validation_crew)
 from ..core.config import get_settings, get_validation_config
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
-from ..core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-    ValidationSession,
-)
-from ..database.integration import (
-    DatabaseIntegration,
-    HybridSessionManager,
-    database_lifespan,
-    get_database_integration,
-    get_db_service,
-    get_hybrid_session_manager,
-)
+from ..core.models import (InputData, InputType, MigrationValidationRequest,
+                           TechnologyContext, TechnologyType, ValidationScope,
+                           ValidationSession)
+from ..database.integration import (DatabaseIntegration, HybridSessionManager,
+                                    database_lifespan,
+                                    get_database_integration, get_db_service,
+                                    get_hybrid_session_manager)
 from ..database.service import ValidationDatabaseService
 from ..database.session import get_db_session
 from ..reporters.validation_reporter import ValidationReporter

@@ -17,7 +17,8 @@ from kombu import Queue
 
 from src.core.config import get_validation_config
 from src.core.migration_validator import MigrationValidator
-from src.core.models import ValidationRequest, ValidationSession, ValidationStatus
+from src.core.models import (ValidationRequest, ValidationSession,
+                             ValidationStatus)
 from src.services.llm_service import LLMService
 
 # Celery app configuration
@@ -117,7 +118,7 @@ class TaskResultCache:
     def get_cache_key(self, request: ValidationRequest) -> str:
         """Generate cache key for validation request."""
         import hashlib
-        
+
         # Create deterministic hash from request data
         request_str = json.dumps(request.dict(), sort_keys=True)
         return f"validation_cache:{hashlib.md5(request_str.encode()).hexdigest()}"

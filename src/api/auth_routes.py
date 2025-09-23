@@ -11,16 +11,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
-from ..security.auth import (
-    AuthenticationError,
-    AuthManager,
-    User,
-    UserRole,
-    auth_manager,
-    get_current_user,
-    require_admin,
-    require_viewer,
-)
+from ..security.auth import (AuthenticationError, AuthManager, User, UserRole,
+                             auth_manager, get_current_user, require_admin,
+                             require_viewer)
 from ..security.rate_limiter import RateLimitConfig, rate_limit
 from ..security.validation import input_validator
 

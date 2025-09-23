@@ -9,12 +9,10 @@ This module provides:
 """
 
 from .config import DatabaseConfig, get_database_config
-from .models import Base, DiscrepancyModel, ValidationResultModel, ValidationSessionModel
-from .repositories import (
-    DiscrepancyRepository,
-    ValidationResultRepository,
-    ValidationSessionRepository,
-)
+from .models import (Base, DiscrepancyModel, ValidationResultModel,
+                     ValidationSessionModel)
+from .repositories import (DiscrepancyRepository, ValidationResultRepository,
+                           ValidationSessionRepository)
 from .session import DatabaseManager, get_db_session
 
 __all__ = [

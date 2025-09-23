@@ -13,16 +13,10 @@ from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from .security_models import (
-    APIKeyModel,
-    AuditLogModel,
-    ComplianceLogModel,
-    FileUploadModel,
-    RateLimitModel,
-    SecurityConfigModel,
-    SecurityIncidentModel,
-    SecurityMetricsModel,
-)
+from .security_models import (APIKeyModel, AuditLogModel, ComplianceLogModel,
+                              FileUploadModel, RateLimitModel,
+                              SecurityConfigModel, SecurityIncidentModel,
+                              SecurityMetricsModel)
 
 logger = logging.getLogger(__name__)
 

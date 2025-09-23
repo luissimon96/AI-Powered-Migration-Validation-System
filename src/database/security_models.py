@@ -7,17 +7,8 @@ Defines SQLAlchemy models for API keys, audit logs, and security configurations.
 from datetime import datetime
 from typing import Any, Dict
 
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-    Index,
-    Integer,
-    String,
-    Text,
-    UniqueConstraint,
-)
+from sqlalchemy import (JSON, Boolean, Column, DateTime, Index, Integer,
+                        String, Text, UniqueConstraint)
 from sqlalchemy.sql import func
 
 from .config import metadata

@@ -15,7 +15,8 @@ from fastapi.testclient import TestClient
 
 from src.api.routes import app
 from src.behavioral.crews import BehavioralValidationResult
-from src.core.models import SeverityLevel, ValidationDiscrepancy, ValidationResult
+from src.core.models import (SeverityLevel, ValidationDiscrepancy,
+                             ValidationResult)
 
 
 @pytest.mark.system

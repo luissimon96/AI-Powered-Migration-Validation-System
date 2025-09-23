@@ -259,7 +259,7 @@ class SystemHealthMonitor:
         """Check database connectivity."""
         try:
             from src.database.integration import get_database_session
-            
+
             # Test database connection
             async with get_database_session() as session:
                 # Execute simple query
@@ -308,7 +308,7 @@ class SystemHealthMonitor:
         """Check Celery workers status."""
         try:
             from src.services.task_queue import celery_app
-            
+
             # Get worker stats
             inspect = celery_app.control.inspect()
             active = await asyncio.get_event_loop().run_in_executor(
@@ -338,7 +338,7 @@ class SystemHealthMonitor:
         try:
             import os
             import shutil
-            
+
             # Check upload directory
             upload_dir = self.config.settings.upload_dir
             os.makedirs(upload_dir, exist_ok=True)
@@ -367,7 +367,7 @@ class SystemHealthMonitor:
         """Check system resource usage."""
         try:
             import psutil
-            
+
             # Memory usage
             memory = psutil.virtual_memory()
             memory_percent = memory.percent

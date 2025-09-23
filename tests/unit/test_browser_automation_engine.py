@@ -10,14 +10,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from src.behavioral.browser_automation import (
-    BrowserAction,
-    BrowserActionResult,
-    BrowserAutomationEngine,
-    BrowserSession,
-    create_comprehensive_validation_scenario,
-    create_form_submission_scenario,
-    create_login_scenario,
-)
+    BrowserAction, BrowserActionResult, BrowserAutomationEngine,
+    BrowserSession, create_comprehensive_validation_scenario,
+    create_form_submission_scenario, create_login_scenario)
 from src.core.models import SeverityLevel, ValidationDiscrepancy
 
 
