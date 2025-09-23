@@ -6,6 +6,7 @@ name: 🚀 Release & Deploy
 
 on:
   push:
+    branches: [ master ]
     tags:
       - 'v*.*.*'
       - 'v*.*.*-*'  # Pre-release tags

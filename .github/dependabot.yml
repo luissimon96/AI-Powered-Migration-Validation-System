@@ -16,7 +16,7 @@ updates:
       time: "06:00"
       timezone: "UTC"
     open-pull-requests-limit: 10
-    target-branch: "develop"
+    target-branch: "master"
     
     # Security updates (daily)
     vulnerability-alerts:
@@ -101,7 +101,7 @@ updates:
       time: "06:00"
       timezone: "UTC"
     open-pull-requests-limit: 5
-    target-branch: "develop"
+    target-branch: "master"
     
     commit-message:
       prefix: "ci"
@@ -140,7 +140,7 @@ updates:
       time: "06:00"
       timezone: "UTC"
     open-pull-requests-limit: 3
-    target-branch: "develop"
+    target-branch: "master"
     
     commit-message:
       prefix: "docker"

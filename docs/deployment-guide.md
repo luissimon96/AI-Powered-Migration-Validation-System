@@ -6,7 +6,24 @@
 
 ## Deployment Overview
 
-This guide provides comprehensive instructions for deploying the AI-Powered Migration Validation System across different environments using containerized deployment with Docker and Kubernetes, along with supporting infrastructure components.
+This guide provides comprehensive instructions for deploying the AI-Powered Migration Validation System using a **direct master branch deployment strategy** with containerized deployment using Docker and Kubernetes, along with supporting infrastructure components.
+
+### **Deployment Strategy**
+
+This system uses a **direct master deployment approach** for simplified, streamlined releases:
+
+- **No Feature Branches**: All development happens directly on the master branch
+- **No Pull Requests**: Changes are committed directly to master after local testing
+- **Automatic Deployment**: Every push to master triggers immediate production deployment
+- **Quality Gates**: Comprehensive CI pipeline ensures code quality before deployment
+- **Fast Feedback**: Immediate deployment enables rapid iteration and bug fixes
+
+**Benefits of Direct Master Deployment:**
+- Simplified workflow reduces complexity and bottlenecks
+- Faster time-to-production for features and fixes
+- Reduced merge conflicts and integration issues
+- Clear deployment history tied to commit history
+- Streamlined dependency updates and security patches
 
 ## Architecture Components
 
@@ -1033,7 +1050,7 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     tags: ['v*']
 
 env:
@@ -1084,11 +1101,11 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-  deploy-staging:
-    if: github.ref == 'refs/heads/main'
+  deploy-production:
+    if: github.ref == 'refs/heads/master'
     needs: build
     runs-on: ubuntu-latest
-    environment: staging
+    environment: production
 
     steps:
     - name: Checkout
@@ -1101,18 +1118,18 @@ jobs:
 
     - name: Configure kubectl
       run: |
-        echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
+        echo "${{ secrets.KUBE_CONFIG_PROD }}" | base64 -d > kubeconfig
         export KUBECONFIG=kubeconfig
 
-    - name: Deploy to staging
+    - name: Deploy to production
       run: |
         kubectl set image deployment/migration-validator-app \
-          app=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main \
-          -n migration-validator-staging
+          app=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master \
+          -n migration-validator-prod
         kubectl rollout status deployment/migration-validator-app \
-          -n migration-validator-staging --timeout=300s
+          -n migration-validator-prod --timeout=300s
 
-  deploy-production:
+  deploy-tagged-release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
@@ -1130,7 +1147,7 @@ jobs:
         echo "${{ secrets.KUBE_CONFIG_PROD }}" | base64 -d > kubeconfig
         export KUBECONFIG=kubeconfig
 
-    - name: Deploy to production
+    - name: Deploy tagged release to production
       run: |
         export VERSION=${GITHUB_REF#refs/tags/}
         kubectl set image deployment/migration-validator-app \

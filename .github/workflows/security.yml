@@ -9,13 +9,7 @@ on:
     # Run daily at 6 AM UTC
     - cron: '0 6 * * *'
   push:
-    branches: [ main ]
-    paths:
-      - 'requirements*.txt'
-      - 'setup.py'
-      - 'src/**/*.py'
-  pull_request:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'requirements*.txt'
       - 'setup.py'
