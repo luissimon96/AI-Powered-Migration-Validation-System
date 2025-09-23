@@ -265,9 +265,7 @@ class TestBrowserAutomationEngine:
         assert title_discrepancy
 
         # Check for input count difference
-        input_discrepancy = any(
-            "inputs_count_difference" in disc.type for disc in discrepancies
-        )
+        input_discrepancy = any("inputs_count_difference" in disc.type for disc in discrepancies)
         assert input_discrepancy
 
     @pytest.mark.asyncio
@@ -280,9 +278,7 @@ class TestBrowserAutomationEngine:
 
         discrepancies = await engine.compare_page_states(state1, state2)
 
-        form_mismatch = any(
-            disc.type == "form_count_mismatch" for disc in discrepancies
-        )
+        form_mismatch = any(disc.type == "form_count_mismatch" for disc in discrepancies)
         assert form_mismatch
 
     @pytest.mark.asyncio
@@ -302,9 +298,7 @@ class TestBrowserAutomationEngine:
 
         # Should find missing and additional messages
         missing_msg = any(disc.type == "missing_message" for disc in discrepancies)
-        additional_msg = any(
-            disc.type == "additional_message" for disc in discrepancies
-        )
+        additional_msg = any(disc.type == "additional_message" for disc in discrepancies)
 
         assert missing_msg or additional_msg
 
@@ -386,9 +380,7 @@ class TestScenarioCreation:
             login_url="https://example.com/login",
         )
 
-        assert (
-            len(actions) == 6
-        )  # navigate, fill username, fill password, click, wait, capture
+        assert len(actions) == 6  # navigate, fill username, fill password, click, wait, capture
 
         # Check navigation action
         nav_action = actions[0]
@@ -487,9 +479,7 @@ class TestScenarioCreation:
             "login_url": "https://example.com/login",
         }
 
-        actions = create_comprehensive_validation_scenario(
-            "https://example.com", credentials
-        )
+        actions = create_comprehensive_validation_scenario("https://example.com", credentials)
 
         # Should include login scenario actions
         assert len(actions) > 10  # Basic actions + login actions
@@ -518,7 +508,5 @@ class TestScenarioCreation:
 
         # Should default to base_url + '/login'
         nav_actions = [a for a in actions if a.action_type == "navigate"]
-        login_nav_found = any(
-            "myapp.com/login" in action.target for action in nav_actions
-        )
+        login_nav_found = any("myapp.com/login" in action.target for action in nav_actions)
         assert login_nav_found

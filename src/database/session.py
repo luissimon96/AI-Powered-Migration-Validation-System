@@ -80,10 +80,7 @@ class DatabaseManager:
             if ":memory:" in self.config.url or "test" in self.config.url:
                 engine_kwargs["poolclass"] = NullPool
 
-            self._engine = create_async_engine(
-                self.config.url,
-                **engine_kwargs
-            )
+            self._engine = create_async_engine(self.config.url, **engine_kwargs)
 
             # Create session factory
             self._session_factory = async_sessionmaker(
@@ -226,7 +223,7 @@ class DatabaseManager:
             except SQLAlchemyError as e:
                 last_exception = e
                 if attempt < max_retries:
-                    wait_time = self.config.retry_interval * (2 ** attempt)
+                    wait_time = self.config.retry_interval * (2**attempt)
                     logger.warning(
                         f"Database operation failed (attempt {attempt + 1}/{max_retries + 1}), "
                         f"retrying in {wait_time}s: {e}"

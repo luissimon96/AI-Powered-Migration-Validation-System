@@ -37,9 +37,7 @@ class VisualAnalyzer(BaseAnalyzer):
         super().__init__(technology_context)
         self.supported_scopes = [ValidationScope.UI_LAYOUT, ValidationScope.FULL_SYSTEM]
         self.supported_image_formats = [".png", ".jpg", ".jpeg", ".bmp", ".gif"]
-        self.llm_service: LLMService = create_llm_service(
-            providers="openai,google,anthropic"
-        )
+        self.llm_service: LLMService = create_llm_service(providers="openai,google,anthropic")
 
     async def analyze(
         self, input_data: InputData, scope: ValidationScope
@@ -93,9 +91,7 @@ class VisualAnalyzer(BaseAnalyzer):
                 width, height = img.size
 
                 # Extract UI elements using computer vision techniques
-                ui_elements = await self._extract_ui_elements_from_image(
-                    img, image_path
-                )
+                ui_elements = await self._extract_ui_elements_from_image(img, image_path)
 
                 # Create representation
                 representation = AbstractRepresentation(
@@ -189,9 +185,7 @@ class VisualAnalyzer(BaseAnalyzer):
 
         return elements
 
-    def _basic_cv_analysis(
-        self, image: Image.Image, image_path: str
-    ) -> List[UIElement]:
+    def _basic_cv_analysis(self, image: Image.Image, image_path: str) -> List[UIElement]:
         """Basic computer vision analysis as fallback."""
         # Placeholder for basic CV techniques
         # Could use OpenCV, OCR libraries, etc.

@@ -128,9 +128,7 @@ class TestMigrationValidationRequest:
         source_tech = TechnologyContext(type=TechnologyType.PYTHON_DJANGO)
         target_tech = TechnologyContext(type=TechnologyType.JAVA_SPRING)
 
-        source_input = InputData(
-            type=InputType.CODE_FILES, files=["views.py", "models.py"]
-        )
+        source_input = InputData(type=InputType.CODE_FILES, files=["views.py", "models.py"])
 
         target_input = InputData(
             type=InputType.CODE_FILES, files=["Controller.java", "Entity.java"]

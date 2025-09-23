@@ -84,17 +84,17 @@ class MigrationValidator(LoggerMixin):
                     self.logger.info(
                         "LLM service initialized",
                         provider=llm_config.provider,
-                        model=llm_config.model
+                        model=llm_config.model,
                     )
                 else:
                     self.llm_service = None
-                    self.logger.warning("No LLM configuration found, proceeding without LLM support")
+                    self.logger.warning(
+                        "No LLM configuration found, proceeding without LLM support"
+                    )
             except Exception as e:
                 self.logger.error("Failed to initialize LLM service", error=str(e))
                 raise configuration_error(
-                    f"Failed to initialize LLM service: {str(e)}",
-                    config_key="llm_config",
-                    cause=e
+                    f"Failed to initialize LLM service: {str(e)}", config_key="llm_config", cause=e
                 )
         else:
             self.llm_service = llm_client
@@ -109,14 +109,11 @@ class MigrationValidator(LoggerMixin):
         except Exception as e:
             self.logger.error("Failed to initialize validator components", error=str(e))
             raise configuration_error(
-                f"Failed to initialize validator components: {str(e)}",
-                cause=e
+                f"Failed to initialize validator components: {str(e)}", cause=e
             )
 
     @log_operation("migration_validation_pipeline")
-    async def validate_migration(
-        self, request: MigrationValidationRequest
-    ) -> ValidationSession:
+    async def validate_migration(self, request: MigrationValidationRequest) -> ValidationSession:
         """
         Execute complete migration validation pipeline.
 
@@ -168,19 +165,13 @@ class MigrationValidator(LoggerMixin):
                 session.target_representation,
                 request.validation_scope,
             )
-            session.add_log(
-                f"Comparison complete: {len(discrepancies)} discrepancies found"
-            )
+            session.add_log(f"Comparison complete: {len(discrepancies)} discrepancies found")
 
             # Stage 3: Result Analysis and Report Generation
-            session.add_log(
-                "Stage 3: Analyzing results and generating validation outcome"
-            )
+            session.add_log("Stage 3: Analyzing results and generating validation outcome")
             execution_time = time.time() - start_time
 
-            session.result = self._analyze_validation_results(
-                discrepancies, execution_time
-            )
+            session.result = self._analyze_validation_results(discrepancies, execution_time)
 
             session.add_log(
                 f"Validation complete: {session.result.overall_status} "
@@ -200,7 +191,7 @@ class MigrationValidator(LoggerMixin):
                 category=e.category.value,
                 recoverable=e.recoverable,
                 context=e.context,
-                user_message=e.user_message
+                user_message=e.user_message,
             )
 
             # Create structured error result
@@ -223,7 +214,7 @@ class MigrationValidator(LoggerMixin):
                 "Unexpected validation error",
                 error=str(e),
                 error_type=type(e).__name__,
-                stage="pipeline_execution"
+                stage="pipeline_execution",
             )
 
             # Create error result
@@ -241,7 +232,7 @@ class MigrationValidator(LoggerMixin):
                 f"Unexpected error during validation pipeline: {str(e)}",
                 stage="pipeline_execution",
                 operation="validate_migration",
-                cause=e
+                cause=e,
             )
             raise wrapped_error
 
@@ -275,7 +266,7 @@ class MigrationValidator(LoggerMixin):
             raise validation_input_error(
                 f"Unsupported input type: {input_type}",
                 field="input_type",
-                context={"supported_types": [t.value for t in InputType]}
+                context={"supported_types": [t.value for t in InputType]},
             )
 
         self._analyzer_cache[cache_key] = analyzer
@@ -295,12 +286,8 @@ class MigrationValidator(LoggerMixin):
             Complete validation result
         """
         # Count discrepancies by severity
-        critical_count = sum(
-            1 for d in discrepancies if d.severity == SeverityLevel.CRITICAL
-        )
-        warning_count = sum(
-            1 for d in discrepancies if d.severity == SeverityLevel.WARNING
-        )
+        critical_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.CRITICAL)
+        warning_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.WARNING)
         info_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.INFO)
 
         # Determine overall status
@@ -309,15 +296,15 @@ class MigrationValidator(LoggerMixin):
             summary = f"Migration validation failed. Found {critical_count} critical issues that must be resolved."
         elif warning_count > 0:
             overall_status = "approved_with_warnings"
-            summary = f"Migration validation passed with {warning_count} warnings requiring review."
+            summary = (
+                f"Migration validation passed with {warning_count} warnings requiring review."
+            )
         else:
             overall_status = "approved"
             summary = "Migration validation passed successfully with no critical issues found."
 
         # Calculate fidelity score
-        fidelity_score = self._calculate_fidelity_score(
-            critical_count, warning_count, info_count
-        )
+        fidelity_score = self._calculate_fidelity_score(critical_count, warning_count, info_count)
 
         return ValidationResult(
             overall_status=overall_status,
@@ -362,9 +349,7 @@ class MigrationValidator(LoggerMixin):
         return max(0.0, min(1.0, score))
 
     @log_operation("validation_report_generation")
-    async def generate_report(
-        self, session: ValidationSession, format: str = "json"
-    ) -> str:
+    async def generate_report(self, session: ValidationSession, format: str = "json") -> str:
         """
         Generate validation report in specified format.
 
@@ -406,8 +391,7 @@ class MigrationValidator(LoggerMixin):
         """Get information about supported technologies and validation scopes."""
         return {
             "technologies": [
-                tech.value
-                for tech in TechnologyContext.__annotations__["type"].__args__
+                tech.value for tech in TechnologyContext.__annotations__["type"].__args__
             ],
             "validation_scopes": [scope.value for scope in ValidationScope],
             "input_types": [input_type.value for input_type in InputType],
@@ -432,9 +416,7 @@ class MigrationValidator(LoggerMixin):
         }
 
     @log_operation("request_validation")
-    async def validate_request(
-        self, request: MigrationValidationRequest
-    ) -> Dict[str, Any]:
+    async def validate_request(self, request: MigrationValidationRequest) -> Dict[str, Any]:
         """
         Validate migration request parameters before processing.
 
@@ -495,9 +477,7 @@ class MigrationValidator(LoggerMixin):
         )
 
         if total_files > 50:
-            warnings.append(
-                f"Large number of files ({total_files}) may impact processing time"
-            )
+            warnings.append(f"Large number of files ({total_files}) may impact processing time")
 
         if total_screenshots > 10:
             warnings.append(

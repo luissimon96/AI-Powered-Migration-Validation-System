@@ -167,10 +167,7 @@ class CodeAnalyzer(BaseAnalyzer):
             http_method = None
             for decorator in node.decorator_list:
                 if isinstance(decorator, ast.Call):
-                    if (
-                        hasattr(decorator.func, "attr")
-                        and decorator.func.attr == "route"
-                    ):
+                    if hasattr(decorator.func, "attr") and decorator.func.attr == "route":
                         if decorator.args:
                             endpoint = (
                                 decorator.args[0].value
@@ -223,13 +220,9 @@ class CodeAnalyzer(BaseAnalyzer):
         )
         for route, methods in flask_routes:
             methods_list = (
-                [m.strip().strip("'\"") for m in methods.split(",")]
-                if methods
-                else ["GET"]
+                [m.strip().strip("'\"") for m in methods.split(",")] if methods else ["GET"]
             )
-            endpoints.append(
-                {"path": route, "methods": methods_list, "framework": "flask"}
-            )
+            endpoints.append({"path": route, "methods": methods_list, "framework": "flask"})
 
         # Django URL patterns (basic)
         django_patterns = re.findall(r'path\(["\']([^"\']+)["\']', content)
@@ -293,9 +286,7 @@ class CodeAnalyzer(BaseAnalyzer):
                 else:
                     element_type = "unknown"
 
-                elements.append(
-                    UIElement(type=element_type, id=element_id, text=element_text)
-                )
+                elements.append(UIElement(type=element_type, id=element_id, text=element_text))
 
         return elements
 
@@ -344,9 +335,7 @@ class CodeAnalyzer(BaseAnalyzer):
                         url = groups[0]
                         method = groups[1].upper() if groups[1] else "GET"
 
-                    api_calls.append(
-                        {"url": url, "method": method, "type": "client_call"}
-                    )
+                    api_calls.append({"url": url, "method": method, "type": "client_call"})
 
         return api_calls
 
@@ -411,9 +400,7 @@ class CodeAnalyzer(BaseAnalyzer):
                 element_id = groups[0] if len(groups) > 0 else None
                 element_text = groups[1] if len(groups) > 1 else None
 
-                elements.append(
-                    UIElement(type=element_type, id=element_id, text=element_text)
-                )
+                elements.append(UIElement(type=element_type, id=element_id, text=element_text))
 
         return elements
 
@@ -430,9 +417,7 @@ class CodeAnalyzer(BaseAnalyzer):
             }
         )
 
-    def _merge_analysis(
-        self, target: AbstractRepresentation, source: AbstractRepresentation
-    ):
+    def _merge_analysis(self, target: AbstractRepresentation, source: AbstractRepresentation):
         """Merge analysis results from multiple files."""
         target.ui_elements.extend(source.ui_elements)
         target.backend_functions.extend(source.backend_functions)

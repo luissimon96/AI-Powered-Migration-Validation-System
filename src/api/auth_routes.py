@@ -93,8 +93,7 @@ async def login(request: Request, login_data: LoginRequest):
 
         # Authenticate user
         user = auth_manager.authenticate_user(
-            validated_data["username"],
-            validated_data["password"]
+            validated_data["username"], validated_data["password"]
         )
 
         if not user:
@@ -118,7 +117,7 @@ async def login(request: Request, login_data: LoginRequest):
                 "email": user.email,
                 "roles": [role.value for role in user.roles],
                 "require_password_change": user.require_password_change,
-            }
+            },
         )
 
     except AuthenticationError as e:
@@ -164,7 +163,7 @@ async def refresh_token(request: Request, refresh_data: RefreshTokenRequest):
                 "email": user.email,
                 "roles": [role.value for role in user.roles],
                 "require_password_change": user.require_password_change,
-            }
+            },
         )
 
     except AuthenticationError as e:
@@ -176,8 +175,7 @@ async def refresh_token(request: Request, refresh_data: RefreshTokenRequest):
 
 @router.post("/logout")
 async def logout(
-    request: Request,
-    credentials: HTTPAuthorizationCredentials = Depends(security_scheme)
+    request: Request, credentials: HTTPAuthorizationCredentials = Depends(security_scheme)
 ):
     """
     Logout user by revoking token.
@@ -215,7 +213,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 async def change_password(
     request: Request,
     password_data: ChangePasswordRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     Change user password.
@@ -224,15 +222,14 @@ async def change_password(
     user = auth_manager.authenticate_user(current_user.username, password_data.current_password)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Current password is incorrect"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect"
         )
 
     # Validate new password strength
     if len(password_data.new_password) < 8:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password must be at least 8 characters long"
+            detail="Password must be at least 8 characters long",
         )
 
     # Update password (this would be implemented in a real user store)
@@ -243,9 +240,7 @@ async def change_password(
 # User management endpoints (admin only)
 @router.post("/users", response_model=Dict)
 async def create_user(
-    request: Request,
-    user_data: CreateUserRequest,
-    admin_user: User = Depends(require_admin)
+    request: Request, user_data: CreateUserRequest, admin_user: User = Depends(require_admin)
 ):
     """
     Create new user (admin only).
@@ -255,7 +250,7 @@ async def create_user(
         if len(user_data.password) < 8:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must be at least 8 characters long"
+                detail="Password must be at least 8 characters long",
             )
 
         # Create user
@@ -263,7 +258,7 @@ async def create_user(
             username=user_data.username,
             email=user_data.email,
             password=user_data.password,
-            roles=user_data.roles
+            roles=user_data.roles,
         )
 
         return {
@@ -276,10 +271,7 @@ async def create_user(
         }
 
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/users")
@@ -290,15 +282,19 @@ async def list_users(admin_user: User = Depends(require_admin)):
     # This would fetch from a real user store
     users = []
     for user_data in auth_manager.users.values():
-        users.append({
-            "id": user_data["id"],
-            "username": user_data["username"],
-            "email": user_data["email"],
-            "roles": [role.value for role in user_data["roles"]],
-            "is_active": user_data["is_active"],
-            "created_at": user_data["created_at"].isoformat(),
-            "last_login": user_data.get("last_login").isoformat() if user_data.get("last_login") else None,
-        })
+        users.append(
+            {
+                "id": user_data["id"],
+                "username": user_data["username"],
+                "email": user_data["email"],
+                "roles": [role.value for role in user_data["roles"]],
+                "is_active": user_data["is_active"],
+                "created_at": user_data["created_at"].isoformat(),
+                "last_login": user_data.get("last_login").isoformat()
+                if user_data.get("last_login")
+                else None,
+            }
+        )
 
     return {"users": users, "total": len(users)}
 
@@ -310,10 +306,7 @@ async def get_user(user_id: str, admin_user: User = Depends(require_admin)):
     """
     user = auth_manager.get_user_by_id(user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     return {
         "id": user.id,
@@ -328,19 +321,14 @@ async def get_user(user_id: str, admin_user: User = Depends(require_admin)):
 
 @router.put("/users/{user_id}")
 async def update_user(
-    user_id: str,
-    update_data: UpdateUserRequest,
-    admin_user: User = Depends(require_admin)
+    user_id: str, update_data: UpdateUserRequest, admin_user: User = Depends(require_admin)
 ):
     """
     Update user (admin only).
     """
     user = auth_manager.get_user_by_id(user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Update roles
     if update_data.roles is not None:
@@ -354,25 +342,18 @@ async def update_user(
 
 
 @router.delete("/users/{user_id}")
-async def deactivate_user(
-    user_id: str,
-    admin_user: User = Depends(require_admin)
-):
+async def deactivate_user(user_id: str, admin_user: User = Depends(require_admin)):
     """
     Deactivate user (admin only).
     """
     user = auth_manager.get_user_by_id(user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Prevent self-deactivation
     if user_id == admin_user.id:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot deactivate your own account"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot deactivate your own account"
         )
 
     auth_manager.deactivate_user(user_id)

@@ -70,10 +70,7 @@ class ValidationSessionModel(Base, TimestampMixin):
 
     # Session status
     status = Column(
-        String(50),
-        nullable=False,
-        default="pending",
-        index=True
+        String(50), nullable=False, default="pending", index=True
     )  # pending, processing, completed, error
 
     # Technology contexts
@@ -179,7 +176,9 @@ class ValidationResultModel(Base, TimestampMixin):
     )
 
     # Result details
-    overall_status = Column(String(50), nullable=False, index=True)  # approved, approved_with_warnings, rejected, error
+    overall_status = Column(
+        String(50), nullable=False, index=True
+    )  # approved, approved_with_warnings, rejected, error
     fidelity_score = Column(Float, nullable=False, index=True)  # 0.0 to 1.0
     summary = Column(Text, nullable=False)
 
@@ -248,7 +247,9 @@ class DiscrepancyModel(Base, TimestampMixin):
     )
 
     # Discrepancy details
-    discrepancy_type = Column(String(100), nullable=False, index=True)  # missing_field, type_mismatch, etc.
+    discrepancy_type = Column(
+        String(100), nullable=False, index=True
+    )  # missing_field, type_mismatch, etc.
     severity = Column(Enum(SeverityLevel), nullable=False, index=True)
     description = Column(Text, nullable=False)
 

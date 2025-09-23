@@ -26,9 +26,7 @@ class TestInputProcessor:
         """Test processing code files."""
         processor = InputProcessor()
 
-        input_data = InputData(
-            type=InputType.CODE_FILES, files=[temp_files["source_file"]]
-        )
+        input_data = InputData(type=InputType.CODE_FILES, files=[temp_files["source_file"]])
 
         result = processor.process_input(input_data)
 
@@ -55,9 +53,7 @@ class TestInputProcessor:
             screenshot_path = f.name
 
         try:
-            input_data = InputData(
-                type=InputType.SCREENSHOTS, screenshots=[screenshot_path]
-            )
+            input_data = InputData(type=InputType.SCREENSHOTS, screenshots=[screenshot_path])
 
             result = processor.process_input(input_data)
 
@@ -111,9 +107,7 @@ class TestInputProcessor:
         """Test extracting metadata from code."""
         processor = InputProcessor()
 
-        metadata = processor.extract_code_metadata(
-            sample_python_code, TechnologyType.PYTHON_FLASK
-        )
+        metadata = processor.extract_code_metadata(sample_python_code, TechnologyType.PYTHON_FLASK)
 
         assert metadata is not None
         assert "functions" in metadata

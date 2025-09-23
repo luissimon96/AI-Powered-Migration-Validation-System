@@ -187,7 +187,7 @@ async def migrate_in_memory_sessions_to_db(
             # Check if session already exists in database
             existing = await session.execute(
                 text("SELECT id FROM validation_sessions WHERE request_id = :request_id"),
-                {"request_id": request_id}
+                {"request_id": request_id},
             )
             if existing.scalar():
                 logger.info(f"Session {request_id} already exists in database, skipping")
@@ -273,37 +273,45 @@ async def cleanup_database(
 
         # Delete old validation sessions (cascading deletes will handle related records)
         result = await session.execute(
-            text(f"""
+            text(
+                f"""
             DELETE FROM validation_sessions
             WHERE created_at < :cutoff_date
             AND status IN ({status_placeholders})
-            """),
-            {"cutoff_date": cutoff_date}
+            """
+            ),
+            {"cutoff_date": cutoff_date},
         )
         cleanup_counts["sessions"] = result.rowcount
 
         # Clean up orphaned records that might exist
         result = await session.execute(
-            text("""
+            text(
+                """
             DELETE FROM validation_results
             WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-            """)
+            """
+            )
         )
         cleanup_counts["orphaned_results"] = result.rowcount
 
         result = await session.execute(
-            text("""
+            text(
+                """
             DELETE FROM validation_discrepancies
             WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-            """)
+            """
+            )
         )
         cleanup_counts["orphaned_discrepancies"] = result.rowcount
 
         result = await session.execute(
-            text("""
+            text(
+                """
             DELETE FROM behavioral_test_results
             WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-            """)
+            """
+            )
         )
         cleanup_counts["orphaned_behavioral_tests"] = result.rowcount
 
@@ -349,23 +357,27 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
         # Recent activity (last 7 days)
         week_ago = datetime.utcnow() - timedelta(days=7)
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT COUNT(*) FROM validation_sessions
             WHERE created_at >= :week_ago
-            """),
-            {"week_ago": week_ago}
+            """
+            ),
+            {"week_ago": week_ago},
         )
         stats["sessions_last_week"] = result.scalar()
 
         # Success rate
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                 SUM(CASE WHEN status = 'error' THEN 1 ELSE 0 END) as failed
             FROM validation_sessions
-            """)
+            """
+            )
         )
         row = result.fetchone()
         if row.total > 0:
@@ -377,18 +389,21 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
 
         # Average fidelity score
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT AVG(fidelity_score) FROM validation_results
             WHERE created_at >= :week_ago
-            """),
-            {"week_ago": week_ago}
+            """
+            ),
+            {"week_ago": week_ago},
         )
         avg_fidelity = result.scalar()
         stats["avg_fidelity_score"] = round(avg_fidelity, 3) if avg_fidelity else 0
 
         # Most common technologies
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT
                 source_technology,
                 target_technology,
@@ -398,21 +413,19 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
             GROUP BY source_technology, target_technology
             ORDER BY count DESC
             LIMIT 5
-            """),
-            {"week_ago": week_ago}
+            """
+            ),
+            {"week_ago": week_ago},
         )
         stats["popular_technology_pairs"] = [
-            {
-                "source": row.source_technology,
-                "target": row.target_technology,
-                "count": row.count
-            }
+            {"source": row.source_technology, "target": row.target_technology, "count": row.count}
             for row in result.fetchall()
         ]
 
         # Most common discrepancy types
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT
                 discrepancy_type,
                 COUNT(*) as count
@@ -421,12 +434,12 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
             GROUP BY discrepancy_type
             ORDER BY count DESC
             LIMIT 5
-            """),
-            {"week_ago": week_ago}
+            """
+            ),
+            {"week_ago": week_ago},
         )
         stats["common_discrepancy_types"] = [
-            {"type": row.discrepancy_type, "count": row.count}
-            for row in result.fetchall()
+            {"type": row.discrepancy_type, "count": row.count} for row in result.fetchall()
         ]
 
         stats["generated_at"] = datetime.utcnow().isoformat()
@@ -472,11 +485,13 @@ async def optimize_database_performance(session: AsyncSession) -> Dict[str, Any]
 
             # Check for unused indexes (this is a simplified check)
             result = await session.execute(
-                text("""
+                text(
+                    """
                 SELECT schemaname, tablename, indexname, idx_tup_read, idx_tup_fetch
                 FROM pg_stat_user_indexes
                 WHERE idx_tup_read = 0 AND idx_tup_fetch = 0
-                """)
+                """
+                )
             )
             unused_indexes = result.fetchall()
             optimization_results["unused_indexes"] = len(unused_indexes)
@@ -522,20 +537,24 @@ async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
 
         # Check for orphaned records
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT COUNT(*) FROM validation_results
             WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-            """)
+            """
+            )
         )
         orphaned_results = result.scalar()
         if orphaned_results > 0:
             issues.append(f"{orphaned_results} orphaned validation results")
 
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT COUNT(*) FROM validation_discrepancies
             WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-            """)
+            """
+            )
         )
         orphaned_discrepancies = result.scalar()
         if orphaned_discrepancies > 0:
@@ -543,10 +562,12 @@ async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
 
         # Check for sessions without results that should have them
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT COUNT(*) FROM validation_sessions
             WHERE status = 'completed' AND id NOT IN (SELECT session_id FROM validation_results)
-            """)
+            """
+            )
         )
         completed_without_results = result.scalar()
         if completed_without_results > 0:
@@ -554,10 +575,12 @@ async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
 
         # Check for invalid fidelity scores
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT COUNT(*) FROM validation_results
             WHERE fidelity_score < 0 OR fidelity_score > 1
-            """)
+            """
+            )
         )
         invalid_scores = result.scalar()
         if invalid_scores > 0:
@@ -605,10 +628,12 @@ async def export_session_data(
         from sqlalchemy.orm import selectinload
 
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT * FROM validation_sessions WHERE request_id = :request_id
-            """),
-            {"request_id": request_id}
+            """
+            ),
+            {"request_id": request_id},
         )
         session_row = result.fetchone()
 
@@ -622,11 +647,13 @@ async def export_session_data(
 
         # Get results
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT * FROM validation_results WHERE session_id = :session_id
             ORDER BY created_at DESC
-            """),
-            {"session_id": session_data["id"]}
+            """
+            ),
+            {"session_id": session_data["id"]},
         )
         results = []
         for row in result.fetchall():
@@ -644,11 +671,13 @@ async def export_session_data(
 
         # Get discrepancies
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT * FROM validation_discrepancies WHERE session_id = :session_id
             ORDER BY severity DESC, created_at DESC
-            """),
-            {"session_id": session_data["id"]}
+            """
+            ),
+            {"session_id": session_data["id"]},
         )
         discrepancies = []
         for row in result.fetchall():
@@ -663,11 +692,13 @@ async def export_session_data(
 
         # Get behavioral test results if any
         result = await session.execute(
-            text("""
+            text(
+                """
             SELECT * FROM behavioral_test_results WHERE session_id = :session_id
             ORDER BY created_at
-            """),
-            {"session_id": session_data["id"]}
+            """
+            ),
+            {"session_id": session_data["id"]},
         )
         behavioral_tests = []
         for row in result.fetchall():

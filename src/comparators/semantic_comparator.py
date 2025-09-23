@@ -185,9 +185,7 @@ class SemanticComparator:
             source_elem = source_map[key]
             target_elem = target_map[key]
 
-            elem_discrepancies = self._compare_ui_element_attributes(
-                source_elem, target_elem
-            )
+            elem_discrepancies = self._compare_ui_element_attributes(source_elem, target_elem)
             discrepancies.extend(elem_discrepancies)
 
         return discrepancies
@@ -246,9 +244,7 @@ class SemanticComparator:
 
         return len(common_chars) / len(total_chars) if total_chars else 0.0
 
-    def _is_likely_rename(
-        self, target_elem: UIElement, source_elements: List[UIElement]
-    ) -> bool:
+    def _is_likely_rename(self, target_elem: UIElement, source_elements: List[UIElement]) -> bool:
         """Check if target element is likely a rename of a source element."""
         return self._find_fuzzy_ui_match(target_elem, source_elements) is not None
 
@@ -368,8 +364,7 @@ class SemanticComparator:
         for target_field in target_fields:
             if (
                 source_field.type == target_field.type
-                and self._field_name_similarity(source_field.name, target_field.name)
-                > 0.7
+                and self._field_name_similarity(source_field.name, target_field.name) > 0.7
             ):
                 return target_field
         return None
@@ -407,9 +402,7 @@ class SemanticComparator:
         # Find missing functions
         for name, source_func in source_map.items():
             if name not in target_map:
-                fuzzy_match = self._find_fuzzy_function_match(
-                    source_func, target_functions
-                )
+                fuzzy_match = self._find_fuzzy_function_match(source_func, target_functions)
                 if fuzzy_match:
                     discrepancy = ValidationDiscrepancy(
                         type="function_renamed",
@@ -435,9 +428,7 @@ class SemanticComparator:
             source_func = source_map[name]
             target_func = target_map[name]
 
-            func_discrepancies = self._compare_function_details(
-                source_func, target_func
-            )
+            func_discrepancies = self._compare_function_details(source_func, target_func)
             discrepancies.extend(func_discrepancies)
 
         return discrepancies
@@ -450,9 +441,7 @@ class SemanticComparator:
         for target_func in target_functions:
             if (
                 self._function_name_similarity(source_func.name, target_func.name) > 0.7
-                and self._parameter_similarity(
-                    source_func.parameters, target_func.parameters
-                )
+                and self._parameter_similarity(source_func.parameters, target_func.parameters)
                 > 0.8
             ):
                 return target_func
@@ -596,16 +585,12 @@ class SemanticComparator:
             print(f"LLM enhancement failed: {e}")
             return initial_discrepancies
 
-    def _serialize_representation(
-        self, representation: AbstractRepresentation
-    ) -> Dict[str, Any]:
+    def _serialize_representation(self, representation: AbstractRepresentation) -> Dict[str, Any]:
         """Serialize representation for LLM analysis."""
         return {
             "screen_name": representation.screen_name,
             "ui_elements": [asdict(elem) for elem in representation.ui_elements],
-            "backend_functions": [
-                asdict(func) for func in representation.backend_functions
-            ],
+            "backend_functions": [asdict(func) for func in representation.backend_functions],
             "data_fields": [asdict(field) for field in representation.data_fields],
             "api_endpoints": representation.api_endpoints,
             "metadata": representation.metadata,

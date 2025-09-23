@@ -15,9 +15,7 @@ from src.core.models import ValidationScope
 class TestMigrationValidatorIntegration:
     """Integration tests for migration validator."""
 
-    async def test_complete_validation_pipeline(
-        self, sample_validation_request, mock_llm_service
-    ):
+    async def test_complete_validation_pipeline(self, sample_validation_request, mock_llm_service):
         """Test complete validation pipeline."""
         validator = MigrationValidator(llm_client=mock_llm_service)
 
@@ -78,9 +76,7 @@ class TestMigrationValidatorConfiguration:
     """Test migration validator configuration."""
 
     @patch("src.core.migration_validator.get_validation_config")
-    def test_validator_initialization_with_config(
-        self, mock_get_config, mock_llm_service
-    ):
+    def test_validator_initialization_with_config(self, mock_get_config, mock_llm_service):
         """Test validator initialization with configuration."""
         from src.core.config import LLMProviderConfig, ValidationConfig
 
@@ -101,9 +97,7 @@ class TestMigrationValidatorConfiguration:
 
     def test_validator_initialization_without_llm(self):
         """Test validator initialization without LLM service."""
-        with patch(
-            "src.core.migration_validator.get_validation_config"
-        ) as mock_get_config:
+        with patch("src.core.migration_validator.get_validation_config") as mock_get_config:
             mock_config = ValidationConfig.__new__(ValidationConfig)
             mock_config.get_default_llm_config = lambda: None
             mock_get_config.return_value = mock_config

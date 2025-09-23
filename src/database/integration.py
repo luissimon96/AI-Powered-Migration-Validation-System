@@ -73,16 +73,12 @@ class DatabaseIntegration:
 
                 # Add processing logs
                 for log_entry in validation_session.processing_log:
-                    await service.add_session_log(
-                        validation_session.request.request_id,
-                        log_entry
-                    )
+                    await service.add_session_log(validation_session.request.request_id, log_entry)
 
                 # Save result if available
                 if validation_session.result:
                     await service.save_validation_result(
-                        validation_session.request.request_id,
-                        validation_session.result
+                        validation_session.request.request_id, validation_session.result
                     )
 
                 return True
@@ -171,10 +167,7 @@ class DatabaseIntegration:
             return False
 
     async def list_sessions(
-        self,
-        limit: int = 50,
-        offset: int = 0,
-        **filters
+        self, limit: int = 50, offset: int = 0, **filters
     ) -> tuple[List[Dict[str, Any]], int]:
         """
         List validation sessions from database.
@@ -194,9 +187,7 @@ class DatabaseIntegration:
             async for session in get_db_session():
                 service = ValidationDatabaseService(session)
                 return await service.list_validation_sessions(
-                    limit=limit,
-                    offset=offset,
-                    **filters
+                    limit=limit, offset=offset, **filters
                 )
 
         except Exception as e:
@@ -359,10 +350,7 @@ class HybridSessionManager:
             logger.warning(f"Failed to add log to session {request_id} in database: {e}")
 
     async def list_sessions(
-        self,
-        include_memory: bool = True,
-        include_database: bool = True,
-        **filters
+        self, include_memory: bool = True, include_database: bool = True, **filters
     ) -> List[Dict[str, Any]]:
         """
         List sessions from both memory and database sources.
@@ -472,7 +460,9 @@ async def database_lifespan(app: FastAPI):
         if db_available:
             logger.info("Database initialization completed successfully")
         else:
-            logger.warning("Database initialization completed but database may not be fully available")
+            logger.warning(
+                "Database initialization completed but database may not be fully available"
+            )
 
         yield
 
@@ -494,7 +484,9 @@ async def database_lifespan(app: FastAPI):
 
 
 # FastAPI dependency for database service
-async def get_db_service(session: AsyncSession = Depends(get_db_session)) -> ValidationDatabaseService:
+async def get_db_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> ValidationDatabaseService:
     """
     FastAPI dependency for getting database service.
 

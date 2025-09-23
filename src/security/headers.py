@@ -39,16 +39,12 @@ class SecurityHeaders:
         headers = {
             # Prevent MIME type sniffing
             "X-Content-Type-Options": "nosniff",
-
             # Prevent clickjacking
             "X-Frame-Options": "DENY",
-
             # XSS protection (legacy but still used)
             "X-XSS-Protection": "1; mode=block",
-
             # Referrer policy
             "Referrer-Policy": "strict-origin-when-cross-origin",
-
             # Prevent information disclosure
             "X-Powered-By": "",  # Remove this header
         }
@@ -166,11 +162,13 @@ class SecurityHeaders:
         headers["Permissions-Policy"] = self.get_permissions_policy()
 
         # Additional security headers for APIs
-        headers.update({
-            "Cache-Control": "no-store, no-cache, must-revalidate, private",
-            "Pragma": "no-cache",
-            "Expires": "0",
-        })
+        headers.update(
+            {
+                "Cache-Control": "no-store, no-cache, must-revalidate, private",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            }
+        )
 
         # Add custom headers
         headers.update(self.additional_headers)
@@ -220,7 +218,9 @@ class SecurityHeaders:
             ]
 
         cors_headers = {
-            "Access-Control-Allow-Origin": ", ".join(allow_origins) if len(allow_origins) > 1 else allow_origins[0],
+            "Access-Control-Allow-Origin": ", ".join(allow_origins)
+            if len(allow_origins) > 1
+            else allow_origins[0],
             "Access-Control-Allow-Methods": ", ".join(allow_methods),
             "Access-Control-Allow-Headers": ", ".join(allow_headers),
             "Access-Control-Expose-Headers": ", ".join(expose_headers),
@@ -244,20 +244,16 @@ class APISecurityHeaders(SecurityHeaders):
         return {
             # API versioning
             "API-Version": "1.0.0",
-
             # Rate limiting info (to be filled by rate limiter)
             "X-RateLimit-Limit": "",
             "X-RateLimit-Remaining": "",
             "X-RateLimit-Reset": "",
-
             # Security info
             "X-Content-Security-Policy": "API endpoint - no client-side execution",
-
             # Prevent caching of sensitive data
             "Cache-Control": "no-store, no-cache, must-revalidate, private, max-age=0",
             "Pragma": "no-cache",
             "Expires": "-1",
-
             # Additional API security
             "X-Download-Options": "noopen",
             "X-Permitted-Cross-Domain-Policies": "none",

@@ -68,6 +68,7 @@ class TestJWTAuthenticator:
 
         # Wait for expiration and test
         import time
+
         time.sleep(2)
 
         with pytest.raises(AuthenticationError, match="Token has expired"):
@@ -113,7 +114,7 @@ class TestAuthManager:
             username="newuser",
             email="newuser@example.com",
             password="secure_password_123",
-            roles=[UserRole.VIEWER]
+            roles=[UserRole.VIEWER],
         )
 
         assert user.username == "newuser"
@@ -128,7 +129,7 @@ class TestAuthManager:
             username="unique",
             email="unique@example.com",
             password="password123",
-            roles=[UserRole.VIEWER]
+            roles=[UserRole.VIEWER],
         )
 
         # Try to create duplicate username
@@ -137,7 +138,7 @@ class TestAuthManager:
                 username="unique",
                 email="different@example.com",
                 password="password123",
-                roles=[UserRole.VIEWER]
+                roles=[UserRole.VIEWER],
             )
 
         # Try to create duplicate email
@@ -146,7 +147,7 @@ class TestAuthManager:
                 username="different",
                 email="unique@example.com",
                 password="password123",
-                roles=[UserRole.VIEWER]
+                roles=[UserRole.VIEWER],
             )
 
     def test_user_authentication(self):
@@ -158,7 +159,7 @@ class TestAuthManager:
             username=username,
             email="authtest@example.com",
             password=password,
-            roles=[UserRole.VALIDATOR]
+            roles=[UserRole.VALIDATOR],
         )
 
         # Test successful authentication
@@ -183,7 +184,7 @@ class TestAuthManager:
             username=username,
             email="locktest@example.com",
             password=password,
-            roles=[UserRole.VALIDATOR]
+            roles=[UserRole.VALIDATOR],
         )
 
         # Attempt failed logins
@@ -201,7 +202,7 @@ class TestAuthManager:
             username="roletest",
             email="roletest@example.com",
             password="password123",
-            roles=[UserRole.VIEWER]
+            roles=[UserRole.VIEWER],
         )
 
         # Update roles
@@ -218,7 +219,7 @@ class TestAuthManager:
             username="deactivatetest",
             email="deactivate@example.com",
             password="password123",
-            roles=[UserRole.VIEWER]
+            roles=[UserRole.VIEWER],
         )
 
         # Deactivate user
@@ -271,7 +272,7 @@ class TestAuthenticationSecurity:
             username=username,
             email="timing@example.com",
             password=password,
-            roles=[UserRole.VIEWER]
+            roles=[UserRole.VIEWER],
         )
 
         import time
@@ -339,14 +340,14 @@ class TestAuthenticationAPI:
     def client(self):
         """Create test client."""
         from src.api.secure_routes import app
+
         return TestClient(app)
 
     def test_login_endpoint(self, client):
         """Test login endpoint security."""
         # Test with invalid credentials
         response = client.post(
-            "/api/auth/login",
-            json={"username": "invalid", "password": "wrong"}
+            "/api/auth/login", json={"username": "invalid", "password": "wrong"}
         )
         assert response.status_code == 401
 
@@ -359,8 +360,7 @@ class TestAuthenticationAPI:
         # Make multiple rapid requests
         for _ in range(10):
             response = client.post(
-                "/api/auth/login",
-                json={"username": "test", "password": "wrong"}
+                "/api/auth/login", json={"username": "test", "password": "wrong"}
             )
 
         # Should eventually get rate limited
@@ -369,10 +369,7 @@ class TestAuthenticationAPI:
 
     def test_security_headers_on_auth(self, client):
         """Test security headers on authentication responses."""
-        response = client.post(
-            "/api/auth/login",
-            json={"username": "test", "password": "wrong"}
-        )
+        response = client.post("/api/auth/login", json={"username": "test", "password": "wrong"})
 
         # Check for security headers
         assert "X-Content-Type-Options" in response.headers

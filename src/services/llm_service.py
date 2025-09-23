@@ -128,17 +128,13 @@ class LLMService:
 
                 elif config.provider == LLMProvider.GOOGLE:
                     if genai is None:
-                        raise LLMProviderNotAvailable(
-                            "Google GenAI package not installed"
-                        )
+                        raise LLMProviderNotAvailable("Google GenAI package not installed")
                     api_key = config.api_key or os.getenv("GOOGLE_API_KEY")
                     if not api_key:
                         raise LLMProviderNotAvailable("Google API key not found")
                     genai.configure(api_key=api_key)
                     # Note: Google's client is model-specific, so we store the model object
-                    self._clients[config.provider] = genai.GenerativeModel(
-                        config.model
-                    )
+                    self._clients[config.provider] = genai.GenerativeModel(config.model)
 
                 self.logger.info(
                     "LLM client initialized successfully",
@@ -189,21 +185,15 @@ class LLMService:
                     model=config.model,
                 )
                 if config.provider == LLMProvider.OPENAI:
-                    return await self._openai_generate(
-                        config, messages, system_prompt, **kwargs
-                    )
+                    return await self._openai_generate(config, messages, system_prompt, **kwargs)
                 elif config.provider == LLMProvider.ANTHROPIC:
                     return await self._anthropic_generate(
                         config, messages, system_prompt, **kwargs
                     )
                 elif config.provider == LLMProvider.GOOGLE:
-                    return await self._google_generate(
-                        config, messages, system_prompt, **kwargs
-                    )
+                    return await self._google_generate(config, messages, system_prompt, **kwargs)
                 else:
-                    self.logger.warning(
-                        f"Unsupported provider configured: {config.provider}"
-                    )
+                    self.logger.warning(f"Unsupported provider configured: {config.provider}")
                     continue
 
             except Exception as e:
@@ -237,11 +227,7 @@ class LLMService:
             messages=openai_messages,
             max_tokens=kwargs.get("max_tokens", config.max_tokens),
             temperature=kwargs.get("temperature", config.temperature),
-            **{
-                k: v
-                for k, v in kwargs.items()
-                if k not in ["max_tokens", "temperature"]
-            },
+            **{k: v for k, v in kwargs.items() if k not in ["max_tokens", "temperature"]},
         )
 
         return LLMResponse(
@@ -261,9 +247,7 @@ class LLMService:
     ) -> LLMResponse:
         """Generate response using Anthropic Claude."""
         client = self._clients[LLMProvider.ANTHROPIC]
-        anthropic_messages = [
-            {"role": msg["role"], "content": msg["content"]} for msg in messages
-        ]
+        anthropic_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
 
         response = await client.messages.create(
             model=config.model,
@@ -376,9 +360,7 @@ Provide detailed analysis in JSON format.""",
 
             return json.loads(response.content)
         except json.JSONDecodeError:
-            self.logger.warning(
-                "Failed to parse JSON response", content=response.content
-            )
+            self.logger.warning("Failed to parse JSON response", content=response.content)
             return {
                 "similarity_score": 0.5,
                 "functionally_equivalent": False,
@@ -502,9 +484,7 @@ Analyze business logic preservation and identify critical discrepancies.""",
                 "critical_discrepancies": ["Analysis failed"],
                 "validation_gaps": ["Manual review required"],
                 "risk_assessment": "high",
-                "recommendations": [
-                    "Comprehensive manual business logic review required"
-                ],
+                "recommendations": ["Comprehensive manual business logic review required"],
             }
 
     async def analyze_ui_screenshot(
@@ -610,6 +590,7 @@ Analyze business logic preservation and identify critical discrepancies.""",
                     raise LLMServiceError("Received empty content from provider")
 
                 import json
+
                 return json.loads(content)
 
             except json.JSONDecodeError:
@@ -662,9 +643,7 @@ def create_llm_service(
     model_names = [m.strip() for m in models.split(",")] if models else []
 
     if model_names and len(provider_names) != len(model_names):
-        raise LLMServiceError(
-            "The number of models must match the number of providers."
-        )
+        raise LLMServiceError("The number of models must match the number of providers.")
 
     configs: List[LLMConfig] = []
     for i, provider_name in enumerate(provider_names):

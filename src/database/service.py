@@ -272,7 +272,9 @@ class ValidationDatabaseService:
                     target_tech = TechnologyType(target_technology)
                     technology_pair = (source_tech, target_tech)
                 except ValueError:
-                    logger.warning(f"Invalid technology types: {source_technology}, {target_technology}")
+                    logger.warning(
+                        f"Invalid technology types: {source_technology}, {target_technology}"
+                    )
 
             sessions, total_count = await self.session_repo.list_sessions(
                 limit=limit,

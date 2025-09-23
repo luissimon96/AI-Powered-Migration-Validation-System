@@ -64,7 +64,7 @@ class ValidationSessionRepository(BaseRepository):
         source_technology: TechnologyType,
         target_technology: TechnologyType,
         validation_scope: ValidationScope,
-        **kwargs
+        **kwargs,
     ) -> ValidationSessionModel:
         """
         Create new validation session.
@@ -85,7 +85,7 @@ class ValidationSessionRepository(BaseRepository):
             "target_technology": target_technology,
             "validation_scope": validation_scope,
             "status": "pending",
-            **kwargs
+            **kwargs,
         }
 
         session_model = ValidationSessionModel(**session_data)
@@ -222,8 +222,7 @@ class ValidationSessionRepository(BaseRepository):
 
         # Get sessions with pagination
         sessions_result = await self.session.execute(
-            query
-            .options(
+            query.options(
                 selectinload(ValidationSessionModel.results),
                 selectinload(ValidationSessionModel.discrepancies),
             )
@@ -279,8 +278,7 @@ class ValidationSessionRepository(BaseRepository):
 
         # Only delete completed or failed sessions
         result = await self.session.execute(
-            select(ValidationSessionModel)
-            .where(
+            select(ValidationSessionModel).where(
                 and_(
                     ValidationSessionModel.created_at < cutoff_date,
                     ValidationSessionModel.status.in_(["completed", "error"]),
@@ -305,7 +303,7 @@ class ValidationResultRepository(BaseRepository):
         fidelity_score: float,
         summary: str,
         result_type: str = "static",
-        **kwargs
+        **kwargs,
     ) -> ValidationResultModel:
         """
         Create validation result.
@@ -327,7 +325,7 @@ class ValidationResultRepository(BaseRepository):
             "fidelity_score": fidelity_score,
             "summary": summary,
             "result_type": result_type,
-            **kwargs
+            **kwargs,
         }
 
         result_model = ValidationResultModel(**result_data)
@@ -437,7 +435,7 @@ class DiscrepancyRepository(BaseRepository):
         severity: SeverityLevel,
         description: str,
         result_id: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> DiscrepancyModel:
         """
         Create validation discrepancy.
@@ -459,7 +457,7 @@ class DiscrepancyRepository(BaseRepository):
             "discrepancy_type": discrepancy_type,
             "severity": severity,
             "description": description,
-            **kwargs
+            **kwargs,
         }
 
         discrepancy_model = DiscrepancyModel(**discrepancy_data)
@@ -527,8 +525,7 @@ class DiscrepancyRepository(BaseRepository):
             query = query.where(DiscrepancyModel.severity == severity)
 
         query = query.order_by(
-            DiscrepancyModel.severity.desc(),
-            DiscrepancyModel.created_at.desc()
+            DiscrepancyModel.severity.desc(), DiscrepancyModel.created_at.desc()
         )
 
         result = await self.session.execute(query)
@@ -621,7 +618,7 @@ class BehavioralTestRepository(BaseRepository):
         source_url: str,
         target_url: str,
         execution_status: str,
-        **kwargs
+        **kwargs,
     ) -> BehavioralTestResultModel:
         """
         Create behavioral test result.
@@ -643,7 +640,7 @@ class BehavioralTestRepository(BaseRepository):
             "source_url": source_url,
             "target_url": target_url,
             "execution_status": execution_status,
-            **kwargs
+            **kwargs,
         }
 
         test_model = BehavioralTestResultModel(**test_data)
@@ -691,8 +688,7 @@ class MetricsRepository(BaseRepository):
         """
         # Try to find existing metrics
         result = await self.session.execute(
-            select(ValidationMetricsModel)
-            .where(
+            select(ValidationMetricsModel).where(
                 and_(
                     ValidationMetricsModel.metric_date == metric_date,
                     ValidationMetricsModel.metric_period == metric_period,
@@ -710,10 +706,12 @@ class MetricsRepository(BaseRepository):
             return existing_metrics
         else:
             # Create new metrics
-            metrics_data.update({
-                "metric_date": metric_date,
-                "metric_period": metric_period,
-            })
+            metrics_data.update(
+                {
+                    "metric_date": metric_date,
+                    "metric_period": metric_period,
+                }
+            )
             metrics_model = ValidationMetricsModel(**metrics_data)
             self.session.add(metrics_model)
             await self.session.flush()
@@ -789,7 +787,9 @@ class MetricsRepository(BaseRepository):
             results.extend(session.results)
 
         approved_count = len([r for r in results if r.overall_status == "approved"])
-        approved_with_warnings_count = len([r for r in results if r.overall_status == "approved_with_warnings"])
+        approved_with_warnings_count = len(
+            [r for r in results if r.overall_status == "approved_with_warnings"]
+        )
         rejected_count = len([r for r in results if r.overall_status == "rejected"])
 
         execution_times = [r.execution_time for r in results if r.execution_time]
@@ -807,9 +807,15 @@ class MetricsRepository(BaseRepository):
             all_discrepancies.extend(session.discrepancies)
 
         total_discrepancies = len(all_discrepancies)
-        critical_discrepancies = len([d for d in all_discrepancies if d.severity == SeverityLevel.CRITICAL])
-        warning_discrepancies = len([d for d in all_discrepancies if d.severity == SeverityLevel.WARNING])
-        info_discrepancies = len([d for d in all_discrepancies if d.severity == SeverityLevel.INFO])
+        critical_discrepancies = len(
+            [d for d in all_discrepancies if d.severity == SeverityLevel.CRITICAL]
+        )
+        warning_discrepancies = len(
+            [d for d in all_discrepancies if d.severity == SeverityLevel.WARNING]
+        )
+        info_discrepancies = len(
+            [d for d in all_discrepancies if d.severity == SeverityLevel.INFO]
+        )
 
         return {
             "total_sessions": total_sessions,

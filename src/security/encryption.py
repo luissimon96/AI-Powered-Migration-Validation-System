@@ -22,6 +22,7 @@ from ..core.config import get_settings
 
 class EncryptionError(Exception):
     """Encryption-related errors."""
+
     pass
 
 
@@ -37,14 +38,16 @@ class KeyManager:
         """Get or generate master encryption key."""
         if self._master_key is None:
             # In production, load from secure key store (AWS KMS, Azure Key Vault, etc.)
-            master_key_env = os.getenv('MASTER_ENCRYPTION_KEY')
+            master_key_env = os.getenv("MASTER_ENCRYPTION_KEY")
             if master_key_env:
                 self._master_key = base64.b64decode(master_key_env)
             else:
                 # Generate new master key (for development only)
                 self._master_key = secrets.token_bytes(32)
-                if self.settings.environment == 'development':
-                    print(f"Generated master key (save this!): {base64.b64encode(self._master_key).decode()}")
+                if self.settings.environment == "development":
+                    print(
+                        f"Generated master key (save this!): {base64.b64encode(self._master_key).decode()}"
+                    )
 
         return self._master_key
 
@@ -89,8 +92,8 @@ class SymmetricEncryption:
         """Encrypt string data."""
         try:
             fernet = self.key_manager.generate_fernet_key(context)
-            encrypted_bytes = fernet.encrypt(data.encode('utf-8'))
-            return base64.b64encode(encrypted_bytes).decode('utf-8')
+            encrypted_bytes = fernet.encrypt(data.encode("utf-8"))
+            return base64.b64encode(encrypted_bytes).decode("utf-8")
         except Exception as e:
             raise EncryptionError(f"Encryption failed: {str(e)}")
 
@@ -98,23 +101,23 @@ class SymmetricEncryption:
         """Decrypt string data."""
         try:
             fernet = self.key_manager.generate_fernet_key(context)
-            encrypted_bytes = base64.b64decode(encrypted_data.encode('utf-8'))
+            encrypted_bytes = base64.b64decode(encrypted_data.encode("utf-8"))
             decrypted_bytes = fernet.decrypt(encrypted_bytes)
-            return decrypted_bytes.decode('utf-8')
+            return decrypted_bytes.decode("utf-8")
         except Exception as e:
             raise EncryptionError(f"Decryption failed: {str(e)}")
 
     def encrypt_file(self, file_path: str, context: str = "files") -> str:
         """Encrypt file and return path to encrypted file."""
         try:
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 data = f.read()
 
             fernet = self.key_manager.generate_fernet_key(context)
             encrypted_data = fernet.encrypt(data)
 
             encrypted_path = f"{file_path}.encrypted"
-            with open(encrypted_path, 'wb') as f:
+            with open(encrypted_path, "wb") as f:
                 f.write(encrypted_data)
 
             return encrypted_path
@@ -124,14 +127,14 @@ class SymmetricEncryption:
     def decrypt_file(self, encrypted_file_path: str, context: str = "files") -> str:
         """Decrypt file and return path to decrypted file."""
         try:
-            with open(encrypted_file_path, 'rb') as f:
+            with open(encrypted_file_path, "rb") as f:
                 encrypted_data = f.read()
 
             fernet = self.key_manager.generate_fernet_key(context)
             decrypted_data = fernet.decrypt(encrypted_data)
 
-            decrypted_path = encrypted_file_path.replace('.encrypted', '.decrypted')
-            with open(decrypted_path, 'wb') as f:
+            decrypted_path = encrypted_file_path.replace(".encrypted", ".decrypted")
+            with open(decrypted_path, "wb") as f:
                 f.write(decrypted_data)
 
             return decrypted_path
@@ -156,13 +159,13 @@ class AsymmetricEncryption:
         private_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
 
         public_key = private_key.public_key()
         public_pem = public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
 
         self._private_key = private_key
@@ -176,38 +179,35 @@ class AsymmetricEncryption:
             public_key = serialization.load_pem_public_key(public_key_pem)
 
             encrypted = public_key.encrypt(
-                data.encode('utf-8'),
+                data.encode("utf-8"),
                 padding.OAEP(
                     mgf=padding.MGF1(algorithm=hashes.SHA256()),
                     algorithm=hashes.SHA256(),
-                    label=None
-                )
+                    label=None,
+                ),
             )
 
-            return base64.b64encode(encrypted).decode('utf-8')
+            return base64.b64encode(encrypted).decode("utf-8")
         except Exception as e:
             raise EncryptionError(f"Public key encryption failed: {str(e)}")
 
     def decrypt_with_private_key(self, encrypted_data: str, private_key_pem: bytes) -> str:
         """Decrypt data with private key."""
         try:
-            private_key = serialization.load_pem_private_key(
-                private_key_pem,
-                password=None
-            )
+            private_key = serialization.load_pem_private_key(private_key_pem, password=None)
 
-            encrypted_bytes = base64.b64decode(encrypted_data.encode('utf-8'))
+            encrypted_bytes = base64.b64decode(encrypted_data.encode("utf-8"))
 
             decrypted = private_key.decrypt(
                 encrypted_bytes,
                 padding.OAEP(
                     mgf=padding.MGF1(algorithm=hashes.SHA256()),
                     algorithm=hashes.SHA256(),
-                    label=None
-                )
+                    label=None,
+                ),
             )
 
-            return decrypted.decode('utf-8')
+            return decrypted.decode("utf-8")
         except Exception as e:
             raise EncryptionError(f"Private key decryption failed: {str(e)}")
 
@@ -244,7 +244,9 @@ class SecureStorage:
         """List stored keys (without values)."""
         if context:
             prefix = f"{context}:"
-            return [key[len(prefix):] for key in self._secure_store.keys() if key.startswith(prefix)]
+            return [
+                key[len(prefix) :] for key in self._secure_store.keys() if key.startswith(prefix)
+            ]
         return list(self._secure_store.keys())
 
     def delete_secret(self, key: str, context: str = "secrets"):
@@ -274,7 +276,10 @@ class EncryptionManager:
         if settings.openai_api_key and settings.openai_api_key != "your-openai-api-key-here":
             self.secure_storage.store_api_key("openai", settings.openai_api_key)
 
-        if settings.anthropic_api_key and settings.anthropic_api_key != "your-anthropic-api-key-here":
+        if (
+            settings.anthropic_api_key
+            and settings.anthropic_api_key != "your-anthropic-api-key-here"
+        ):
             self.secure_storage.store_api_key("anthropic", settings.anthropic_api_key)
 
         if settings.google_api_key and settings.google_api_key != "your-google-api-key-here":
@@ -317,18 +322,15 @@ class EncryptionManager:
             iterations=100000,
         )
 
-        key = kdf.derive(password.encode('utf-8'))
+        key = kdf.derive(password.encode("utf-8"))
 
-        return (
-            base64.b64encode(key).decode('utf-8'),
-            base64.b64encode(salt).decode('utf-8')
-        )
+        return (base64.b64encode(key).decode("utf-8"), base64.b64encode(salt).decode("utf-8"))
 
     def verify_password_secure(self, password: str, hashed: str, salt: str) -> bool:
         """Verify password against secure hash."""
         try:
-            salt_bytes = base64.b64decode(salt.encode('utf-8'))
-            expected_hash = base64.b64decode(hashed.encode('utf-8'))
+            salt_bytes = base64.b64decode(salt.encode("utf-8"))
+            expected_hash = base64.b64decode(hashed.encode("utf-8"))
 
             kdf = PBKDF2HMAC(
                 algorithm=hashes.SHA256(),
@@ -337,7 +339,7 @@ class EncryptionManager:
                 iterations=100000,
             )
 
-            kdf.verify(password.encode('utf-8'), expected_hash)
+            kdf.verify(password.encode("utf-8"), expected_hash)
             return True
         except Exception:
             return False
@@ -348,7 +350,7 @@ class EncryptionManager:
 
     def secure_compare(self, a: str, b: str) -> bool:
         """Constant-time string comparison to prevent timing attacks."""
-        return secrets.compare_digest(a.encode('utf-8'), b.encode('utf-8'))
+        return secrets.compare_digest(a.encode("utf-8"), b.encode("utf-8"))
 
 
 # Global encryption manager instance

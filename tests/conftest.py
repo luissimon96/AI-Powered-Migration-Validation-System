@@ -21,12 +21,14 @@ import logging
 # Third-party imports for advanced testing
 try:
     from hypothesis import strategies as st
+
     HYPOTHESIS_AVAILABLE = True
 except ImportError:
     HYPOTHESIS_AVAILABLE = False
 
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
@@ -53,10 +55,13 @@ from src.core.input_processor import InputProcessor
 # Test Configuration and Setup
 # ═══════════════════════════════════════════════════════════════
 
+
 def pytest_configure(config):
     """Configure pytest with custom markers and settings."""
     # Register custom markers
-    config.addinivalue_line("markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')")
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    )
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
     config.addinivalue_line("markers", "behavioral: marks tests as behavioral validation tests")
@@ -100,29 +105,25 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_addoption(parser):
     """Add custom command line options."""
-    parser.addoption(
-        "--fast",
-        action="store_true",
-        default=False,
-        help="Skip slow tests"
-    )
+    parser.addoption("--fast", action="store_true", default=False, help="Skip slow tests")
     parser.addoption(
         "--hypothesis-profile",
         action="store",
         default="default",
-        help="Hypothesis testing profile (default, dev, ci)"
+        help="Hypothesis testing profile (default, dev, ci)",
     )
     parser.addoption(
         "--performance-baseline",
         action="store",
         default=None,
-        help="Performance baseline file for regression testing"
+        help="Performance baseline file for regression testing",
     )
 
 
 # ═══════════════════════════════════════════════════════════════
 # Core Fixtures
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -145,7 +146,7 @@ def test_config():
         "timeout_default": 30,
         "timeout_slow": 300,
         "max_file_size_mb": 10,
-        "max_concurrent_tests": 10
+        "max_concurrent_tests": 10,
     }
 
 
@@ -159,6 +160,7 @@ def temp_directory(test_config):
 
     # Cleanup
     import shutil
+
     if temp_dir.exists():
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -166,6 +168,7 @@ def temp_directory(test_config):
 # ═══════════════════════════════════════════════════════════════
 # Mock Service Fixtures
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.fixture
 def mock_llm_service():
@@ -191,7 +194,7 @@ def mock_llm_service():
         "business_logic_preserved": True,
         "recommendations": ["Consider standardizing naming conventions"],
         "execution_time_ms": 150,
-        "token_usage": {"total": 150, "prompt": 100, "completion": 50}
+        "token_usage": {"total": 150, "prompt": 100, "completion": 50},
     }
 
     mock_service.compare_ui_elements.return_value = {
@@ -215,8 +218,8 @@ def mock_llm_service():
         "detailed_analysis": {
             "input_validation": "preserved",
             "business_rules": "equivalent",
-            "error_handling": "improved"
-        }
+            "error_handling": "improved",
+        },
     }
 
     mock_service.get_provider_info.return_value = {
@@ -225,18 +228,17 @@ def mock_llm_service():
         "max_tokens": 4000,
         "temperature": 0.1,
         "timeout": 60.0,
-        "rate_limit": {"requests_per_minute": 60, "tokens_per_minute": 60000}
+        "rate_limit": {"requests_per_minute": 60, "tokens_per_minute": 60000},
     }
 
     # Mock error scenarios for edge case testing
     mock_service.simulate_rate_limit = AsyncMock(side_effect=Exception("Rate limit exceeded"))
     mock_service.simulate_timeout = AsyncMock(side_effect=asyncio.TimeoutError("Request timeout"))
-    mock_service.simulate_invalid_response = AsyncMock(return_value=LLMResponse(
-        content="Invalid JSON response",
-        model="mock-model",
-        provider="mock",
-        usage={}
-    ))
+    mock_service.simulate_invalid_response = AsyncMock(
+        return_value=LLMResponse(
+            content="Invalid JSON response", model="mock-model", provider="mock", usage={}
+        )
+    )
 
     return mock_service
 
@@ -262,7 +264,7 @@ def mock_database():
     # Mock query operations
     mock_db.query.return_value = [
         {"id": "test-1", "status": "completed"},
-        {"id": "test-2", "status": "in_progress"}
+        {"id": "test-2", "status": "in_progress"},
     ]
     mock_db.count.return_value = 2
 
@@ -292,7 +294,7 @@ def mock_browser_automation():
         "elements_found": 5,
         "forms_detected": 1,
         "buttons_detected": 3,
-        "page_title": "Test Page"
+        "page_title": "Test Page",
     }
 
     return mock_browser
@@ -301,6 +303,7 @@ def mock_browser_automation():
 # ═══════════════════════════════════════════════════════════════
 # Test Data Fixtures
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.fixture
 def sample_python_code():
@@ -1183,15 +1186,17 @@ if (require.main === module) {
 def complex_code_samples():
     """Complex code samples for advanced testing."""
     return {
-        "large_python_module": "\n".join([
-            f"class AutoGeneratedClass_{i}:",
-            f"    def __init__(self):",
-            f"        self.value = {i}",
-            f"    def method_{i}(self, x):",
-            f"        return x * {i}",
-            ""
-        ] for i in range(100)),
-
+        "large_python_module": "\n".join(
+            [
+                f"class AutoGeneratedClass_{i}:",
+                f"    def __init__(self):",
+                f"        self.value = {i}",
+                f"    def method_{i}(self, x):",
+                f"        return x * {i}",
+                "",
+            ]
+            for i in range(100)
+        ),
         "nested_structures": """
 class OuterClass:
     class MiddleClass:
@@ -1203,7 +1208,6 @@ class OuterClass:
                     return even_deeper()
                 return local_function()
 """,
-
         "unicode_heavy": """
 # Unicode test: 你好世界 🌍 ñáéíóú àèìòù
 def función_unicode(parámetro_ñ: str) -> str:
@@ -1215,7 +1219,6 @@ class ClaseConÑ:
     def método_tildes(self, données: str) -> str:
         return f"Résultat: {données} ✓"
 """,
-
         "error_prone_code": """
 def potentially_buggy_function(data):
     # Potential division by zero
@@ -1227,7 +1230,6 @@ def potentially_buggy_function(data):
     # Potential type error
     return result + user_id
 """,
-
         "performance_heavy": """
 def fibonacci_recursive(n):
     if n <= 1:
@@ -1241,13 +1243,14 @@ def inefficient_sort(arr):
             if arr[j] > arr[j + 1]:
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
     return arr
-"""
+""",
     }
 
 
 # ═══════════════════════════════════════════════════════════════
 # File and Data Management Fixtures
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.fixture
 def temp_files(temp_directory):
@@ -1275,7 +1278,7 @@ class DataProcessor:
     def transform_item(self, item: Dict) -> Dict:
         return {'id': item['id'], 'processed_value': item['value'] * 2}
 """,
-        "java_simple.java": "public class Hello { public String hello() { return \"Hello World\"; } }",
+        "java_simple.java": 'public class Hello { public String hello() { return "Hello World"; } }',
         "java_complex.java": """
 package com.example;
 
@@ -1311,17 +1314,17 @@ public class DataProcessor {
         "malformed.py": "def incomplete_function(\n# Missing closing parenthesis and body",
         "empty.py": "",
         "unicode.py": "def función_ñ(): return 'español'",
-        "large.py": "\n".join([f"def func_{i}(): return {i}" for i in range(1000)])
+        "large.py": "\n".join([f"def func_{i}(): return {i}" for i in range(1000)]),
     }
 
     for filename, content in code_samples.items():
         file_path = temp_directory / filename
-        file_path.write_text(content, encoding='utf-8')
+        file_path.write_text(content, encoding="utf-8")
         files[filename] = str(file_path)
 
     # Create binary file
     binary_path = temp_directory / "binary.bin"
-    binary_path.write_bytes(b'\x00\x01\x02\x03\xFF\xFE\xFD')
+    binary_path.write_bytes(b"\x00\x01\x02\x03\xFF\xFE\xFD")
     files["binary.bin"] = str(binary_path)
 
     # Create JSON data files
@@ -1329,14 +1332,10 @@ public class DataProcessor {
         "test_data.json": {
             "users": [
                 {"email": "user1@test.com", "password": "password123"},
-                {"email": "user2@test.com", "password": "securepass456"}
+                {"email": "user2@test.com", "password": "securepass456"},
             ]
         },
-        "config.json": {
-            "api_timeout": 30,
-            "max_retries": 3,
-            "enable_logging": True
-        }
+        "config.json": {"api_timeout": 30, "max_retries": 3, "enable_logging": True},
     }
 
     for filename, data in json_data.items():
@@ -1354,30 +1353,30 @@ def sample_validation_request(temp_files):
         source_technology=TechnologyContext(
             type=TechnologyType.PYTHON_FLASK,
             version="2.0",
-            additional_info={"framework_variant": "Flask-RESTful"}
+            additional_info={"framework_variant": "Flask-RESTful"},
         ),
         target_technology=TechnologyContext(
             type=TechnologyType.JAVA_SPRING,
             version="3.0",
-            additional_info={"framework_variant": "Spring Boot"}
+            additional_info={"framework_variant": "Spring Boot"},
         ),
         validation_scope=ValidationScope.BUSINESS_LOGIC,
         source_input=InputData(
             type=InputType.CODE_FILES,
             files=[temp_files["python_complex.py"]],
-            metadata={"language": "python", "file_count": 1}
+            metadata={"language": "python", "file_count": 1},
         ),
         target_input=InputData(
             type=InputType.CODE_FILES,
             files=[temp_files["java_complex.java"]],
-            metadata={"language": "java", "file_count": 1}
+            metadata={"language": "java", "file_count": 1},
         ),
         validation_options={
             "strict_mode": False,
             "include_performance_analysis": True,
             "include_security_analysis": True,
-            "timeout_seconds": 300
-        }
+            "timeout_seconds": 300,
+        },
     )
 
 
@@ -1399,7 +1398,7 @@ def behavioral_validation_request():
             "Account creation with valid data",
             "Account creation with duplicate email",
             "Session timeout handling",
-            "Multiple failed login attempts"
+            "Multiple failed login attempts",
         ],
         timeout=600,  # 10 minutes
         metadata={
@@ -1409,20 +1408,21 @@ def behavioral_validation_request():
             "user_agent": "Mozilla/5.0 (automated test)",
             "max_retries": 3,
             "screenshot_on_failure": True,
-            "video_recording": False
+            "video_recording": False,
         },
         expected_behaviors={
             "login_success_redirect": "/dashboard",
             "login_failure_message": "Invalid credentials",
             "password_reset_confirmation": "Reset email sent",
-            "account_creation_success": "Account created successfully"
-        }
+            "account_creation_success": "Account created successfully",
+        },
     )
 
 
 # ═══════════════════════════════════════════════════════════════
 # Component Fixtures
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.fixture
 def migration_validator(mock_llm_service):
@@ -1461,6 +1461,7 @@ def mock_fastapi_client():
 # Performance and Monitoring Fixtures
 # ═══════════════════════════════════════════════════════════════
 
+
 @pytest.fixture
 def performance_monitor():
     """Performance monitoring fixture."""
@@ -1491,7 +1492,7 @@ def performance_monitor():
                 "execution_time": end_time - self.start_time,
                 "memory_used": end_memory - self.start_memory,
                 "peak_memory": end_memory,
-                "cpu_usage": max(end_cpu - self.start_cpu, 0)
+                "cpu_usage": max(end_cpu - self.start_cpu, 0),
             }
 
         @contextmanager
@@ -1511,6 +1512,7 @@ def performance_monitor():
 # ═══════════════════════════════════════════════════════════════
 
 if HYPOTHESIS_AVAILABLE:
+
     @pytest.fixture
     def hypothesis_config(request):
         """Configure Hypothesis for property-based testing."""
@@ -1520,7 +1522,7 @@ if HYPOTHESIS_AVAILABLE:
             "default": {"max_examples": 100, "deadline": 10000},
             "dev": {"max_examples": 50, "deadline": 5000},
             "ci": {"max_examples": 200, "deadline": 20000},
-            "quick": {"max_examples": 20, "deadline": 2000}
+            "quick": {"max_examples": 20, "deadline": 2000},
         }
 
         return profiles.get(profile, profiles["default"])
@@ -1529,6 +1531,7 @@ if HYPOTHESIS_AVAILABLE:
 # ═══════════════════════════════════════════════════════════════
 # Test Environment and Cleanup Fixtures
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.fixture(autouse=True)
 def setup_test_environment():
@@ -1541,32 +1544,27 @@ def setup_test_environment():
         "DEBUG": "true",
         "LOG_LEVEL": "DEBUG",
         "TESTING": "true",
-
         # Disable actual external services
         "OPENAI_API_KEY": "test-key-disabled",
         "ANTHROPIC_API_KEY": "test-key-disabled",
         "GOOGLE_API_KEY": "test-key-disabled",
-
         # Test-specific configurations
         "TEST_TIMEOUT": "30",
         "MAX_FILE_SIZE_MB": "10",
         "ENABLE_PERFORMANCE_MONITORING": "true",
         "MOCK_EXTERNAL_SERVICES": "true",
-
         # Database and cache settings for testing
         "DATABASE_URL": "sqlite:///:memory:",
         "REDIS_URL": "redis://localhost:6379/15",  # Test database
         "CACHE_TTL": "60",
-
         # Security settings for testing
         "JWT_SECRET_KEY": "test-secret-key-not-for-production",
         "ENCRYPTION_KEY": "test-encryption-key-32-characters-long",
-
         # Feature flags for testing
         "ENABLE_BEHAVIORAL_VALIDATION": "true",
         "ENABLE_PERFORMANCE_ANALYSIS": "true",
         "ENABLE_SECURITY_ANALYSIS": "true",
-        "ENABLE_VISUAL_REGRESSION": "true"
+        "ENABLE_VISUAL_REGRESSION": "true",
     }
 
     os.environ.update(test_env)
@@ -1609,14 +1607,14 @@ def cleanup_resources():
 
     for connection in opened_connections:
         try:
-            if hasattr(connection, 'close'):
+            if hasattr(connection, "close"):
                 connection.close()
         except Exception as e:
             logging.warning(f"Failed to close connection: {e}")
 
     for task in background_tasks:
         try:
-            if hasattr(task, 'cancel'):
+            if hasattr(task, "cancel"):
                 task.cancel()
         except Exception as e:
             logging.warning(f"Failed to cancel task: {e}")
@@ -1625,7 +1623,7 @@ def cleanup_resources():
 @pytest.fixture
 def test_logger():
     """Test-specific logger configuration."""
-    logger = logging.getLogger('test_logger')
+    logger = logging.getLogger("test_logger")
     logger.setLevel(logging.DEBUG)
 
     # Remove existing handlers
@@ -1634,9 +1632,7 @@ def test_logger():
 
     # Add test-specific handler
     handler = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 

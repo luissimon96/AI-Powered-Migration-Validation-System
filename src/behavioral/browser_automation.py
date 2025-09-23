@@ -112,9 +112,7 @@ class BrowserAutomationEngine:
 
         # Session management
         self.current_session: Optional[BrowserSession] = None
-        self.screenshot_dir = (
-            Path(tempfile.gettempdir()) / "browser_automation_screenshots"
-        )
+        self.screenshot_dir = Path(tempfile.gettempdir()) / "browser_automation_screenshots"
         self.screenshot_dir.mkdir(exist_ok=True)
 
     async def initialize(self, browser_type: str = "chromium") -> bool:
@@ -181,9 +179,7 @@ class BrowserAutomationEngine:
                     )
                     self.logger.info("Browser-use agent initialized successfully")
                 except Exception as e:
-                    self.logger.warning(
-                        "Failed to initialize browser-use agent", error=str(e)
-                    )
+                    self.logger.warning("Failed to initialize browser-use agent", error=str(e))
                     self.browser_use_agent = None
 
             self.logger.info(
@@ -326,9 +322,7 @@ class BrowserAutomationEngine:
 
         return result
 
-    async def _execute_navigate(
-        self, action: BrowserAction, result: BrowserActionResult
-    ):
+    async def _execute_navigate(self, action: BrowserAction, result: BrowserActionResult):
         """Execute navigation action."""
         response = await self.current_page.goto(action.target, timeout=action.timeout)
         result.result_data = {
@@ -338,9 +332,7 @@ class BrowserAutomationEngine:
 
     async def _execute_click(self, action: BrowserAction, result: BrowserActionResult):
         """Execute click action."""
-        element = await self.current_page.wait_for_selector(
-            action.target, timeout=action.timeout
-        )
+        element = await self.current_page.wait_for_selector(action.target, timeout=action.timeout)
         await element.click()
         result.result_data = {"clicked_element": action.target}
 
@@ -356,9 +348,7 @@ class BrowserAutomationEngine:
         """Execute form submission."""
         if action.target:
             # Submit specific form
-            form = await self.current_page.wait_for_selector(
-                action.target, timeout=action.timeout
-            )
+            form = await self.current_page.wait_for_selector(action.target, timeout=action.timeout)
             await form.submit()
         else:
             # Submit by pressing Enter on the page
@@ -370,9 +360,7 @@ class BrowserAutomationEngine:
         """Execute wait action."""
         if action.target:
             # Wait for specific selector
-            await self.current_page.wait_for_selector(
-                action.target, timeout=action.timeout
-            )
+            await self.current_page.wait_for_selector(action.target, timeout=action.timeout)
             result.result_data = {"waited_for": action.target}
         else:
             # Wait for specified time
@@ -380,9 +368,7 @@ class BrowserAutomationEngine:
             await asyncio.sleep(wait_time / 1000)
             result.result_data = {"waited_ms": wait_time}
 
-    async def _execute_capture(
-        self, action: BrowserAction, result: BrowserActionResult
-    ):
+    async def _execute_capture(self, action: BrowserAction, result: BrowserActionResult):
         """Execute screenshot capture."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         screenshot_name = f"capture_{timestamp}.png"
@@ -396,9 +382,7 @@ class BrowserAutomationEngine:
             await element.screenshot(path=str(screenshot_path))
         else:
             # Capture full page
-            await self.current_page.screenshot(
-                path=str(screenshot_path), full_page=True
-            )
+            await self.current_page.screenshot(path=str(screenshot_path), full_page=True)
 
         result.screenshot_path = str(screenshot_path)
         result.result_data = {
@@ -406,16 +390,12 @@ class BrowserAutomationEngine:
             "element": action.target or "full_page",
         }
 
-    async def _execute_evaluate(
-        self, action: BrowserAction, result: BrowserActionResult
-    ):
+    async def _execute_evaluate(self, action: BrowserAction, result: BrowserActionResult):
         """Execute JavaScript evaluation."""
         eval_result = await self.current_page.evaluate(action.target)
         result.result_data = {"javascript": action.target, "result": eval_result}
 
-    async def _execute_intelligent(
-        self, action: BrowserAction, result: BrowserActionResult
-    ):
+    async def _execute_intelligent(self, action: BrowserAction, result: BrowserActionResult):
         """Execute intelligent action using browser-use."""
         if not self.browser_use_agent:
             raise Exception("Browser-use agent not available")
@@ -534,9 +514,7 @@ class BrowserAutomationEngine:
 
             # Wait for navigation or response
             try:
-                await self.current_page.wait_for_load_state(
-                    "networkidle", timeout=10000
-                )
+                await self.current_page.wait_for_load_state("networkidle", timeout=10000)
             except Exception as e:
                 logger.warning(
                     f"Network idle timeout: {e}"
@@ -844,9 +822,7 @@ class BrowserAutomationEngine:
         await self.cleanup()
 
 
-def create_login_scenario(
-    username: str, password: str, login_url: str
-) -> List[BrowserAction]:
+def create_login_scenario(username: str, password: str, login_url: str) -> List[BrowserAction]:
     """
     Create a standard login scenario.
 
@@ -882,9 +858,7 @@ def create_login_scenario(
             description="Click login button",
             wait_for="body",  # Wait for page to load after login
         ),
-        BrowserAction(
-            action_type="wait", value="2000", description="Wait for login to complete"
-        ),
+        BrowserAction(action_type="wait", value="2000", description="Wait for login to complete"),
         BrowserAction(action_type="capture", description="Capture post-login state"),
     ]
 
@@ -927,9 +901,7 @@ def create_form_submission_scenario(
 
     # Capture result
     actions.append(
-        BrowserAction(
-            action_type="capture", description="Capture form submission result"
-        )
+        BrowserAction(action_type="capture", description="Capture form submission result")
     )
 
     return actions
@@ -971,9 +943,7 @@ def create_comprehensive_validation_scenario(
     if credentials and "username" in credentials and "password" in credentials:
         login_url = credentials.get("login_url", url + "/login")
         actions.extend(
-            create_login_scenario(
-                credentials["username"], credentials["password"], login_url
-            )
+            create_login_scenario(credentials["username"], credentials["password"], login_url)
         )
 
     # Common navigation and interaction tests
@@ -1013,9 +983,7 @@ def create_comprehensive_validation_scenario(
             """,
                 description="Test form submission without data",
             ),
-            BrowserAction(
-                action_type="wait", value="2000", description="Wait for error response"
-            ),
+            BrowserAction(action_type="wait", value="2000", description="Wait for error response"),
             BrowserAction(action_type="capture", description="Capture error state"),
         ]
     )
@@ -1057,9 +1025,7 @@ async def execute_migration_validation_workflow(
             await source_engine.start_session(source_url, {"system": "source"})
 
             # Execute comprehensive scenario
-            source_actions = create_comprehensive_validation_scenario(
-                source_url, credentials
-            )
+            source_actions = create_comprehensive_validation_scenario(source_url, credentials)
             source_results = await source_engine.execute_scenario(
                 "comprehensive_validation", source_actions
             )
@@ -1079,9 +1045,7 @@ async def execute_migration_validation_workflow(
             await target_engine.start_session(target_url, {"system": "target"})
 
             # Execute same scenario
-            target_actions = create_comprehensive_validation_scenario(
-                target_url, credentials
-            )
+            target_actions = create_comprehensive_validation_scenario(target_url, credentials)
             target_results = await target_engine.execute_scenario(
                 "comprehensive_validation", target_actions
             )
@@ -1096,9 +1060,7 @@ async def execute_migration_validation_workflow(
             }
 
             # Compare states
-            discrepancies = await target_engine.compare_page_states(
-                source_state, target_state
-            )
+            discrepancies = await target_engine.compare_page_states(source_state, target_state)
             results["discrepancies"] = [asdict(disc) for disc in discrepancies]
 
         # Calculate overall score
@@ -1107,9 +1069,7 @@ async def execute_migration_validation_workflow(
         successful_target = sum(1 for r in target_results if r.success)
 
         functional_score = (
-            min(successful_source, successful_target) / total_actions
-            if total_actions > 0
-            else 0
+            min(successful_source, successful_target) / total_actions if total_actions > 0 else 0
         )
         discrepancy_penalty = (
             len([d for d in discrepancies if d.severity.value == "critical"]) * 0.2
@@ -1118,12 +1078,8 @@ async def execute_migration_validation_workflow(
 
         results["comparison"] = {
             "functional_score": functional_score,
-            "source_success_rate": (
-                successful_source / total_actions if total_actions > 0 else 0
-            ),
-            "target_success_rate": (
-                successful_target / total_actions if total_actions > 0 else 0
-            ),
+            "source_success_rate": (successful_source / total_actions if total_actions > 0 else 0),
+            "target_success_rate": (successful_target / total_actions if total_actions > 0 else 0),
             "critical_discrepancies": len(
                 [d for d in discrepancies if d.severity.value == "critical"]
             ),

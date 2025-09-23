@@ -139,8 +139,7 @@ class ValidationConfig:
             providers["anthropic"] = LLMProviderConfig(
                 provider="anthropic",
                 model=self.settings.anthropic_model,
-                api_key=self.settings.anthropic_api_key
-                or os.getenv("ANTHROPIC_API_KEY"),
+                api_key=self.settings.anthropic_api_key or os.getenv("ANTHROPIC_API_KEY"),
                 max_tokens=self.settings.llm_max_tokens,
                 temperature=self.settings.llm_temperature,
                 timeout=self.settings.llm_timeout,
@@ -222,9 +221,7 @@ def get_settings() -> SystemSettings:
                         else structlog.processors.JSONRenderer()
                     ),
                 ],
-                wrapper_class=structlog.make_filtering_bound_logger(
-                    _settings.log_level
-                ),
+                wrapper_class=structlog.make_filtering_bound_logger(_settings.log_level),
                 context_class=dict,
                 logger_factory=structlog.PrintLoggerFactory(),
                 cache_logger_on_first_use=True,

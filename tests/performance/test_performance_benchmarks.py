@@ -32,7 +32,7 @@ from src.core.models import (
     TechnologyType,
     ValidationScope,
     InputData,
-    InputType
+    InputType,
 )
 
 
@@ -40,9 +40,11 @@ from src.core.models import (
 # Performance Testing Framework
 # ═══════════════════════════════════════════════════════════════
 
+
 @dataclass
 class PerformanceMetrics:
     """Container for performance metrics."""
+
     execution_time: float
     memory_usage_mb: float
     cpu_usage_percent: float
@@ -103,7 +105,9 @@ class PerformanceTester:
         cpu_percent_end = psutil.cpu_percent()
         return max(cpu_percent_end - cpu_percent_start, 0)
 
-    def load_test(self, func: Callable, num_requests: int, concurrent_users: int, *args, **kwargs) -> Dict[str, Any]:
+    def load_test(
+        self, func: Callable, num_requests: int, concurrent_users: int, *args, **kwargs
+    ) -> Dict[str, Any]:
         """Perform load testing with concurrent users."""
         execution_times = []
         errors = []
@@ -137,8 +141,10 @@ class PerformanceTester:
                 "p50_response_time": statistics.median(execution_times),
                 "p95_response_time": self._percentile(execution_times, 95),
                 "p99_response_time": self._percentile(execution_times, 99),
-                "throughput": len(execution_times) / max(execution_times) if execution_times else 0,
-                "errors": errors[:10]  # First 10 errors for debugging
+                "throughput": len(execution_times) / max(execution_times)
+                if execution_times
+                else 0,
+                "errors": errors[:10],  # First 10 errors for debugging
             }
         else:
             return {
@@ -146,10 +152,12 @@ class PerformanceTester:
                 "successful_requests": 0,
                 "failed_requests": len(errors),
                 "error_rate": 1.0,
-                "errors": errors
+                "errors": errors,
             }
 
-    def stress_test(self, func: Callable, max_load: int, ramp_up_time: int, *args, **kwargs) -> Dict[str, Any]:
+    def stress_test(
+        self, func: Callable, max_load: int, ramp_up_time: int, *args, **kwargs
+    ) -> Dict[str, Any]:
         """Perform stress testing with gradually increasing load."""
         results = []
 
@@ -170,7 +178,7 @@ class PerformanceTester:
         return {
             "max_stable_load": self._find_max_stable_load(results),
             "breakdown_point": self._find_breakdown_point(results),
-            "results": results
+            "results": results,
         }
 
     def _percentile(self, data: List[float], percentile: int) -> float:
@@ -200,7 +208,9 @@ class PerformanceTester:
                 return result["concurrent_users"]
         return results[-1]["concurrent_users"] if results else 0
 
-    def benchmark_against_baseline(self, current_metrics: PerformanceMetrics, test_name: str) -> Dict[str, Any]:
+    def benchmark_against_baseline(
+        self, current_metrics: PerformanceMetrics, test_name: str
+    ) -> Dict[str, Any]:
         """Compare current metrics against baseline."""
         if test_name not in self.baseline_metrics:
             self.baseline_metrics[test_name] = current_metrics
@@ -209,16 +219,29 @@ class PerformanceTester:
         baseline = self.baseline_metrics[test_name]
 
         performance_change = {
-            "execution_time_change": (current_metrics.execution_time - baseline.execution_time) / baseline.execution_time * 100,
-            "memory_usage_change": (current_metrics.memory_usage_mb - baseline.memory_usage_mb) / baseline.memory_usage_mb * 100 if baseline.memory_usage_mb > 0 else 0,
-            "throughput_change": (current_metrics.throughput_ops_per_sec - baseline.throughput_ops_per_sec) / baseline.throughput_ops_per_sec * 100 if baseline.throughput_ops_per_sec > 0 else 0
+            "execution_time_change": (current_metrics.execution_time - baseline.execution_time)
+            / baseline.execution_time
+            * 100,
+            "memory_usage_change": (current_metrics.memory_usage_mb - baseline.memory_usage_mb)
+            / baseline.memory_usage_mb
+            * 100
+            if baseline.memory_usage_mb > 0
+            else 0,
+            "throughput_change": (
+                current_metrics.throughput_ops_per_sec - baseline.throughput_ops_per_sec
+            )
+            / baseline.throughput_ops_per_sec
+            * 100
+            if baseline.throughput_ops_per_sec > 0
+            else 0,
         }
 
         # Determine if performance has regressed
         regression_detected = (
-            performance_change["execution_time_change"] > 10 or  # 10% slower
-            performance_change["memory_usage_change"] > 20 or   # 20% more memory
-            performance_change["throughput_change"] < -10       # 10% less throughput
+            performance_change["execution_time_change"] > 10
+            or performance_change["memory_usage_change"] > 20  # 10% slower
+            or performance_change["throughput_change"]  # 20% more memory
+            < -10  # 10% less throughput
         )
 
         return {
@@ -226,13 +249,14 @@ class PerformanceTester:
             "baseline": baseline,
             "current": current_metrics,
             "changes": performance_change,
-            "regression_detected": regression_detected
+            "regression_detected": regression_detected,
         }
 
 
 # ═══════════════════════════════════════════════════════════════
 # Core Component Performance Tests
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.mark.performance
 @pytest.mark.benchmark
@@ -248,7 +272,7 @@ class TestMigrationValidatorPerformance:
         self.mock_llm_service.analyze_code_semantic_similarity.return_value = {
             "similarity_score": 0.85,
             "functionally_equivalent": True,
-            "confidence": 0.9
+            "confidence": 0.9,
         }
 
         self.validator = MigrationValidator(llm_client=self.mock_llm_service)
@@ -260,7 +284,9 @@ class TestMigrationValidatorPerformance:
             target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
             source_input=InputData(type=InputType.TEXT, text="def hello(): return 'Hello World'"),
-            target_input=InputData(type=InputType.TEXT, text="public String hello() { return \"Hello World\"; }")
+            target_input=InputData(
+                type=InputType.TEXT, text='public String hello() { return "Hello World"; }'
+            ),
         )
 
         # Measure performance
@@ -273,7 +299,7 @@ class TestMigrationValidatorPerformance:
             memory_usage_mb=memory_used,
             cpu_usage_percent=0,  # Not measured in this test
             peak_memory_mb=peak_memory,
-            throughput_ops_per_sec=1 / execution_time if execution_time > 0 else 0
+            throughput_ops_per_sec=1 / execution_time if execution_time > 0 else 0,
         )
 
         # Performance assertions
@@ -288,22 +314,20 @@ class TestMigrationValidatorPerformance:
     def test_large_code_validation_performance(self):
         """Test performance with large code inputs."""
         # Generate large code files
-        large_python_code = "\n".join([
-            f"def function_{i}():\n    return {i}\n"
-            for i in range(1000)
-        ])
+        large_python_code = "\n".join(
+            [f"def function_{i}():\n    return {i}\n" for i in range(1000)]
+        )
 
-        large_java_code = "\n".join([
-            f"public int function_{i}() {{\n    return {i};\n}}"
-            for i in range(1000)
-        ])
+        large_java_code = "\n".join(
+            [f"public int function_{i}() {{\n    return {i};\n}}" for i in range(1000)]
+        )
 
         request = MigrationValidationRequest(
             source_technology=TechnologyContext(type=TechnologyType.PYTHON_FLASK, version="2.0"),
             target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
             source_input=InputData(type=InputType.TEXT, text=large_python_code),
-            target_input=InputData(type=InputType.TEXT, text=large_java_code)
+            target_input=InputData(type=InputType.TEXT, text=large_java_code),
         )
 
         # Measure performance
@@ -322,21 +346,24 @@ class TestMigrationValidatorPerformance:
             target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
             source_input=InputData(type=InputType.TEXT, text="def test(): pass"),
-            target_input=InputData(type=InputType.TEXT, text="public void test() {}")
+            target_input=InputData(type=InputType.TEXT, text="public void test() {}"),
         )
 
         # Load test with concurrent requests
         load_results = self.tester.load_test(
-            self.validator.validate,
-            num_requests=50,
-            concurrent_users=10,
-            request
+            self.validator.validate, num_requests=50, concurrent_users=10, func_args=(request,)
         )
 
         # Performance assertions
-        assert load_results["error_rate"] < 0.1, f"High error rate: {load_results['error_rate']:.2%}"
-        assert load_results["avg_response_time"] < 2.0, f"High average response time: {load_results['avg_response_time']:.2f}s"
-        assert load_results["p95_response_time"] < 5.0, f"High P95 response time: {load_results['p95_response_time']:.2f}s"
+        assert (
+            load_results["error_rate"] < 0.1
+        ), f"High error rate: {load_results['error_rate']:.2%}"
+        assert (
+            load_results["avg_response_time"] < 2.0
+        ), f"High average response time: {load_results['avg_response_time']:.2f}s"
+        assert (
+            load_results["p95_response_time"] < 5.0
+        ), f"High P95 response time: {load_results['p95_response_time']:.2f}s"
 
         print(f"Load test results: {json.dumps(load_results, indent=2)}")
 
@@ -347,7 +374,7 @@ class TestMigrationValidatorPerformance:
             target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
             source_input=InputData(type=InputType.TEXT, text="def test(): pass"),
-            target_input=InputData(type=InputType.TEXT, text="public void test() {}")
+            target_input=InputData(type=InputType.TEXT, text="public void test() {}"),
         )
 
         process = psutil.Process()
@@ -364,7 +391,9 @@ class TestMigrationValidatorPerformance:
                 memory_growth = current_memory - initial_memory
 
                 # Memory growth should be reasonable
-                assert memory_growth < 200, f"Excessive memory growth: {memory_growth:.2f}MB after {i+1} validations"
+                assert (
+                    memory_growth < 200
+                ), f"Excessive memory growth: {memory_growth:.2f}MB after {i+1} validations"
 
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
         total_growth = final_memory - initial_memory
@@ -435,16 +464,17 @@ if __name__ == '__main__':
         # Performance assertions
         assert execution_time < 2.0, f"Code analysis took too long: {execution_time:.2f}s"
         assert result is not None, "Analysis should return a result"
-        assert 'functions' in result, "Analysis should include functions"
-        assert 'classes' in result, "Analysis should include classes"
+        assert "functions" in result, "Analysis should include functions"
+        assert "classes" in result, "Analysis should include classes"
 
         print(f"Code analysis completed in {execution_time:.3f}s")
 
     def test_large_file_analysis_performance(self):
         """Test analysis performance with large code files."""
         # Generate large Python file
-        large_code = "\n".join([
-            f"""
+        large_code = "\n".join(
+            [
+                f"""
 class Class_{i}:
     def __init__(self):
         self.value = {i}
@@ -470,8 +500,9 @@ class Class_{i}:
 def function_{i}():
     return {i}
 """
-            for i in range(200)  # 200 classes and functions
-        ])
+                for i in range(200)  # 200 classes and functions
+            ]
+        )
 
         # Measure performance
         start_time = time.perf_counter()
@@ -481,16 +512,15 @@ def function_{i}():
         # Performance assertions
         assert execution_time < 20.0, f"Large file analysis took too long: {execution_time:.2f}s"
         assert result is not None, "Large file analysis should return a result"
-        assert len(result['classes']) == 200, "Should detect all classes"
-        assert len(result['functions']) == 200, "Should detect all functions"
+        assert len(result["classes"]) == 200, "Should detect all classes"
+        assert len(result["functions"]) == 200, "Should detect all functions"
 
         print(f"Large file analysis ({len(large_code)} chars) completed in {execution_time:.3f}s")
 
     def test_concurrent_analysis_performance(self):
         """Test performance under concurrent analysis requests."""
         test_codes = [
-            f"def function_{i}():\n    return {i}\n\nclass Class_{i}:\n    pass"
-            for i in range(20)
+            f"def function_{i}():\n    return {i}\n\nclass Class_{i}:\n    pass" for i in range(20)
         ]
 
         def analyze_code(code):
@@ -519,14 +549,19 @@ def function_{i}():
         # Performance assertions
         assert len(errors) == 0, f"Errors during concurrent analysis: {errors}"
         assert len(execution_times) == len(test_codes), "All analyses should complete"
-        assert statistics.mean(execution_times) < 1.0, f"High average analysis time: {statistics.mean(execution_times):.2f}s"
+        assert (
+            statistics.mean(execution_times) < 1.0
+        ), f"High average analysis time: {statistics.mean(execution_times):.2f}s"
 
-        print(f"Concurrent analysis completed: avg={statistics.mean(execution_times):.3f}s, max={max(execution_times):.3f}s")
+        print(
+            f"Concurrent analysis completed: avg={statistics.mean(execution_times):.3f}s, max={max(execution_times):.3f}s"
+        )
 
 
 # ═══════════════════════════════════════════════════════════════
 # Memory Profiling Tests
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.mark.performance
 @pytest.mark.memory
@@ -593,6 +628,7 @@ class TestMemoryProfiler:
 # Performance Regression Detection
 # ═══════════════════════════════════════════════════════════════
 
+
 @pytest.mark.performance
 @pytest.mark.regression
 class TestPerformanceRegression:
@@ -606,14 +642,14 @@ class TestPerformanceRegression:
     def load_baselines(self) -> Dict[str, Any]:
         """Load performance baselines from file."""
         try:
-            with open(self.baseline_file, 'r') as f:
+            with open(self.baseline_file, "r") as f:
                 return json.load(f)
         except FileNotFoundError:
             return {}
 
     def save_baselines(self, baselines: Dict[str, Any]):
         """Save performance baselines to file."""
-        with open(self.baseline_file, 'w') as f:
+        with open(self.baseline_file, "w") as f:
             json.dump(baselines, f, indent=2)
 
     def test_validation_performance_regression(self):
@@ -622,7 +658,7 @@ class TestPerformanceRegression:
         mock_llm_service = Mock()
         mock_llm_service.analyze_code_semantic_similarity.return_value = {
             "similarity_score": 0.85,
-            "functionally_equivalent": True
+            "functionally_equivalent": True,
         }
 
         validator = MigrationValidator(llm_client=mock_llm_service)
@@ -632,7 +668,7 @@ class TestPerformanceRegression:
             target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
             source_input=InputData(type=InputType.TEXT, text="def test(): return 42"),
-            target_input=InputData(type=InputType.TEXT, text="public int test() { return 42; }")
+            target_input=InputData(type=InputType.TEXT, text="public int test() { return 42; }"),
         )
 
         # Measure current performance
@@ -659,22 +695,32 @@ class TestPerformanceRegression:
             p95_regression = (current_p95_time - baseline_p95) / baseline_p95 * 100
 
             print(f"Performance comparison:")
-            print(f"  Average time: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {avg_regression:+.1f}%)")
-            print(f"  P95 time: {current_p95_time:.3f}s (baseline: {baseline_p95:.3f}s, change: {p95_regression:+.1f}%)")
+            print(
+                f"  Average time: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {avg_regression:+.1f}%)"
+            )
+            print(
+                f"  P95 time: {current_p95_time:.3f}s (baseline: {baseline_p95:.3f}s, change: {p95_regression:+.1f}%)"
+            )
 
             # Assert no significant regression
-            assert avg_regression < 20, f"Performance regression detected: {avg_regression:.1f}% slower average time"
-            assert p95_regression < 25, f"Performance regression detected: {p95_regression:.1f}% slower P95 time"
+            assert (
+                avg_regression < 20
+            ), f"Performance regression detected: {avg_regression:.1f}% slower average time"
+            assert (
+                p95_regression < 25
+            ), f"Performance regression detected: {p95_regression:.1f}% slower P95 time"
 
         else:
             # Set new baseline
             baselines[baseline_key] = {
                 "avg_time": current_avg_time,
                 "p95_time": current_p95_time,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
             self.save_baselines(baselines)
-            print(f"New performance baseline set: avg={current_avg_time:.3f}s, p95={current_p95_time:.3f}s")
+            print(
+                f"New performance baseline set: avg={current_avg_time:.3f}s, p95={current_p95_time:.3f}s"
+            )
 
     def test_code_analysis_performance_regression(self):
         """Test for performance regression in code analysis."""
@@ -720,17 +766,16 @@ class DataProcessor:
             baseline_avg = baselines[baseline_key]["avg_time"]
             regression = (current_avg_time - baseline_avg) / baseline_avg * 100
 
-            print(f"Code analysis performance: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {regression:+.1f}%)")
+            print(
+                f"Code analysis performance: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {regression:+.1f}%)"
+            )
 
             # Assert no significant regression
             assert regression < 30, f"Code analysis regression detected: {regression:.1f}% slower"
 
         else:
             # Set new baseline
-            baselines[baseline_key] = {
-                "avg_time": current_avg_time,
-                "timestamp": time.time()
-            }
+            baselines[baseline_key] = {"avg_time": current_avg_time, "timestamp": time.time()}
             self.save_baselines(baselines)
             print(f"New code analysis baseline set: avg={current_avg_time:.3f}s")
 
@@ -738,6 +783,7 @@ class DataProcessor:
 # ═══════════════════════════════════════════════════════════════
 # Stress Testing and Breaking Point Detection
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.mark.performance
 @pytest.mark.slow
@@ -753,7 +799,7 @@ class TestStressAndBreakingPoints:
         mock_llm_service = Mock()
         mock_llm_service.analyze_code_semantic_similarity.return_value = {
             "similarity_score": 0.85,
-            "functionally_equivalent": True
+            "functionally_equivalent": True,
         }
 
         validator = MigrationValidator(llm_client=mock_llm_service)
@@ -763,7 +809,7 @@ class TestStressAndBreakingPoints:
             target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
             source_input=InputData(type=InputType.TEXT, text="def test(): pass"),
-            target_input=InputData(type=InputType.TEXT, text="public void test() {}")
+            target_input=InputData(type=InputType.TEXT, text="public void test() {}"),
         )
 
         # Stress test with increasing load
@@ -771,7 +817,7 @@ class TestStressAndBreakingPoints:
             validator.validate,
             max_load=20,  # Up to 20 concurrent users
             ramp_up_time=10,  # 10 seconds ramp-up
-            request
+            func_args=(request,),
         )
 
         print(f"Stress test results:")
@@ -779,8 +825,12 @@ class TestStressAndBreakingPoints:
         print(f"  Breakdown point: {stress_results['breakdown_point']} concurrent users")
 
         # Assert reasonable performance under stress
-        assert stress_results['max_stable_load'] >= 5, "System should handle at least 5 concurrent users"
-        assert stress_results['breakdown_point'] > stress_results['max_stable_load'], "Breakdown point should be higher than stable load"
+        assert (
+            stress_results["max_stable_load"] >= 5
+        ), "System should handle at least 5 concurrent users"
+        assert (
+            stress_results["breakdown_point"] > stress_results["max_stable_load"]
+        ), "Breakdown point should be higher than stable load"
 
     def test_memory_stress_with_large_inputs(self):
         """Stress test memory usage with increasingly large inputs."""
@@ -803,11 +853,17 @@ class TestStressAndBreakingPoints:
                 memory_after = process.memory_info().rss / 1024 / 1024  # MB
                 memory_used = memory_after - memory_before
 
-                print(f"Input size: {size_mb}MB, Execution time: {execution_time:.2f}s, Memory used: {memory_used:.2f}MB")
+                print(
+                    f"Input size: {size_mb}MB, Execution time: {execution_time:.2f}s, Memory used: {memory_used:.2f}MB"
+                )
 
                 # Assert reasonable performance
-                assert execution_time < 30, f"Processing {size_mb}MB took too long: {execution_time:.2f}s"
-                assert memory_used < size_mb * 5, f"Memory usage too high for {size_mb}MB input: {memory_used:.2f}MB"
+                assert (
+                    execution_time < 30
+                ), f"Processing {size_mb}MB took too long: {execution_time:.2f}s"
+                assert (
+                    memory_used < size_mb * 5
+                ), f"Memory usage too high for {size_mb}MB input: {memory_used:.2f}MB"
 
                 # Clean up
                 del large_text
@@ -824,9 +880,9 @@ class TestStressAndBreakingPoints:
 @pytest.mark.performance
 def test_performance_test_suite_summary():
     """Generate summary of all performance tests."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("PERFORMANCE TEST SUITE SUMMARY")
-    print("="*60)
+    print("=" * 60)
     print("Performance tests completed. Key metrics to monitor:")
     print("• Single validation: < 5 seconds")
     print("• Large code validation: < 30 seconds")
@@ -836,4 +892,4 @@ def test_performance_test_suite_summary():
     print("• Large file analysis: < 20 seconds")
     print("• Performance regression threshold: < 20%")
     print("• Minimum concurrent users supported: >= 5")
-    print("="*60)
+    print("=" * 60)

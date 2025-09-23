@@ -149,9 +149,7 @@ class TestSystemHealthCheck:
         ]
 
         for endpoint in expected_endpoints:
-            assert any(
-                endpoint in route for route in routes
-            ), f"Missing endpoint: {endpoint}"
+            assert any(endpoint in route for route in routes), f"Missing endpoint: {endpoint}"
 
 
 @pytest.mark.system
@@ -180,12 +178,8 @@ class TestSystemIntegrationHealth:
 
         # Create minimal test request
         request = MigrationValidationRequest(
-            source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK, version="2.0"
-            ),
-            target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING, version="3.0"
-            ),
+            source_technology=TechnologyContext(type=TechnologyType.PYTHON_FLASK, version="2.0"),
+            target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
             source_input=InputData(type=InputType.CODE_FILES, files=[]),
             target_input=InputData(type=InputType.CODE_FILES, files=[]),
@@ -269,9 +263,7 @@ class TestSystemIntegrationHealth:
         assert "executive_summary" in unified_report
         assert "fidelity_assessment" in unified_report
         assert unified_report["metadata"]["validation_types"]["static_analysis"] is True
-        assert (
-            unified_report["metadata"]["validation_types"]["behavioral_testing"] is True
-        )
+        assert unified_report["metadata"]["validation_types"]["behavioral_testing"] is True
 
         # Test different report formats
         json_report = reporter.generate_unified_json_report(
@@ -346,9 +338,7 @@ class TestSystemPerformanceHealth:
 
         # Create multiple system components
         mock_llm_service = MagicMock()
-        validators = [
-            MigrationValidator(llm_client=mock_llm_service) for _ in range(10)
-        ]
+        validators = [MigrationValidator(llm_client=mock_llm_service) for _ in range(10)]
         crews = [create_behavioral_validation_crew(mock_llm_service) for _ in range(5)]
         reporters = [ValidationReporter() for _ in range(5)]
 
@@ -509,9 +499,7 @@ class TestExternalDependencyHealth:
         service = LLMService(config)
 
         try:
-            response = await service.generate_response(
-                "Hello, this is a connectivity test."
-            )
+            response = await service.generate_response("Hello, this is a connectivity test.")
             assert response is not None
             assert hasattr(response, "content")
         except Exception as e:

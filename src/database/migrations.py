@@ -64,12 +64,14 @@ class MigrationManager:
                 async with session.get_bind().connect() as conn:
                     # Check if alembic_version table exists
                     result = await conn.execute(
-                        text("""
+                        text(
+                            """
                         SELECT EXISTS (
                             SELECT FROM information_schema.tables
                             WHERE table_name = 'alembic_version'
                         )
-                        """)
+                        """
+                        )
                     )
                     table_exists = result.scalar()
 
@@ -262,20 +264,24 @@ class DataMigrator:
             async with self.db_manager.get_session() as session:
                 # Example: Add default values for new columns
                 await session.execute(
-                    text("""
+                    text(
+                        """
                     UPDATE validation_sessions
                     SET behavioral_timeout = 300
                     WHERE behavioral_timeout IS NULL
-                    """)
+                    """
+                    )
                 )
 
                 # Example: Convert old JSON format to new format
                 await session.execute(
-                    text("""
+                    text(
+                        """
                     UPDATE validation_sessions
                     SET source_metadata = COALESCE(source_metadata, '{}')
                     WHERE source_metadata IS NULL
-                    """)
+                    """
+                    )
                 )
 
                 await session.commit()
@@ -303,26 +309,35 @@ class DataMigrator:
                     ("ui", ["missing_ui_element", "ui_layout_mismatch", "visual_difference"]),
                     ("backend", ["missing_function", "logic_divergence", "api_mismatch"]),
                     ("data", ["missing_field", "type_mismatch", "constraint_violation"]),
-                    ("behavioral", ["interaction_failure", "navigation_error", "form_submission_error"]),
+                    (
+                        "behavioral",
+                        ["interaction_failure", "navigation_error", "form_submission_error"],
+                    ),
                 ]
 
                 for component_type, discrepancy_types in mappings:
-                    type_conditions = " OR ".join([f"discrepancy_type = '{dt}'" for dt in discrepancy_types])
+                    type_conditions = " OR ".join(
+                        [f"discrepancy_type = '{dt}'" for dt in discrepancy_types]
+                    )
                     await session.execute(
-                        text(f"""
+                        text(
+                            f"""
                         UPDATE validation_discrepancies
                         SET component_type = '{component_type}'
                         WHERE component_type IS NULL AND ({type_conditions})
-                        """)
+                        """
+                        )
                     )
 
                 # Set default for any remaining records
                 await session.execute(
-                    text("""
+                    text(
+                        """
                     UPDATE validation_discrepancies
                     SET component_type = 'general'
                     WHERE component_type IS NULL
-                    """)
+                    """
+                    )
                 )
 
                 await session.commit()
@@ -349,28 +364,34 @@ class DataMigrator:
             async with self.db_manager.get_session() as session:
                 # Clean up validation results without sessions
                 result = await session.execute(
-                    text("""
+                    text(
+                        """
                     DELETE FROM validation_results
                     WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-                    """)
+                    """
+                    )
                 )
                 cleanup_counts["orphaned_results"] = result.rowcount
 
                 # Clean up discrepancies without sessions
                 result = await session.execute(
-                    text("""
+                    text(
+                        """
                     DELETE FROM validation_discrepancies
                     WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-                    """)
+                    """
+                    )
                 )
                 cleanup_counts["orphaned_discrepancies"] = result.rowcount
 
                 # Clean up behavioral test results without sessions
                 result = await session.execute(
-                    text("""
+                    text(
+                        """
                     DELETE FROM behavioral_test_results
                     WHERE session_id NOT IN (SELECT id FROM validation_sessions)
-                    """)
+                    """
+                    )
                 )
                 cleanup_counts["orphaned_behavioral_tests"] = result.rowcount
 
@@ -413,10 +434,12 @@ class DataMigrator:
 
                     # Create backup table
                     await session.execute(
-                        text(f"""
+                        text(
+                            f"""
                         CREATE TABLE {backup_table_name} AS
                         SELECT * FROM {table_name}
-                        """)
+                        """
+                        )
                     )
 
                     logger.info(f"Backed up table: {table_name} -> {backup_table_name}")

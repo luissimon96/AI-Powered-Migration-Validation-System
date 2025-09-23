@@ -61,22 +61,26 @@ class DatabaseConfig:
 
         if self.is_sqlite:
             # SQLite-specific configuration
-            kwargs.update({
-                "poolclass": StaticPool,
-                "connect_args": {
-                    "check_same_thread": False,
-                    "timeout": self.pool_timeout,
-                },
-            })
+            kwargs.update(
+                {
+                    "poolclass": StaticPool,
+                    "connect_args": {
+                        "check_same_thread": False,
+                        "timeout": self.pool_timeout,
+                    },
+                }
+            )
         else:
             # PostgreSQL and other databases
-            kwargs.update({
-                "poolclass": QueuePool,
-                "pool_size": self.pool_size,
-                "max_overflow": self.max_overflow,
-                "pool_timeout": self.pool_timeout,
-                "pool_recycle": self.pool_recycle,
-            })
+            kwargs.update(
+                {
+                    "poolclass": QueuePool,
+                    "pool_size": self.pool_size,
+                    "max_overflow": self.max_overflow,
+                    "pool_timeout": self.pool_timeout,
+                    "pool_recycle": self.pool_recycle,
+                }
+            )
 
         return kwargs
 
@@ -88,7 +92,7 @@ def build_database_url(
     database: str = "migration_validator",
     username: Optional[str] = None,
     password: Optional[str] = None,
-    **params
+    **params,
 ) -> str:
     """
     Build database URL from components.
@@ -153,10 +157,7 @@ def get_database_config() -> DatabaseConfig:
         if db_driver.startswith("sqlite"):
             # For development, use SQLite
             db_file = os.getenv("DB_FILE", "migration_validator.db")
-            database_url = build_database_url(
-                driver=db_driver,
-                database=db_file
-            )
+            database_url = build_database_url(driver=db_driver, database=db_file)
         else:
             # For production, use PostgreSQL
             database_url = build_database_url(

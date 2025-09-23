@@ -118,9 +118,7 @@ class BrowserTool(BaseModel):
 
         except Exception as e:
             error_msg = f"Browser action failed: {str(e)}"
-            self.logger.error(
-                "Browser tool execution failed", action=action, error=str(e)
-            )
+            self.logger.error("Browser tool execution failed", action=action, error=str(e))
             return error_msg
 
     async def _run_async(self, action: str, target: str = "", data: str = "") -> str:
@@ -234,9 +232,7 @@ class BrowserTool(BaseModel):
                     if len(parts) >= 3:
                         username, password, login_url = parts[0], parts[1], parts[2]
                         actions = create_login_scenario(username, password, login_url)
-                        results = await self.automation_engine.execute_scenario(
-                            "login", actions
-                        )
+                        results = await self.automation_engine.execute_scenario("login", actions)
                         success_count = sum(1 for r in results if r.success)
                         return f"Login scenario executed: {success_count}/{len(results)} actions successful"
                     else:
@@ -255,9 +251,7 @@ class BrowserTool(BaseModel):
                                 key, value = pair.split("=", 1)
                                 form_data[key.strip()] = value.strip()
 
-                        actions = create_form_submission_scenario(
-                            form_selector, form_data
-                        )
+                        actions = create_form_submission_scenario(form_selector, form_data)
                         results = await self.automation_engine.execute_scenario(
                             "form_submission", actions
                         )
@@ -649,9 +643,7 @@ class ReportManagerAgent:
             return f"{provider_info['provider']}/{provider_info['model']}"
         return "openai/gpt-4-turbo-preview"
 
-    def create_report_task(
-        self, comparison_results: str, metadata: Dict[str, Any]
-    ) -> Task:
+    def create_report_task(self, comparison_results: str, metadata: Dict[str, Any]) -> Task:
         """Create task for generating final validation report."""
         return Task(
             description=f"""
@@ -825,9 +817,7 @@ class BehavioralValidationCrew:
                 await self.cleanup_browser_resources()
                 execution_log.append("Browser resources cleaned up after error")
             except Exception as cleanup_error:
-                self.logger.warning(
-                    "Browser cleanup failed after error", error=str(cleanup_error)
-                )
+                self.logger.warning("Browser cleanup failed after error", error=str(cleanup_error))
                 execution_log.append(f"Browser cleanup error: {str(cleanup_error)}")
 
             return BehavioralValidationResult(
@@ -871,9 +861,7 @@ class BehavioralValidationCrew:
                                 discrepancy = ValidationDiscrepancy(
                                     type=disc_data.get("type", "unknown"),
                                     severity=severity,
-                                    description=disc_data.get(
-                                        "description", "No description"
-                                    ),
+                                    description=disc_data.get("description", "No description"),
                                     source_element=disc_data.get("source_element"),
                                     target_element=disc_data.get("target_element"),
                                     recommendation=disc_data.get("recommendation"),
@@ -929,9 +917,7 @@ class BehavioralValidationCrew:
             }
 
         except Exception as e:
-            self.logger.error(
-                "Unexpected error parsing validation results", error=str(e)
-            )
+            self.logger.error("Unexpected error parsing validation results", error=str(e))
             return {
                 "overall_status": "error",
                 "fidelity_score": 0.0,
@@ -953,9 +939,7 @@ class BehavioralValidationCrew:
             agents_with_browsers = [self.source_explorer, self.target_executor]
 
             for agent in agents_with_browsers:
-                if hasattr(agent, "browser_tool") and hasattr(
-                    agent.browser_tool, "cleanup"
-                ):
+                if hasattr(agent, "browser_tool") and hasattr(agent.browser_tool, "cleanup"):
                     await agent.browser_tool.cleanup()
                     self.logger.info(
                         "Cleaned up browser resources for agent",

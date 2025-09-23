@@ -103,9 +103,7 @@ class TestLLMProviderConfig:
 
     def test_llm_config_defaults(self):
         """Test LLM configuration defaults."""
-        config = LLMProviderConfig(
-            provider="anthropic", model="claude-3", api_key="test-key"
-        )
+        config = LLMProviderConfig(provider="anthropic", model="claude-3", api_key="test-key")
 
         assert config.enabled == True  # Default
         assert config.max_tokens == 4000  # Default
@@ -115,9 +113,7 @@ class TestLLMProviderConfig:
     def test_llm_config_validation(self):
         """Test LLM configuration validation."""
         # Valid configuration
-        valid_config = LLMProviderConfig(
-            provider="openai", model="gpt-4", api_key="sk-test"
-        )
+        valid_config = LLMProviderConfig(provider="openai", model="gpt-4", api_key="sk-test")
         assert valid_config.is_valid() == True
 
         # Invalid configuration (missing API key)
@@ -261,9 +257,7 @@ class TestConfigValidation:
 
     def test_validate_complete_config(self):
         """Test validating complete configuration."""
-        llm_config = LLMProviderConfig(
-            provider="openai", model="gpt-4", api_key="sk-test"
-        )
+        llm_config = LLMProviderConfig(provider="openai", model="gpt-4", api_key="sk-test")
 
         browser_config = BrowserAutomationConfig(browser="chrome", headless=True)
 

@@ -193,9 +193,7 @@ class TestValidationReporter:
 
         weights = {"static": 0.6, "behavioral": 0.4}
 
-        unified_score = reporter._calculate_unified_fidelity_score(
-            static_result, None, weights
-        )
+        unified_score = reporter._calculate_unified_fidelity_score(static_result, None, weights)
 
         assert unified_score == 0.75
 
@@ -234,9 +232,7 @@ class TestValidationReporter:
         behavioral_result = MagicMock()
         behavioral_result.overall_status = "approved"
 
-        status = reporter._determine_unified_status(
-            static_result, behavioral_result, 0.9
-        )
+        status = reporter._determine_unified_status(static_result, behavioral_result, 0.9)
 
         assert status == "approved"
 
@@ -250,9 +246,7 @@ class TestValidationReporter:
         behavioral_result = MagicMock()
         behavioral_result.overall_status = "error"
 
-        status = reporter._determine_unified_status(
-            static_result, behavioral_result, 0.9
-        )
+        status = reporter._determine_unified_status(static_result, behavioral_result, 0.9)
 
         assert status == "rejected"
 
@@ -266,9 +260,7 @@ class TestValidationReporter:
         behavioral_result = MagicMock()
         behavioral_result.overall_status = "approved"
 
-        status = reporter._determine_unified_status(
-            static_result, behavioral_result, 0.8
-        )
+        status = reporter._determine_unified_status(static_result, behavioral_result, 0.8)
 
         assert status == "approved_with_warnings"
 
@@ -416,12 +408,8 @@ class TestUnifiedReportGeneration:
     def sample_request(self):
         """Create sample migration validation request."""
         return MigrationValidationRequest(
-            source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK, version="2.0"
-            ),
-            target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING, version="3.0"
-            ),
+            source_technology=TechnologyContext(type=TechnologyType.PYTHON_FLASK, version="2.0"),
+            target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
             validation_scope=ValidationScope.FULL_SYSTEM,
             source_input=InputData(type=InputType.CODE_FILES, files=["source.py"]),
             target_input=InputData(type=InputType.CODE_FILES, files=["target.java"]),
@@ -472,15 +460,11 @@ class TestUnifiedReportGeneration:
 
         # Should have only static component score
         assert "static_analysis" in report["fidelity_assessment"]["component_scores"]
-        assert (
-            "behavioral_testing"
-            not in report["fidelity_assessment"]["component_scores"]
-        )
+        assert "behavioral_testing" not in report["fidelity_assessment"]["component_scores"]
 
         # Fidelity score should equal static score
         assert (
-            report["fidelity_assessment"]["unified_score"]
-            == sample_static_result.fidelity_score
+            report["fidelity_assessment"]["unified_score"] == sample_static_result.fidelity_score
         )
 
     def test_generate_unified_report_behavioral_only(self, sample_behavioral_result):
@@ -496,9 +480,7 @@ class TestUnifiedReportGeneration:
 
         # Should have only behavioral component score
         assert "behavioral_testing" in report["fidelity_assessment"]["component_scores"]
-        assert (
-            "static_analysis" not in report["fidelity_assessment"]["component_scores"]
-        )
+        assert "static_analysis" not in report["fidelity_assessment"]["component_scores"]
 
         # Fidelity score should equal behavioral score
         assert (
@@ -529,27 +511,18 @@ class TestUnifiedReportGeneration:
 
         assert report["metadata"]["scoring_weights"] == custom_weights
         assert (
-            report["fidelity_assessment"]["component_scores"]["static_analysis"][
-                "weight"
-            ]
-            == 0.3
+            report["fidelity_assessment"]["component_scores"]["static_analysis"]["weight"] == 0.3
         )
         assert (
-            report["fidelity_assessment"]["component_scores"]["behavioral_testing"][
-                "weight"
-            ]
+            report["fidelity_assessment"]["component_scores"]["behavioral_testing"]["weight"]
             == 0.7
         )
 
         # Calculate expected score: (0.85 * 0.3) + (0.78 * 0.7) = 0.255 + 0.546 = 0.801
         expected_score = (0.85 * 0.3) + (0.78 * 0.7)
-        assert (
-            abs(report["fidelity_assessment"]["unified_score"] - expected_score) < 0.001
-        )
+        assert abs(report["fidelity_assessment"]["unified_score"] - expected_score) < 0.001
 
-    def test_generate_unified_json_report(
-        self, sample_static_result, sample_behavioral_result
-    ):
+    def test_generate_unified_json_report(self, sample_static_result, sample_behavioral_result):
         """Test generating unified JSON report."""
         reporter = ValidationReporter()
 
@@ -563,9 +536,7 @@ class TestUnifiedReportGeneration:
         assert "metadata" in parsed_report
         assert "executive_summary" in parsed_report
 
-    def test_generate_unified_html_report(
-        self, sample_static_result, sample_behavioral_result
-    ):
+    def test_generate_unified_html_report(self, sample_static_result, sample_behavioral_result):
         """Test generating unified HTML report."""
         reporter = ValidationReporter()
 
@@ -653,13 +624,9 @@ class TestReportTemplateRendering:
             "immediate_actions": [
                 {"description": "Fix critical issue", "validation_source": "static"}
             ],
-            "review_items": [
-                {"description": "Review warning", "validation_source": "behavioral"}
-            ],
+            "review_items": [{"description": "Review warning", "validation_source": "behavioral"}],
             "static_specific": [{"description": "Static-specific recommendation"}],
-            "behavioral_specific": [
-                {"description": "Behavioral-specific recommendation"}
-            ],
+            "behavioral_specific": [{"description": "Behavioral-specific recommendation"}],
             "unified": ["Consider additional validation cycles"],
         }
 

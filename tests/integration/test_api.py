@@ -66,9 +66,7 @@ class TestAPIIntegration:
 
     def test_file_upload_target(self):
         """Test target file upload."""
-        test_file_content = (
-            b'public class Test { public String hello() { return "world"; } }'
-        )
+        test_file_content = b'public class Test { public String hello() { return "world"; } }'
 
         with TestClient(app) as client:
             response = client.post(
@@ -148,9 +146,7 @@ class TestAPIIntegration:
         }
 
         with TestClient(app) as client:
-            response = client.post(
-                "/api/compatibility/check", json=compatibility_request
-            )
+            response = client.post("/api/compatibility/check", json=compatibility_request)
 
             assert response.status_code == 200
             data = response.json()
@@ -208,9 +204,7 @@ class TestAPIErrorHandling:
     def test_invalid_json_request(self):
         """Test handling of invalid JSON in request."""
         with TestClient(app) as client:
-            response = client.post(
-                "/api/validate", data={"request_data": "invalid-json"}
-            )
+            response = client.post("/api/validate", data={"request_data": "invalid-json"})
 
             assert response.status_code == 400
             assert "JSON" in response.json()["detail"]

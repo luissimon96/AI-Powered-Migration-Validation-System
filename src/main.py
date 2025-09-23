@@ -65,12 +65,8 @@ def serve(host, port, reload, workers):
 
 
 @cli.command()
-@click.option(
-    "--source-tech", required=True, help="Source technology (e.g., python-flask)"
-)
-@click.option(
-    "--target-tech", required=True, help="Target technology (e.g., java-spring)"
-)
+@click.option("--source-tech", required=True, help="Source technology (e.g., python-flask)")
+@click.option("--target-tech", required=True, help="Target technology (e.g., java-spring)")
 @click.option("--source-files", required=True, help="Source files directory or file")
 @click.option("--target-files", required=True, help="Target files directory or file")
 @click.option("--scope", default="full_system", help="Validation scope")

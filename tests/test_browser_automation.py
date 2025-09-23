@@ -131,9 +131,7 @@ class TestBrowserAutomation:
             await engine.execute_action(navigate_action)
 
             # Capture screenshot
-            capture_action = BrowserAction(
-                action_type="capture", description="Capture screenshot"
-            )
+            capture_action = BrowserAction(action_type="capture", description="Capture screenshot")
 
             result = await engine.execute_action(capture_action)
 
@@ -148,9 +146,7 @@ class TestBrowserAutomation:
 
     def test_login_scenario_creation(self):
         """Test login scenario creation."""
-        actions = create_login_scenario(
-            "testuser", "testpass", "https://example.com/login"
-        )
+        actions = create_login_scenario("testuser", "testpass", "https://example.com/login")
 
         assert len(actions) > 0
         assert any(action.action_type == "navigate" for action in actions)
@@ -168,9 +164,7 @@ class TestBrowserAutomation:
         actions = create_form_submission_scenario("#contact-form", form_data)
 
         assert len(actions) > 0
-        assert sum(1 for action in actions if action.action_type == "fill") == len(
-            form_data
-        )
+        assert sum(1 for action in actions if action.action_type == "fill") == len(form_data)
         assert any(action.action_type == "submit" for action in actions)
         assert any(action.action_type == "capture" for action in actions)
 
@@ -182,9 +176,7 @@ class TestBrowserAutomation:
             "login_url": "https://example.com/login",
         }
 
-        actions = create_comprehensive_validation_scenario(
-            "https://example.com", credentials
-        )
+        actions = create_comprehensive_validation_scenario("https://example.com", credentials)
 
         assert len(actions) > 0
         assert any(action.action_type == "navigate" for action in actions)
@@ -243,10 +235,7 @@ def test_browser_tool_integration():
 
     # Test action parsing
     result = tool._run("unknown_action:target:data")
-    assert (
-        "Unknown action type" in result
-        or "Browser automation engine not available" in result
-    )
+    assert "Unknown action type" in result or "Browser automation engine not available" in result
 
 
 async def demo_browser_automation():
@@ -319,9 +308,7 @@ async def demo_browser_automation():
 
         # Capture screenshot
         print("\n📸 Capturing screenshot...")
-        capture_action = BrowserAction(
-            action_type="capture", description="Capture final state"
-        )
+        capture_action = BrowserAction(action_type="capture", description="Capture final state")
 
         result = await engine.execute_action(capture_action)
         if result.success and result.screenshot_path:
@@ -335,9 +322,7 @@ async def demo_browser_automation():
         if session:
             print(f"⏱️  Session duration: {session.duration:.1f} seconds")
             print(f"📊 Total actions: {len(session.actions)}")
-            print(
-                f"✅ Successful results: {sum(1 for r in session.results if r.success)}"
-            )
+            print(f"✅ Successful results: {sum(1 for r in session.results if r.success)}")
 
         print("\n🎉 Browser automation demo completed successfully!")
 

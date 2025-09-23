@@ -95,12 +95,8 @@ class TestHybridValidationPipeline:
     def sample_migration_request(self):
         """Sample migration validation request for static analysis."""
         return MigrationValidationRequest(
-            source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK, version="2.0"
-            ),
-            target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING, version="3.0"
-            ),
+            source_technology=TechnologyContext(type=TechnologyType.PYTHON_FLASK, version="2.0"),
+            target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
             validation_scope=ValidationScope.FULL_SYSTEM,
             source_input=InputData(
                 type=InputType.CODE_FILES, files=["src/auth.py", "src/models.py"]
@@ -121,9 +117,7 @@ class TestHybridValidationPipeline:
         """Test complete hybrid validation pipeline with both static and behavioral validation."""
 
         # Mock static validation
-        with patch.object(
-            MigrationValidator, "validate_migration"
-        ) as mock_static_validation:
+        with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
             mock_session.result = sample_static_result
             mock_static_validation.return_value = mock_session
@@ -155,9 +149,7 @@ class TestHybridValidationPipeline:
                         "data_validation",
                     ],
                 )
-                behavioral_result = await behavioral_crew.validate_migration(
-                    behavioral_request
-                )
+                behavioral_result = await behavioral_crew.validate_migration(behavioral_request)
 
                 # Generate unified report
                 unified_report = reporter.generate_unified_report(
@@ -175,19 +167,11 @@ class TestHybridValidationPipeline:
                 assert "validation_breakdown" in unified_report
 
                 # Verify metadata shows both validation types
-                assert (
-                    unified_report["metadata"]["validation_types"]["static_analysis"]
-                    is True
-                )
-                assert (
-                    unified_report["metadata"]["validation_types"]["behavioral_testing"]
-                    is True
-                )
+                assert unified_report["metadata"]["validation_types"]["static_analysis"] is True
+                assert unified_report["metadata"]["validation_types"]["behavioral_testing"] is True
 
                 # Verify unified fidelity score calculation
-                unified_fidelity = unified_report["fidelity_assessment"][
-                    "unified_score"
-                ]
+                unified_fidelity = unified_report["fidelity_assessment"]["unified_score"]
                 expected_fidelity = (0.85 * 0.6) + (0.78 * 0.4)  # Default weights
                 assert abs(unified_fidelity - expected_fidelity) < 0.01
 
@@ -202,9 +186,7 @@ class TestHybridValidationPipeline:
                     + unified_report["detailed_findings"]["by_severity"]["info"]
                 )
 
-                static_findings = [
-                    f for f in all_findings if f["validation_source"] == "static"
-                ]
+                static_findings = [f for f in all_findings if f["validation_source"] == "static"]
                 behavioral_findings = [
                     f for f in all_findings if f["validation_source"] == "behavioral"
                 ]
@@ -222,9 +204,7 @@ class TestHybridValidationPipeline:
     ):
         """Test hybrid validation pipeline with static validation only."""
 
-        with patch.object(
-            MigrationValidator, "validate_migration"
-        ) as mock_static_validation:
+        with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
             mock_session.result = sample_static_result
             mock_static_validation.return_value = mock_session
@@ -234,9 +214,7 @@ class TestHybridValidationPipeline:
             reporter = ValidationReporter()
 
             # Execute static validation only
-            static_session = await static_validator.validate_migration(
-                sample_migration_request
-            )
+            static_session = await static_validator.validate_migration(sample_migration_request)
             static_result = static_session.result
 
             # Generate unified report with static only
@@ -247,14 +225,8 @@ class TestHybridValidationPipeline:
             )
 
             # Verify report structure
-            assert (
-                unified_report["metadata"]["validation_types"]["static_analysis"]
-                is True
-            )
-            assert (
-                unified_report["metadata"]["validation_types"]["behavioral_testing"]
-                is False
-            )
+            assert unified_report["metadata"]["validation_types"]["static_analysis"] is True
+            assert unified_report["metadata"]["validation_types"]["behavioral_testing"] is False
 
             # Verify fidelity score equals static score
             assert (
@@ -291,9 +263,7 @@ class TestHybridValidationPipeline:
                 target_url="https://target-app.test",
                 validation_scenarios=["core_workflows"],
             )
-            behavioral_result = await behavioral_crew.validate_migration(
-                behavioral_request
-            )
+            behavioral_result = await behavioral_crew.validate_migration(behavioral_request)
 
             # Generate unified report with behavioral only
             unified_report = reporter.generate_unified_report(
@@ -301,14 +271,8 @@ class TestHybridValidationPipeline:
             )
 
             # Verify report structure
-            assert (
-                unified_report["metadata"]["validation_types"]["static_analysis"]
-                is False
-            )
-            assert (
-                unified_report["metadata"]["validation_types"]["behavioral_testing"]
-                is True
-            )
+            assert unified_report["metadata"]["validation_types"]["static_analysis"] is False
+            assert unified_report["metadata"]["validation_types"]["behavioral_testing"] is True
 
             # Verify fidelity score equals behavioral score
             assert (
@@ -331,9 +295,7 @@ class TestHybridValidationPipeline:
         """Test hybrid validation pipeline when behavioral validation fails."""
 
         # Mock successful static validation
-        with patch.object(
-            MigrationValidator, "validate_migration"
-        ) as mock_static_validation:
+        with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
             mock_session.result = sample_static_result
             mock_static_validation.return_value = mock_session
@@ -375,9 +337,7 @@ class TestHybridValidationPipeline:
                     target_url="https://target-app.test",
                     validation_scenarios=["login_flow"],
                 )
-                behavioral_result = await behavioral_crew.validate_migration(
-                    behavioral_request
-                )
+                behavioral_result = await behavioral_crew.validate_migration(behavioral_request)
 
                 # Generate unified report
                 unified_report = reporter.generate_unified_report(
@@ -385,18 +345,14 @@ class TestHybridValidationPipeline:
                 )
 
                 # Verify report reflects mixed results
-                assert (
-                    unified_report["executive_summary"]["overall_status"] == "rejected"
-                )
+                assert unified_report["executive_summary"]["overall_status"] == "rejected"
 
                 # Should have findings from both validations
                 total_findings = unified_report["detailed_findings"]["total_findings"]
                 assert total_findings == 3  # 2 static + 1 behavioral error
 
                 # Should have critical issue from behavioral failure
-                critical_findings = unified_report["detailed_findings"]["by_severity"][
-                    "critical"
-                ]
+                critical_findings = unified_report["detailed_findings"]["by_severity"]["critical"]
                 assert len(critical_findings) == 1
                 assert "browser_automation_failure" in critical_findings[0]["type"]
 
@@ -409,9 +365,7 @@ class TestHybridValidationPipeline:
     ):
         """Test hybrid validation pipeline with custom scoring weights."""
 
-        with patch.object(
-            MigrationValidator, "validate_migration"
-        ) as mock_static_validation:
+        with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
             mock_session.result = sample_static_result
             mock_static_validation.return_value = mock_session
@@ -437,9 +391,7 @@ class TestHybridValidationPipeline:
                     target_url="https://target-app.test",
                     validation_scenarios=["critical_workflows"],
                 )
-                behavioral_result = await behavioral_crew.validate_migration(
-                    behavioral_request
-                )
+                behavioral_result = await behavioral_crew.validate_migration(behavioral_request)
 
                 # Generate unified report with custom weights (emphasize behavioral)
                 custom_weights = {"static": 0.3, "behavioral": 0.7}
@@ -453,9 +405,7 @@ class TestHybridValidationPipeline:
                 assert unified_report["metadata"]["scoring_weights"] == custom_weights
 
                 # Verify component scores show custom weights
-                component_scores = unified_report["fidelity_assessment"][
-                    "component_scores"
-                ]
+                component_scores = unified_report["fidelity_assessment"]["component_scores"]
                 assert component_scores["static_analysis"]["weight"] == 0.3
                 assert component_scores["behavioral_testing"]["weight"] == 0.7
 
@@ -473,9 +423,7 @@ class TestHybridValidationPipeline:
     ):
         """Test hybrid validation pipeline tracks performance metrics."""
 
-        with patch.object(
-            MigrationValidator, "validate_migration"
-        ) as mock_static_validation:
+        with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
             mock_session.result = sample_static_result
             mock_static_validation.return_value = mock_session
@@ -504,9 +452,7 @@ class TestHybridValidationPipeline:
                     target_url="https://target-app.test",
                     validation_scenarios=["performance_test"],
                 )
-                behavioral_result = await behavioral_crew.validate_migration(
-                    behavioral_request
-                )
+                behavioral_result = await behavioral_crew.validate_migration(behavioral_request)
 
                 # Generate unified report
                 unified_report = reporter.generate_unified_report(
@@ -539,22 +485,16 @@ class TestHybridValidationPipeline:
 
                 # Verify total pipeline execution was tracked
                 expected_total = (
-                    sample_static_result.execution_time
-                    + sample_behavioral_result.execution_time
+                    sample_static_result.execution_time + sample_behavioral_result.execution_time
                 )
-                assert (
-                    abs(performance_metrics["total_execution_time"] - expected_total)
-                    < 1.0
-                )
+                assert abs(performance_metrics["total_execution_time"] - expected_total) < 1.0
 
     async def test_hybrid_validation_pipeline_report_formats(
         self, mock_llm_service, sample_static_result, sample_behavioral_result
     ):
         """Test hybrid validation pipeline supports multiple report formats."""
 
-        with patch.object(
-            MigrationValidator, "validate_migration"
-        ) as mock_static_validation:
+        with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_session = MagicMock()
             mock_session.result = sample_static_result
             mock_static_validation.return_value = mock_session
@@ -597,9 +537,7 @@ class TestHybridValidationPipeline:
                 assert "BEHAVIORAL" in html_report  # Should have behavioral badge
 
                 # Verify Markdown report structure
-                assert markdown_report.startswith(
-                    "# 🔄 Unified Migration Validation Report"
-                )
+                assert markdown_report.startswith("# 🔄 Unified Migration Validation Report")
                 assert "## Validation Breakdown" in markdown_report
                 assert "### 🔧 Static Analysis" in markdown_report
                 assert "### 🧪 Behavioral Testing" in markdown_report
@@ -610,9 +548,7 @@ class TestHybridValidationPipeline:
         """Test hybrid validation pipeline graceful error recovery."""
 
         # Mock both validations failing
-        with patch.object(
-            MigrationValidator, "validate_migration"
-        ) as mock_static_validation:
+        with patch.object(MigrationValidator, "validate_migration") as mock_static_validation:
             mock_static_validation.side_effect = Exception(
                 "Static validation infrastructure failure"
             )
@@ -687,21 +623,15 @@ class TestHybridValidationPipeline:
                 )
 
                 # Verify error handling in unified report
-                assert (
-                    unified_report["executive_summary"]["overall_status"] == "rejected"
-                )
+                assert unified_report["executive_summary"]["overall_status"] == "rejected"
                 assert unified_report["fidelity_assessment"]["unified_score"] == 0.0
 
                 # Should have critical findings from both validation failures
-                critical_findings = unified_report["detailed_findings"]["by_severity"][
-                    "critical"
-                ]
+                critical_findings = unified_report["detailed_findings"]["by_severity"]["critical"]
                 assert len(critical_findings) == 2  # One from each validation type
 
                 # Verify error recommendations are included
-                immediate_actions = unified_report["recommendations"][
-                    "immediate_actions"
-                ]
+                immediate_actions = unified_report["recommendations"]["immediate_actions"]
                 assert len(immediate_actions) == 2
                 assert any(
                     "infrastructure" in action["description"].lower()

@@ -19,9 +19,9 @@ from ..core.config import get_settings
 class SecurityLevel(Enum):
     """Security levels for different environments."""
 
-    LOW = "low"          # Development, testing
-    MEDIUM = "medium"    # Staging, internal
-    HIGH = "high"        # Production, public-facing
+    LOW = "low"  # Development, testing
+    MEDIUM = "medium"  # Staging, internal
+    HIGH = "high"  # Production, public-facing
     CRITICAL = "critical"  # High-value, sensitive data
 
 
@@ -126,12 +126,19 @@ class SecurityConfig(BaseModel):
 
     # File security configuration
     allowed_mime_types: List[str] = [
-        "text/plain", "application/json", "image/png", "image/jpeg",
-        "text/html", "text/css", "application/javascript", "text/csv"
+        "text/plain",
+        "application/json",
+        "image/png",
+        "image/jpeg",
+        "text/html",
+        "text/css",
+        "application/javascript",
+        "text/csv",
     ]
     blocked_mime_types: List[str] = [
-        "application/x-executable", "application/x-msdos-program",
-        "application/vnd.microsoft.portable-executable"
+        "application/x-executable",
+        "application/x-msdos-program",
+        "application/vnd.microsoft.portable-executable",
     ]
     scan_uploaded_files: bool = True
     quarantine_malicious_files: bool = True
@@ -163,20 +170,20 @@ class SecurityConfig(BaseModel):
     audit_log_retention_days: int = 2555  # 7 years
     enable_data_anonymization: bool = True
 
-    @validator('jwt_secret_key')
+    @validator("jwt_secret_key")
     def validate_jwt_secret(cls, v, values):
         """Validate JWT secret key strength."""
-        environment = values.get('environment', 'development')
-        if environment == 'production' and len(v) < 32:
-            raise ValueError('JWT secret key must be at least 32 characters in production')
+        environment = values.get("environment", "development")
+        if environment == "production" and len(v) < 32:
+            raise ValueError("JWT secret key must be at least 32 characters in production")
         return v
 
-    @validator('cors_allow_origins')
+    @validator("cors_allow_origins")
     def validate_cors_origins(cls, v, values):
         """Validate CORS origins for security."""
-        environment = values.get('environment', 'development')
-        if environment == 'production' and '*' in v:
-            raise ValueError('Wildcard CORS origins not allowed in production')
+        environment = values.get("environment", "development")
+        if environment == "production" and "*" in v:
+            raise ValueError("Wildcard CORS origins not allowed in production")
         return v
 
     def get_policy_for_level(self) -> SecurityPolicy:
@@ -225,15 +232,15 @@ class SecurityConfig(BaseModel):
 
     def is_development(self) -> bool:
         """Check if running in development environment."""
-        return self.environment.lower() == 'development'
+        return self.environment.lower() == "development"
 
     def is_production(self) -> bool:
         """Check if running in production environment."""
-        return self.environment.lower() == 'production'
+        return self.environment.lower() == "production"
 
     def get_rate_limit_config(self, limit_type: str) -> Dict[str, int]:
         """Get rate limit configuration for specific type."""
-        return self.rate_limits.get(limit_type, self.rate_limits['api_general'])
+        return self.rate_limits.get(limit_type, self.rate_limits["api_general"])
 
     def should_enforce_https(self) -> bool:
         """Determine if HTTPS should be enforced."""
@@ -306,37 +313,39 @@ class SecurityConstants:
 
 
 def create_security_config(
-    environment: Optional[str] = None,
-    security_level: Optional[SecurityLevel] = None
+    environment: Optional[str] = None, security_level: Optional[SecurityLevel] = None
 ) -> SecurityConfig:
     """Factory function to create security configuration."""
     settings = get_settings()
 
     config = SecurityConfig(
         environment=environment or settings.environment,
-        security_level=security_level or (
-            SecurityLevel.HIGH if settings.environment == 'production'
-            else SecurityLevel.MEDIUM if settings.environment == 'staging'
+        security_level=security_level
+        or (
+            SecurityLevel.HIGH
+            if settings.environment == "production"
+            else SecurityLevel.MEDIUM
+            if settings.environment == "staging"
             else SecurityLevel.LOW
-        )
+        ),
     )
 
     # Override with environment-specific settings
-    if settings.environment == 'production':
+    if settings.environment == "production":
         config.cors_allow_origins = [
             "https://migration-validator.com",
-            "https://api.migration-validator.com"
+            "https://api.migration-validator.com",
         ]
         config.enable_security_monitoring = True
         config.alert_on_security_violations = True
 
-    elif settings.environment == 'development':
+    elif settings.environment == "development":
         config.cors_allow_origins = ["*"]
         config.cors_allow_credentials = False
         config.enable_security_monitoring = False
 
     # Load secrets from environment
-    if jwt_secret := os.getenv('JWT_SECRET_KEY'):
+    if jwt_secret := os.getenv("JWT_SECRET_KEY"):
         config.jwt_secret_key = jwt_secret
 
     return config

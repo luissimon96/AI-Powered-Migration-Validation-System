@@ -23,7 +23,7 @@ from src.core.models import (
     InputData,
     InputType,
     ValidationResult,
-    ValidationStatus
+    ValidationStatus,
 )
 
 
@@ -31,20 +31,25 @@ from src.core.models import (
 # Contract Testing Framework
 # ═══════════════════════════════════════════════════════════════
 
+
 class APIContractTester:
     """Contract testing framework for API endpoints."""
 
     def __init__(self, client: TestClient):
         self.client = client
 
-    def validate_response_schema(self, response: Dict[str, Any], expected_schema: Dict[str, Any]) -> None:
+    def validate_response_schema(
+        self, response: Dict[str, Any], expected_schema: Dict[str, Any]
+    ) -> None:
         """Validate response against expected JSON schema."""
         try:
             jsonschema.validate(instance=response, schema=expected_schema)
         except jsonschema.exceptions.ValidationError as e:
             pytest.fail(f"Response schema validation failed: {e.message}")
 
-    def validate_request_schema(self, request_data: Dict[str, Any], expected_schema: Dict[str, Any]) -> None:
+    def validate_request_schema(
+        self, request_data: Dict[str, Any], expected_schema: Dict[str, Any]
+    ) -> None:
         """Validate request against expected JSON schema."""
         try:
             jsonschema.validate(instance=request_data, schema=expected_schema)
@@ -58,7 +63,7 @@ class APIContractTester:
         request_data: Dict[str, Any],
         expected_status: int,
         response_schema: Dict[str, Any],
-        headers: Dict[str, str] = None
+        headers: Dict[str, str] = None,
     ) -> Dict[str, Any]:
         """Test an endpoint against its contract."""
         headers = headers or {"Content-Type": "application/json"}
@@ -97,28 +102,31 @@ class APIContractTester:
 # Request schemas
 MIGRATION_VALIDATION_REQUEST_SCHEMA = {
     "type": "object",
-    "required": ["source_technology", "target_technology", "validation_scope", "source_input", "target_input"],
+    "required": [
+        "source_technology",
+        "target_technology",
+        "validation_scope",
+        "source_input",
+        "target_input",
+    ],
     "properties": {
         "source_technology": {
             "type": "object",
             "required": ["type", "version"],
             "properties": {
                 "type": {"type": "string", "enum": [t.value for t in TechnologyType]},
-                "version": {"type": "string"}
-            }
+                "version": {"type": "string"},
+            },
         },
         "target_technology": {
             "type": "object",
             "required": ["type", "version"],
             "properties": {
                 "type": {"type": "string", "enum": [t.value for t in TechnologyType]},
-                "version": {"type": "string"}
-            }
+                "version": {"type": "string"},
+            },
         },
-        "validation_scope": {
-            "type": "string",
-            "enum": [scope.value for scope in ValidationScope]
-        },
+        "validation_scope": {"type": "string", "enum": [scope.value for scope in ValidationScope]},
         "source_input": {
             "type": "object",
             "required": ["type"],
@@ -126,8 +134,8 @@ MIGRATION_VALIDATION_REQUEST_SCHEMA = {
                 "type": {"type": "string", "enum": [t.value for t in InputType]},
                 "files": {"type": "array", "items": {"type": "string"}},
                 "url": {"type": "string"},
-                "text": {"type": "string"}
-            }
+                "text": {"type": "string"},
+            },
         },
         "target_input": {
             "type": "object",
@@ -136,10 +144,10 @@ MIGRATION_VALIDATION_REQUEST_SCHEMA = {
                 "type": {"type": "string", "enum": [t.value for t in InputType]},
                 "files": {"type": "array", "items": {"type": "string"}},
                 "url": {"type": "string"},
-                "text": {"type": "string"}
-            }
-        }
-    }
+                "text": {"type": "string"},
+            },
+        },
+    },
 }
 
 # Response schemas
@@ -154,15 +162,9 @@ VALIDATION_RESULT_SCHEMA = {
         "target_analysis": {"type": "object"},
         "comparison_results": {"type": "object"},
         "similarity_score": {"type": "number", "minimum": 0, "maximum": 1},
-        "recommendations": {
-            "type": "array",
-            "items": {"type": "string"}
-        },
-        "errors": {
-            "type": "array",
-            "items": {"type": "string"}
-        }
-    }
+        "recommendations": {"type": "array", "items": {"type": "string"}},
+        "errors": {"type": "array", "items": {"type": "string"}},
+    },
 }
 
 HEALTH_CHECK_SCHEMA = {
@@ -174,12 +176,9 @@ HEALTH_CHECK_SCHEMA = {
         "version": {"type": "string"},
         "dependencies": {
             "type": "object",
-            "properties": {
-                "llm_service": {"type": "string"},
-                "database": {"type": "string"}
-            }
-        }
-    }
+            "properties": {"llm_service": {"type": "string"}, "database": {"type": "string"}},
+        },
+    },
 }
 
 ERROR_RESPONSE_SCHEMA = {
@@ -189,14 +188,15 @@ ERROR_RESPONSE_SCHEMA = {
         "error": {"type": "string"},
         "message": {"type": "string"},
         "details": {"type": "object"},
-        "timestamp": {"type": "string", "format": "date-time"}
-    }
+        "timestamp": {"type": "string", "format": "date-time"},
+    },
 }
 
 
 # ═══════════════════════════════════════════════════════════════
 # Contract Tests for Core API Endpoints
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.mark.contract
 @pytest.mark.integration
@@ -215,7 +215,7 @@ class TestAPIContracts:
             endpoint="/health",
             request_data={},
             expected_status=200,
-            response_schema=HEALTH_CHECK_SCHEMA
+            response_schema=HEALTH_CHECK_SCHEMA,
         )
 
         # Additional contract validations
@@ -226,35 +226,31 @@ class TestAPIContracts:
     def test_migration_validation_contract_success(self):
         """Test successful migration validation contract."""
         request_data = {
-            "source_technology": {
-                "type": TechnologyType.PYTHON_FLASK.value,
-                "version": "2.0"
-            },
-            "target_technology": {
-                "type": TechnologyType.JAVA_SPRING.value,
-                "version": "3.0"
-            },
+            "source_technology": {"type": TechnologyType.PYTHON_FLASK.value, "version": "2.0"},
+            "target_technology": {"type": TechnologyType.JAVA_SPRING.value, "version": "3.0"},
             "validation_scope": ValidationScope.BUSINESS_LOGIC.value,
             "source_input": {
                 "type": InputType.TEXT.value,
-                "text": "def hello(): return 'Hello World'"
+                "text": "def hello(): return 'Hello World'",
             },
             "target_input": {
                 "type": InputType.TEXT.value,
-                "text": "public String hello() { return \"Hello World\"; }"
-            }
+                "text": 'public String hello() { return "Hello World"; }',
+            },
         }
 
         # Validate request schema
-        self.contract_tester.validate_request_schema(request_data, MIGRATION_VALIDATION_REQUEST_SCHEMA)
+        self.contract_tester.validate_request_schema(
+            request_data, MIGRATION_VALIDATION_REQUEST_SCHEMA
+        )
 
-        with patch('src.core.migration_validator.MigrationValidator.validate') as mock_validate:
+        with patch("src.core.migration_validator.MigrationValidator.validate") as mock_validate:
             # Mock successful validation
             mock_validate.return_value = ValidationResult(
                 validation_id="test-123",
                 status=ValidationStatus.COMPLETED,
                 similarity_score=0.85,
-                recommendations=["Consider updating documentation"]
+                recommendations=["Consider updating documentation"],
             )
 
             response = self.contract_tester.test_endpoint_contract(
@@ -262,7 +258,7 @@ class TestAPIContracts:
                 endpoint="/validate",
                 request_data=request_data,
                 expected_status=200,
-                response_schema=VALIDATION_RESULT_SCHEMA
+                response_schema=VALIDATION_RESULT_SCHEMA,
             )
 
             # Additional contract validations
@@ -276,21 +272,15 @@ class TestAPIContracts:
         invalid_request = {
             "source_technology": {
                 "type": "INVALID_TECH",  # Invalid technology type
-                "version": "1.0"
+                "version": "1.0",
             },
-            "target_technology": {
-                "type": TechnologyType.JAVA_SPRING.value,
-                "version": "3.0"
-            },
+            "target_technology": {"type": TechnologyType.JAVA_SPRING.value, "version": "3.0"},
             "validation_scope": ValidationScope.BUSINESS_LOGIC.value,
-            "source_input": {
-                "type": InputType.TEXT.value,
-                "text": "def hello(): return 'Hello'"
-            },
+            "source_input": {"type": InputType.TEXT.value, "text": "def hello(): return 'Hello'"},
             "target_input": {
                 "type": InputType.TEXT.value,
-                "text": "public String hello() { return \"Hello\"; }"
-            }
+                "text": 'public String hello() { return "Hello"; }',
+            },
         }
 
         response = self.contract_tester.test_endpoint_contract(
@@ -298,7 +288,7 @@ class TestAPIContracts:
             endpoint="/validate",
             request_data=invalid_request,
             expected_status=422,  # Validation error
-            response_schema=ERROR_RESPONSE_SCHEMA
+            response_schema=ERROR_RESPONSE_SCHEMA,
         )
 
         # Validate error response structure
@@ -309,11 +299,13 @@ class TestAPIContracts:
         """Test validation status endpoint contract."""
         validation_id = "test-validation-123"
 
-        with patch('src.core.migration_validator.MigrationValidator.get_validation_status') as mock_status:
+        with patch(
+            "src.core.migration_validator.MigrationValidator.get_validation_status"
+        ) as mock_status:
             mock_status.return_value = ValidationResult(
                 validation_id=validation_id,
                 status=ValidationStatus.IN_PROGRESS,
-                similarity_score=None
+                similarity_score=None,
             )
 
             response = self.contract_tester.test_endpoint_contract(
@@ -321,7 +313,7 @@ class TestAPIContracts:
                 endpoint=f"/validate/{validation_id}/status",
                 request_data={},
                 expected_status=200,
-                response_schema=VALIDATION_RESULT_SCHEMA
+                response_schema=VALIDATION_RESULT_SCHEMA,
             )
 
             assert response["validation_id"] == validation_id
@@ -336,7 +328,7 @@ class TestAPIContracts:
             endpoint=f"/validate/{non_existent_id}/status",
             request_data={},
             expected_status=404,
-            response_schema=ERROR_RESPONSE_SCHEMA
+            response_schema=ERROR_RESPONSE_SCHEMA,
         )
 
         assert response["error"] == "NOT_FOUND"
@@ -345,6 +337,7 @@ class TestAPIContracts:
 # ═══════════════════════════════════════════════════════════════
 # Contract Tests for Behavioral Validation Endpoints
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.mark.contract
 @pytest.mark.behavioral
@@ -364,13 +357,10 @@ class TestBehavioralAPIContracts:
             "validation_scenarios": [
                 "User login with valid credentials",
                 "User login with invalid password",
-                "Password reset workflow"
+                "Password reset workflow",
             ],
             "timeout": 300,
-            "metadata": {
-                "test_environment": "staging",
-                "browser": "chromium"
-            }
+            "metadata": {"test_environment": "staging", "browser": "chromium"},
         }
 
         behavioral_request_schema = {
@@ -382,11 +372,11 @@ class TestBehavioralAPIContracts:
                 "validation_scenarios": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "minItems": 1
+                    "minItems": 1,
                 },
                 "timeout": {"type": "integer", "minimum": 30, "maximum": 3600},
-                "metadata": {"type": "object"}
-            }
+                "metadata": {"type": "object"},
+            },
         }
 
         behavioral_response_schema = {
@@ -400,24 +390,21 @@ class TestBehavioralAPIContracts:
                 "scenarios_passed": {"type": "integer"},
                 "scenarios_failed": {"type": "integer"},
                 "behavioral_similarity": {"type": "number", "minimum": 0, "maximum": 1},
-                "discrepancies": {
-                    "type": "array",
-                    "items": {"type": "object"}
-                }
-            }
+                "discrepancies": {"type": "array", "items": {"type": "object"}},
+            },
         }
 
         # Validate request schema
         self.contract_tester.validate_request_schema(request_data, behavioral_request_schema)
 
-        with patch('src.behavioral.crews.BehavioralValidationCrew.validate') as mock_validate:
+        with patch("src.behavioral.crews.BehavioralValidationCrew.validate") as mock_validate:
             mock_validate.return_value = {
                 "validation_id": "behavioral-123",
                 "status": "completed",
                 "scenarios_completed": 3,
                 "scenarios_passed": 2,
                 "scenarios_failed": 1,
-                "behavioral_similarity": 0.75
+                "behavioral_similarity": 0.75,
             }
 
             response = self.contract_tester.test_endpoint_contract(
@@ -425,16 +412,20 @@ class TestBehavioralAPIContracts:
                 endpoint="/behavioral/validate",
                 request_data=request_data,
                 expected_status=200,
-                response_schema=behavioral_response_schema
+                response_schema=behavioral_response_schema,
             )
 
             assert response["scenarios_completed"] == 3
-            assert response["scenarios_passed"] + response["scenarios_failed"] <= response["scenarios_completed"]
+            assert (
+                response["scenarios_passed"] + response["scenarios_failed"]
+                <= response["scenarios_completed"]
+            )
 
 
 # ═══════════════════════════════════════════════════════════════
 # Backward Compatibility Tests
 # ═══════════════════════════════════════════════════════════════
+
 
 @pytest.mark.contract
 @pytest.mark.regression
@@ -453,14 +444,14 @@ class TestAPIBackwardCompatibility:
             "source": {
                 "technology": "python_flask",  # Old format
                 "version": "2.0",
-                "code": "def hello(): return 'Hello'"
+                "code": "def hello(): return 'Hello'",
             },
             "target": {
-                "technology": "java_spring",   # Old format
+                "technology": "java_spring",  # Old format
                 "version": "3.0",
-                "code": "public String hello() { return \"Hello\"; }"
+                "code": 'public String hello() { return "Hello"; }',
             },
-            "scope": "business_logic"
+            "scope": "business_logic",
         }
 
         # Should either work with legacy format or return appropriate error
@@ -473,7 +464,10 @@ class TestAPIBackwardCompatibility:
             # If legacy format is no longer supported, error should be clear
             error_response = response.json()
             assert "error" in error_response
-            assert "deprecated" in error_response["message"].lower() or "format" in error_response["message"].lower()
+            assert (
+                "deprecated" in error_response["message"].lower()
+                or "format" in error_response["message"].lower()
+            )
 
     def test_response_field_stability(self):
         """Test that response fields remain stable across versions."""
@@ -482,14 +476,12 @@ class TestAPIBackwardCompatibility:
             "target_technology": {"type": TechnologyType.JAVA_SPRING.value, "version": "3.0"},
             "validation_scope": ValidationScope.BUSINESS_LOGIC.value,
             "source_input": {"type": InputType.TEXT.value, "text": "def test(): pass"},
-            "target_input": {"type": InputType.TEXT.value, "text": "public void test() {}"}
+            "target_input": {"type": InputType.TEXT.value, "text": "public void test() {}"},
         }
 
-        with patch('src.core.migration_validator.MigrationValidator.validate') as mock_validate:
+        with patch("src.core.migration_validator.MigrationValidator.validate") as mock_validate:
             mock_validate.return_value = ValidationResult(
-                validation_id="test-123",
-                status=ValidationStatus.COMPLETED,
-                similarity_score=0.85
+                validation_id="test-123", status=ValidationStatus.COMPLETED, similarity_score=0.85
             )
 
             response = self.client.post("/validate", json=request_data)
@@ -515,13 +507,17 @@ class TestAPIBackwardCompatibility:
 # API Version Compatibility Matrix
 # ═══════════════════════════════════════════════════════════════
 
+
 @pytest.mark.contract
-@pytest.mark.parametrize("api_version,endpoint,expected_status", [
-    ("v1", "/validate", 200),
-    ("v1", "/health", 200),
-    ("v2", "/validate", 200),  # Future version
-    ("v2", "/health", 200),
-])
+@pytest.mark.parametrize(
+    "api_version,endpoint,expected_status",
+    [
+        ("v1", "/validate", 200),
+        ("v1", "/health", 200),
+        ("v2", "/validate", 200),  # Future version
+        ("v2", "/health", 200),
+    ],
+)
 class TestAPIVersionCompatibility:
     """Test API version compatibility matrix."""
 
@@ -539,10 +535,10 @@ class TestAPIVersionCompatibility:
                 "target_technology": {"type": TechnologyType.JAVA_SPRING.value, "version": "3.0"},
                 "validation_scope": ValidationScope.BUSINESS_LOGIC.value,
                 "source_input": {"type": InputType.TEXT.value, "text": "def test(): pass"},
-                "target_input": {"type": InputType.TEXT.value, "text": "public void test() {}"}
+                "target_input": {"type": InputType.TEXT.value, "text": "public void test() {}"},
             }
 
-            with patch('src.core.migration_validator.MigrationValidator.validate'):
+            with patch("src.core.migration_validator.MigrationValidator.validate"):
                 response = self.client.post(endpoint, json=request_data, headers=headers)
         else:
             response = self.client.get(endpoint, headers=headers)
@@ -559,6 +555,7 @@ class TestAPIVersionCompatibility:
 # Contract Test Utilities
 # ═══════════════════════════════════════════════════════════════
 
+
 class ContractTestHelper:
     """Helper utilities for contract testing."""
 
@@ -566,7 +563,7 @@ class ContractTestHelper:
     def generate_valid_request(
         source_tech: TechnologyType = TechnologyType.PYTHON_FLASK,
         target_tech: TechnologyType = TechnologyType.JAVA_SPRING,
-        scope: ValidationScope = ValidationScope.BUSINESS_LOGIC
+        scope: ValidationScope = ValidationScope.BUSINESS_LOGIC,
     ) -> Dict[str, Any]:
         """Generate a valid migration validation request."""
         return {
@@ -574,7 +571,7 @@ class ContractTestHelper:
             "target_technology": {"type": target_tech.value, "version": "3.0"},
             "validation_scope": scope.value,
             "source_input": {"type": InputType.TEXT.value, "text": "def test(): pass"},
-            "target_input": {"type": InputType.TEXT.value, "text": "public void test() {}"}
+            "target_input": {"type": InputType.TEXT.value, "text": "public void test() {}"},
         }
 
     @staticmethod
@@ -585,7 +582,9 @@ class ContractTestHelper:
             required_fields = ["page", "per_page", "total", "pages"]
             for field in required_fields:
                 assert field in pagination, f"Pagination field '{field}' missing"
-                assert isinstance(pagination[field], int), f"Pagination field '{field}' must be integer"
+                assert isinstance(
+                    pagination[field], int
+                ), f"Pagination field '{field}' must be integer"
 
             assert pagination["page"] >= 1, "Page number must be >= 1"
             assert pagination["per_page"] >= 1, "Per page must be >= 1"
@@ -598,7 +597,9 @@ class ContractTestHelper:
         required_fields = ["error", "message"]
         for field in required_fields:
             assert field in response, f"Error response field '{field}' missing"
-            assert isinstance(response[field], str), f"Error response field '{field}' must be string"
+            assert isinstance(
+                response[field], str
+            ), f"Error response field '{field}' must be string"
 
         if "details" in response:
             assert isinstance(response["details"], dict), "Error details must be an object"
@@ -621,7 +622,7 @@ class TestContractHelpers:
         """Test pagination contract validation."""
         valid_pagination = {
             "pagination": {"page": 1, "per_page": 10, "total": 100, "pages": 10},
-            "data": []
+            "data": [],
         }
 
         # Should not raise exception
@@ -629,7 +630,7 @@ class TestContractHelpers:
 
         invalid_pagination = {
             "pagination": {"page": 0, "per_page": 10},  # Missing fields, invalid page
-            "data": []
+            "data": [],
         }
 
         with pytest.raises(AssertionError):

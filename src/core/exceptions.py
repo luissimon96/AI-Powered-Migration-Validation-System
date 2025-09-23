@@ -58,7 +58,7 @@ class BaseValidationError(Exception):
         cause: Optional[Exception] = None,
         recoverable: bool = True,
         user_message: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize structured validation error.
@@ -117,7 +117,7 @@ class BaseValidationError(Exception):
                         "code": frame.line,
                     }
                     for frame in traceback.extract_tb(exc_traceback)
-                ]
+                ],
             }
         return {}
 
@@ -177,7 +177,7 @@ class ValidationInputError(BaseValidationError):
             severity=ErrorSeverity.MEDIUM,
             category=ErrorCategory.VALIDATION,
             context={"field": field} if field else {},
-            **kwargs
+            **kwargs,
         )
 
     def _generate_user_message(self) -> str:
@@ -196,7 +196,7 @@ class ConfigurationError(BaseValidationError):
             category=ErrorCategory.CONFIGURATION,
             context={"config_key": config_key} if config_key else {},
             recoverable=False,
-            **kwargs
+            **kwargs,
         )
 
     def _generate_user_message(self) -> str:
@@ -211,7 +211,7 @@ class ExternalServiceError(BaseValidationError):
         message: str,
         service: Optional[str] = None,
         status_code: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ):
         self.service = service
         self.status_code = status_code
@@ -227,7 +227,7 @@ class ExternalServiceError(BaseValidationError):
             category=ErrorCategory.EXTERNAL_SERVICE,
             context=context,
             recoverable=True,
-            **kwargs
+            **kwargs,
         )
 
     def _generate_user_message(self) -> str:
@@ -246,7 +246,7 @@ class SecurityError(BaseValidationError):
             category=ErrorCategory.SECURITY,
             context={"security_check": security_check} if security_check else {},
             recoverable=False,
-            **kwargs
+            **kwargs,
         )
 
     def _generate_user_message(self) -> str:
@@ -262,7 +262,7 @@ class ResourceError(BaseValidationError):
         resource_type: Optional[str] = None,
         current_usage: Optional[float] = None,
         limit: Optional[float] = None,
-        **kwargs
+        **kwargs,
     ):
         self.resource_type = resource_type
         self.current_usage = current_usage
@@ -282,7 +282,7 @@ class ResourceError(BaseValidationError):
             category=ErrorCategory.RESOURCE,
             context=context,
             recoverable=True,
-            **kwargs
+            **kwargs,
         )
 
     def _generate_user_message(self) -> str:
@@ -293,11 +293,7 @@ class ProcessingError(BaseValidationError):
     """Error during migration validation processing."""
 
     def __init__(
-        self,
-        message: str,
-        stage: Optional[str] = None,
-        operation: Optional[str] = None,
-        **kwargs
+        self, message: str, stage: Optional[str] = None, operation: Optional[str] = None, **kwargs
     ):
         self.stage = stage
         self.operation = operation
@@ -314,7 +310,7 @@ class ProcessingError(BaseValidationError):
             category=ErrorCategory.PROCESSING,
             context=context,
             recoverable=True,
-            **kwargs
+            **kwargs,
         )
 
     def _generate_user_message(self) -> str:
@@ -330,7 +326,7 @@ class NetworkError(BaseValidationError):
         message: str,
         endpoint: Optional[str] = None,
         timeout: Optional[float] = None,
-        **kwargs
+        **kwargs,
     ):
         self.endpoint = endpoint
         self.timeout = timeout
@@ -347,7 +343,7 @@ class NetworkError(BaseValidationError):
             category=ErrorCategory.NETWORK,
             context=context,
             recoverable=True,
-            **kwargs
+            **kwargs,
         )
 
     def _generate_user_message(self) -> str:
@@ -362,7 +358,7 @@ class DataIntegrityError(BaseValidationError):
         message: str,
         data_source: Optional[str] = None,
         checksum: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         self.data_source = data_source
         self.checksum = checksum
@@ -379,7 +375,7 @@ class DataIntegrityError(BaseValidationError):
             category=ErrorCategory.DATA_INTEGRITY,
             context=context,
             recoverable=False,
-            **kwargs
+            **kwargs,
         )
 
     def _generate_user_message(self) -> str:
@@ -387,21 +383,22 @@ class DataIntegrityError(BaseValidationError):
 
 
 # Convenience functions for common error scenarios
-def validation_input_error(message: str, field: Optional[str] = None, **kwargs) -> ValidationInputError:
+def validation_input_error(
+    message: str, field: Optional[str] = None, **kwargs
+) -> ValidationInputError:
     """Create validation input error with proper context."""
     return ValidationInputError(message, field=field, **kwargs)
 
 
-def configuration_error(message: str, config_key: Optional[str] = None, **kwargs) -> ConfigurationError:
+def configuration_error(
+    message: str, config_key: Optional[str] = None, **kwargs
+) -> ConfigurationError:
     """Create configuration error with proper context."""
     return ConfigurationError(message, config_key=config_key, **kwargs)
 
 
 def external_service_error(
-    message: str,
-    service: Optional[str] = None,
-    status_code: Optional[int] = None,
-    **kwargs
+    message: str, service: Optional[str] = None, status_code: Optional[int] = None, **kwargs
 ) -> ExternalServiceError:
     """Create external service error with proper context."""
     return ExternalServiceError(message, service=service, status_code=status_code, **kwargs)
@@ -417,43 +414,30 @@ def resource_error(
     resource_type: Optional[str] = None,
     current_usage: Optional[float] = None,
     limit: Optional[float] = None,
-    **kwargs
+    **kwargs,
 ) -> ResourceError:
     """Create resource error with proper context."""
     return ResourceError(
-        message,
-        resource_type=resource_type,
-        current_usage=current_usage,
-        limit=limit,
-        **kwargs
+        message, resource_type=resource_type, current_usage=current_usage, limit=limit, **kwargs
     )
 
 
 def processing_error(
-    message: str,
-    stage: Optional[str] = None,
-    operation: Optional[str] = None,
-    **kwargs
+    message: str, stage: Optional[str] = None, operation: Optional[str] = None, **kwargs
 ) -> ProcessingError:
     """Create processing error with proper context."""
     return ProcessingError(message, stage=stage, operation=operation, **kwargs)
 
 
 def network_error(
-    message: str,
-    endpoint: Optional[str] = None,
-    timeout: Optional[float] = None,
-    **kwargs
+    message: str, endpoint: Optional[str] = None, timeout: Optional[float] = None, **kwargs
 ) -> NetworkError:
     """Create network error with proper context."""
     return NetworkError(message, endpoint=endpoint, timeout=timeout, **kwargs)
 
 
 def data_integrity_error(
-    message: str,
-    data_source: Optional[str] = None,
-    checksum: Optional[str] = None,
-    **kwargs
+    message: str, data_source: Optional[str] = None, checksum: Optional[str] = None, **kwargs
 ) -> DataIntegrityError:
     """Create data integrity error with proper context."""
     return DataIntegrityError(message, data_source=data_source, checksum=checksum, **kwargs)
@@ -528,9 +512,9 @@ class ErrorRecoveryManager:
                 last_exception = e
 
                 # Check if error is recoverable
-                is_recoverable = (
-                    isinstance(e, BaseValidationError) and e.recoverable
-                ) or any(isinstance(e, exc_type) for exc_type in recoverable_exceptions)
+                is_recoverable = (isinstance(e, BaseValidationError) and e.recoverable) or any(
+                    isinstance(e, exc_type) for exc_type in recoverable_exceptions
+                )
 
                 if not is_recoverable or attempt == self.max_retries:
                     self.logger.error(

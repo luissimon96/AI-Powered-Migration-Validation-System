@@ -62,15 +62,9 @@ class ValidationReporter:
         report = {
             "metadata": self._generate_report_metadata(request, validation_result),
             "executive_summary": self._generate_executive_summary(validation_result),
-            "fidelity_assessment": self._generate_fidelity_assessment(
-                validation_result
-            ),
-            "detailed_findings": self._generate_detailed_findings(
-                validation_result.discrepancies
-            ),
-            "recommendations": self._generate_recommendations(
-                validation_result.discrepancies
-            ),
+            "fidelity_assessment": self._generate_fidelity_assessment(validation_result),
+            "detailed_findings": self._generate_detailed_findings(validation_result.discrepancies),
+            "recommendations": self._generate_recommendations(validation_result.discrepancies),
             "technical_details": self._generate_technical_details(
                 request, source_representation, target_representation
             ),
@@ -166,9 +160,7 @@ class ValidationReporter:
         )
 
         # Combine discrepancies from both sources
-        combined_discrepancies = self._merge_discrepancies(
-            static_result, behavioral_result
-        )
+        combined_discrepancies = self._merge_discrepancies(static_result, behavioral_result)
 
         # Build unified report
         report = {
@@ -185,9 +177,7 @@ class ValidationReporter:
             "fidelity_assessment": self._generate_unified_fidelity_assessment(
                 static_result, behavioral_result, unified_fidelity, scoring_weights
             ),
-            "detailed_findings": self._generate_unified_detailed_findings(
-                combined_discrepancies
-            ),
+            "detailed_findings": self._generate_unified_detailed_findings(combined_discrepancies),
             "recommendations": self._generate_unified_recommendations(
                 static_result, behavioral_result, combined_discrepancies
             ),
@@ -310,16 +300,12 @@ class ValidationReporter:
 
         return {
             "overall_status": result.overall_status,
-            "status_description": status_descriptions.get(
-                result.overall_status, "Unknown status"
-            ),
+            "status_description": status_descriptions.get(result.overall_status, "Unknown status"),
             "fidelity_score": result.fidelity_score,
             "fidelity_percentage": f"{result.fidelity_score * 100:.1f}%",
             "summary": result.summary,
             "discrepancy_counts": discrepancy_counts,
-            "key_findings": self._extract_key_findings(
-                result.discrepancies[:3]
-            ),  # Top 3 findings
+            "key_findings": self._extract_key_findings(result.discrepancies[:3]),  # Top 3 findings
         }
 
     def _generate_fidelity_assessment(self, result: ValidationResult) -> Dict[str, Any]:
@@ -329,9 +315,7 @@ class ValidationReporter:
         # Determine score category and explanation
         if score >= 0.95:
             category = "Excellent"
-            explanation = (
-                "The migration achieved exceptional fidelity with minimal differences."
-            )
+            explanation = "The migration achieved exceptional fidelity with minimal differences."
         elif score >= 0.85:
             category = "Good"
             explanation = "The migration achieved good fidelity with minor differences that don't impact core functionality."
@@ -340,12 +324,12 @@ class ValidationReporter:
             explanation = "The migration achieved acceptable fidelity but has some differences requiring review."
         elif score >= 0.60:
             category = "Poor"
-            explanation = "The migration has significant differences that may impact functionality."
+            explanation = (
+                "The migration has significant differences that may impact functionality."
+            )
         else:
             category = "Failed"
-            explanation = (
-                "The migration has critical differences that prevent approval."
-            )
+            explanation = "The migration has critical differences that prevent approval."
 
         return {
             "score": score,
@@ -413,9 +397,7 @@ class ValidationReporter:
                     recommendations["enhancements"].append(recommendation_item)
 
         # Add general recommendations
-        recommendations["general"] = self._generate_general_recommendations(
-            discrepancies
-        )
+        recommendations["general"] = self._generate_general_recommendations(discrepancies)
 
         return recommendations
 
@@ -488,9 +470,7 @@ class ValidationReporter:
 
         return counts
 
-    def _extract_key_findings(
-        self, top_discrepancies: List[ValidationDiscrepancy]
-    ) -> List[str]:
+    def _extract_key_findings(self, top_discrepancies: List[ValidationDiscrepancy]) -> List[str]:
         """Extract key findings from top discrepancies."""
         return [disc.description for disc in top_discrepancies]
 
@@ -525,9 +505,7 @@ class ValidationReporter:
             )
 
         if types.count("function_renamed") > 2:
-            recommendations.append(
-                "Update documentation to reflect function name changes"
-            )
+            recommendations.append("Update documentation to reflect function name changes")
 
         return recommendations
 
@@ -546,9 +524,7 @@ class ValidationReporter:
             total_weight += weights.get("static", 0.6)
 
         if behavioral_result is not None:
-            weighted_score += behavioral_result.fidelity_score * weights.get(
-                "behavioral", 0.4
-            )
+            weighted_score += behavioral_result.fidelity_score * weights.get("behavioral", 0.4)
             total_weight += weights.get("behavioral", 0.4)
 
         return weighted_score / total_weight if total_weight > 0 else 0.0
@@ -627,9 +603,7 @@ class ValidationReporter:
             SeverityLevel.WARNING: 1,
             SeverityLevel.INFO: 2,
         }
-        combined_discrepancies.sort(
-            key=lambda x: (severity_order[x.severity], -x.confidence)
-        )
+        combined_discrepancies.sort(key=lambda x: (severity_order[x.severity], -x.confidence))
 
         return combined_discrepancies
 
@@ -672,12 +646,8 @@ class ValidationReporter:
             execution_details["static_execution_time"] = static_result.execution_time
             execution_details["static_timestamp"] = static_result.timestamp.isoformat()
         if behavioral_result:
-            execution_details["behavioral_execution_time"] = (
-                behavioral_result.execution_time
-            )
-            execution_details["behavioral_timestamp"] = (
-                behavioral_result.timestamp.isoformat()
-            )
+            execution_details["behavioral_execution_time"] = behavioral_result.execution_time
+            execution_details["behavioral_timestamp"] = behavioral_result.timestamp.isoformat()
 
         metadata["execution_details"] = execution_details
 
@@ -692,9 +662,7 @@ class ValidationReporter:
         combined_discrepancies: List[ValidationDiscrepancy],
     ) -> Dict[str, Any]:
         """Generate unified executive summary section."""
-        discrepancy_counts = self._count_discrepancies_by_severity(
-            combined_discrepancies
-        )
+        discrepancy_counts = self._count_discrepancies_by_severity(combined_discrepancies)
 
         # Generate comprehensive status description
         validation_types = []
@@ -727,9 +695,7 @@ class ValidationReporter:
 
         return {
             "overall_status": unified_status,
-            "status_description": status_descriptions.get(
-                unified_status, "Unknown status"
-            ),
+            "status_description": status_descriptions.get(unified_status, "Unknown status"),
             "fidelity_score": unified_fidelity,
             "fidelity_percentage": f"{unified_fidelity * 100:.1f}%",
             "validation_types": validation_types,
@@ -760,12 +726,12 @@ class ValidationReporter:
             explanation = "The migration achieved acceptable fidelity but has some differences requiring review."
         elif unified_fidelity >= 0.60:
             category = "Poor"
-            explanation = "The migration has significant differences that may impact functionality."
+            explanation = (
+                "The migration has significant differences that may impact functionality."
+            )
         else:
             category = "Failed"
-            explanation = (
-                "The migration has critical differences that prevent approval."
-            )
+            explanation = "The migration has critical differences that prevent approval."
 
         # Component scores
         component_scores = {}
@@ -832,9 +798,7 @@ class ValidationReporter:
             "total_findings": len(combined_discrepancies),
             "by_severity": findings_by_severity,
             "by_validation_type": findings_by_type,
-            "summary_counts": self._count_discrepancies_by_severity(
-                combined_discrepancies
-            ),
+            "summary_counts": self._count_discrepancies_by_severity(combined_discrepancies),
         }
 
     def _generate_unified_recommendations(
@@ -861,9 +825,7 @@ class ValidationReporter:
                     "related_finding": discrepancy.description,
                     "confidence": discrepancy.confidence,
                     "validation_source": (
-                        "static"
-                        if discrepancy.type.startswith("static_")
-                        else "behavioral"
+                        "static" if discrepancy.type.startswith("static_") else "behavioral"
                     ),
                 }
 
@@ -983,9 +945,7 @@ class ValidationReporter:
             if source_representation:
                 details["static_analysis_coverage"]["source_analysis"] = {
                     "ui_elements_count": len(source_representation.ui_elements),
-                    "backend_functions_count": len(
-                        source_representation.backend_functions
-                    ),
+                    "backend_functions_count": len(source_representation.backend_functions),
                     "data_fields_count": len(source_representation.data_fields),
                     "api_endpoints_count": len(source_representation.api_endpoints),
                 }
@@ -993,9 +953,7 @@ class ValidationReporter:
             if target_representation:
                 details["static_analysis_coverage"]["target_analysis"] = {
                     "ui_elements_count": len(target_representation.ui_elements),
-                    "backend_functions_count": len(
-                        target_representation.backend_functions
-                    ),
+                    "backend_functions_count": len(target_representation.backend_functions),
                     "data_fields_count": len(target_representation.data_fields),
                     "api_endpoints_count": len(target_representation.api_endpoints),
                 }
@@ -1080,9 +1038,7 @@ class ValidationReporter:
             )
 
         # Static vs behavioral discrepancy patterns
-        static_discrepancies = [
-            d for d in combined_discrepancies if d.type.startswith("static_")
-        ]
+        static_discrepancies = [d for d in combined_discrepancies if d.type.startswith("static_")]
         behavioral_discrepancies = [
             d for d in combined_discrepancies if d.type.startswith("behavioral_")
         ]
@@ -1293,11 +1249,7 @@ class ValidationReporter:
 
         for severity in ["critical", "warning", "info"]:
             if findings["by_severity"][severity]:
-                icon = (
-                    "🔴"
-                    if severity == "critical"
-                    else "🟡" if severity == "warning" else "🔵"
-                )
+                icon = "🔴" if severity == "critical" else "🟡" if severity == "warning" else "🔵"
                 html += f"<h3 class='{severity}'>{icon} {severity.title()} Issues ({len(findings['by_severity'][severity])})</h3>"
 
                 for finding in findings["by_severity"][severity]:
@@ -1312,9 +1264,7 @@ class ValidationReporter:
 
         return html
 
-    def _render_unified_recommendations_html(
-        self, recommendations: Dict[str, Any]
-    ) -> str:
+    def _render_unified_recommendations_html(self, recommendations: Dict[str, Any]) -> str:
         """Render unified recommendations section in HTML."""
         html = ""
 
@@ -1340,9 +1290,7 @@ class ValidationReporter:
 
         return html
 
-    def _render_component_scores_markdown(
-        self, component_scores: Dict[str, Any]
-    ) -> str:
+    def _render_component_scores_markdown(self, component_scores: Dict[str, Any]) -> str:
         """Render component scores in Markdown."""
         markdown = ""
 
@@ -1386,30 +1334,20 @@ class ValidationReporter:
         markdown = ""
 
         for severity in ["critical", "warning", "info"]:
-            icon = (
-                "🔴"
-                if severity == "critical"
-                else "🟡" if severity == "warning" else "🔵"
-            )
+            icon = "🔴" if severity == "critical" else "🟡" if severity == "warning" else "🔵"
             if findings["by_severity"][severity]:
                 markdown += f"\n### {icon} {severity.title()} Issues ({len(findings['by_severity'][severity])})\n\n"
 
                 for i, finding in enumerate(findings["by_severity"][severity], 1):
                     validation_source = finding["validation_source"].upper()
-                    markdown += (
-                        f"{i}. **[{validation_source}]** {finding['description']}\n"
-                    )
+                    markdown += f"{i}. **[{validation_source}]** {finding['description']}\n"
                     if finding.get("recommendation"):
-                        markdown += (
-                            f"    - *Recommendation:* {finding['recommendation']}\n"
-                        )
+                        markdown += f"    - *Recommendation:* {finding['recommendation']}\n"
                     markdown += "\n"
 
         return markdown
 
-    def _render_unified_recommendations_markdown(
-        self, recommendations: Dict[str, Any]
-    ) -> str:
+    def _render_unified_recommendations_markdown(self, recommendations: Dict[str, Any]) -> str:
         """Render unified recommendations section in Markdown."""
         markdown = ""
 
@@ -1524,20 +1462,14 @@ class ValidationReporter:
         markdown = ""
 
         for severity in ["critical", "warning", "info"]:
-            icon = (
-                "🔴"
-                if severity == "critical"
-                else "🟡" if severity == "warning" else "🔵"
-            )
+            icon = "🔴" if severity == "critical" else "🟡" if severity == "warning" else "🔵"
             if findings["by_severity"][severity]:
                 markdown += f"\n### {icon} {severity.title()} Issues ({len(findings['by_severity'][severity])})\n\n"
 
                 for i, finding in enumerate(findings["by_severity"][severity], 1):
                     markdown += f"{i}. **{finding['description']}**\n"
                     if finding.get("recommendation"):
-                        markdown += (
-                            f"    - *Recommendation:* {finding['recommendation']}\n"
-                        )
+                        markdown += f"    - *Recommendation:* {finding['recommendation']}\n"
                     markdown += "\n"
 
         return markdown

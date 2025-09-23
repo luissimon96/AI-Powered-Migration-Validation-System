@@ -149,9 +149,7 @@ class TestBehavioralValidationPipeline:
 
             # Verify execution log
             assert len(result.execution_log) > 0
-            assert any(
-                "Source system exploration" in log for log in result.execution_log
-            )
+            assert any("Source system exploration" in log for log in result.execution_log)
             assert any("Target system execution" in log for log in result.execution_log)
             assert any("Behavioral comparison" in log for log in result.execution_log)
 
@@ -301,7 +299,9 @@ class TestBehavioralValidationPipeline:
         with patch("src.behavioral.crews.Crew") as mock_crew_class:
             mock_crew_instance = MagicMock()
             mock_crew_class.return_value = mock_crew_instance
-            mock_crew_instance.kickoff.return_value = '{"overall_status": "approved", "fidelity_score": 0.9, "discrepancies": []}'
+            mock_crew_instance.kickoff.return_value = (
+                '{"overall_status": "approved", "fidelity_score": 0.9, "discrepancies": []}'
+            )
 
             crew = BehavioralValidationCrew(mock_llm_service)
 
@@ -452,7 +452,9 @@ class TestBehavioralValidationPerformance:
         with patch("src.behavioral.crews.Crew") as mock_crew_class:
             mock_crew_instance = MagicMock()
             mock_crew_class.return_value = mock_crew_instance
-            mock_crew_instance.kickoff.return_value = '{"overall_status": "approved", "fidelity_score": 0.9, "discrepancies": []}'
+            mock_crew_instance.kickoff.return_value = (
+                '{"overall_status": "approved", "fidelity_score": 0.9, "discrepancies": []}'
+            )
 
             # Create multiple crews
             crews = [BehavioralValidationCrew(mock_llm_service) for _ in range(3)]
@@ -464,10 +466,7 @@ class TestBehavioralValidationPerformance:
             # Execute concurrent validations
             start_time = datetime.now()
             results = await asyncio.gather(
-                *[
-                    crew.validate_migration(request)
-                    for crew, request in zip(crews, requests)
-                ]
+                *[crew.validate_migration(request) for crew, request in zip(crews, requests)]
             )
             end_time = datetime.now()
 

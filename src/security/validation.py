@@ -20,6 +20,7 @@ from pydantic import BaseModel, EmailStr, validator
 
 class SecurityValidationError(Exception):
     """Security validation error."""
+
     pass
 
 
@@ -40,17 +41,39 @@ class InputValidationRules(BaseModel):
     max_file_size: int = 10 * 1024 * 1024  # 10MB
     max_files_per_request: int = 20
     allowed_file_types: List[str] = [
-        "text/plain", "application/json", "image/png", "image/jpeg",
-        "text/html", "text/css", "application/javascript"
+        "text/plain",
+        "application/json",
+        "image/png",
+        "image/jpeg",
+        "text/html",
+        "text/css",
+        "application/javascript",
     ]
     allowed_file_extensions: List[str] = [
-        ".txt", ".json", ".png", ".jpg", ".jpeg", ".html", ".css", ".js",
-        ".py", ".java", ".cpp", ".c", ".ts", ".jsx", ".tsx", ".php", ".rb"
+        ".txt",
+        ".json",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".html",
+        ".css",
+        ".js",
+        ".py",
+        ".java",
+        ".cpp",
+        ".c",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        ".php",
+        ".rb",
     ]
     blocked_file_types: List[str] = [
-        "application/x-executable", "application/x-msdos-program",
+        "application/x-executable",
+        "application/x-msdos-program",
         "application/vnd.microsoft.portable-executable",
-        "application/x-msdownload", "application/x-sh"
+        "application/x-msdownload",
+        "application/x-sh",
     ]
     url_schemes: List[str] = ["http", "https"]
     max_url_length: int = 2048
@@ -65,7 +88,9 @@ class SecurityValidator:
         # Compile regex patterns for efficiency
         self.sql_injection_patterns = [
             re.compile(r"('|(\\'))|(;|--|\s+or\s+|\s+and\s+)", re.IGNORECASE),
-            re.compile(r"(union\s+select|insert\s+into|delete\s+from|drop\s+table)", re.IGNORECASE),
+            re.compile(
+                r"(union\s+select|insert\s+into|delete\s+from|drop\s+table)", re.IGNORECASE
+            ),
             re.compile(r"(exec\s*\(|execute\s*\(|sp_|xp_)", re.IGNORECASE),
         ]
 
@@ -109,9 +134,7 @@ class SecurityValidator:
         # Check for XSS patterns
         for pattern in self.xss_patterns:
             if pattern.search(value):
-                raise SecurityValidationError(
-                    f"{field_name} contains potential XSS pattern"
-                )
+                raise SecurityValidationError(f"{field_name} contains potential XSS pattern")
 
         # Check for path traversal
         for pattern in self.path_traversal_patterns:
@@ -172,7 +195,7 @@ class SecurityValidator:
             raise SecurityValidationError("Filename contains path traversal patterns")
 
         # Check for invalid characters
-        invalid_chars = ['<', '>', ':', '"', '|', '?', '*', '\0']
+        invalid_chars = ["<", ">", ":", '"', "|", "?", "*", "\0"]
         if any(char in filename for char in invalid_chars):
             raise SecurityValidationError("Filename contains invalid characters")
 
@@ -234,10 +257,10 @@ class SecurityValidator:
             )
 
         # Scan for suspicious content patterns
-        content_str = content.decode('utf-8', errors='ignore')
+        content_str = content.decode("utf-8", errors="ignore")
 
         # Check for embedded scripts in text files
-        if detected_type.startswith('text/'):
+        if detected_type.startswith("text/"):
             for pattern in self.xss_patterns:
                 if pattern.search(content_str):
                     issues.append("File contains potential XSS content")
@@ -245,10 +268,10 @@ class SecurityValidator:
 
         # Check for executable signatures
         executable_signatures = [
-            b'\x4d\x5a',  # PE executable
-            b'\x7f\x45\x4c\x46',  # ELF executable
-            b'\xfe\xed\xfa',  # Mach-O
-            b'\xca\xfe\xba\xbe',  # Java class file
+            b"\x4d\x5a",  # PE executable
+            b"\x7f\x45\x4c\x46",  # ELF executable
+            b"\xfe\xed\xfa",  # Mach-O
+            b"\xca\xfe\xba\xbe",  # Java class file
         ]
 
         for sig in executable_signatures:
@@ -261,7 +284,7 @@ class SecurityValidator:
             detected_type=detected_type,
             file_size=file_size,
             security_issues=issues,
-            warnings=warnings
+            warnings=warnings,
         )
 
     def validate_json_input(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -292,19 +315,19 @@ class SecurityValidator:
         # for production-grade HTML sanitization
 
         # Remove script tags
-        html = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.IGNORECASE | re.DOTALL)
+        html = re.sub(r"<script[^>]*>.*?</script>", "", html, flags=re.IGNORECASE | re.DOTALL)
 
         # Remove event handlers
-        html = re.sub(r'\s*on\w+\s*=\s*[\'"][^\'"]*[\'"]', '', html, flags=re.IGNORECASE)
+        html = re.sub(r'\s*on\w+\s*=\s*[\'"][^\'"]*[\'"]', "", html, flags=re.IGNORECASE)
 
         # Remove javascript: links
-        html = re.sub(r'javascript:', '', html, flags=re.IGNORECASE)
+        html = re.sub(r"javascript:", "", html, flags=re.IGNORECASE)
 
         # Remove dangerous tags
-        dangerous_tags = ['iframe', 'object', 'embed', 'form']
+        dangerous_tags = ["iframe", "object", "embed", "form"]
         for tag in dangerous_tags:
-            html = re.sub(f'<{tag}[^>]*>.*?</{tag}>', '', html, flags=re.IGNORECASE | re.DOTALL)
-            html = re.sub(f'<{tag}[^>]*/?>', '', html, flags=re.IGNORECASE)
+            html = re.sub(f"<{tag}[^>]*>.*?</{tag}>", "", html, flags=re.IGNORECASE | re.DOTALL)
+            html = re.sub(f"<{tag}[^>]*/?>", "", html, flags=re.IGNORECASE)
 
         return html
 
@@ -368,9 +391,7 @@ class InputValidator:
         return validated_data
 
     async def validate_file_uploads(
-        self,
-        files: List[UploadFile],
-        max_files: Optional[int] = None
+        self, files: List[UploadFile], max_files: Optional[int] = None
     ) -> List[Tuple[UploadFile, FileValidationResult]]:
         """Validate multiple file uploads."""
         max_files = max_files or self.security_validator.rules.max_files_per_request

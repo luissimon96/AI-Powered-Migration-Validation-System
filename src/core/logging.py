@@ -40,17 +40,16 @@ class SecurityFilter:
     def __init__(self, sensitive_fields: Optional[set] = None):
         self.sensitive_fields = sensitive_fields or SENSITIVE_FIELDS
 
-    def __call__(self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(
+        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Filter sensitive data from event dictionary."""
         return self._filter_sensitive_data(event_dict)
 
     def _filter_sensitive_data(self, data: Any) -> Any:
         """Recursively filter sensitive data from nested structures."""
         if isinstance(data, dict):
-            return {
-                key: self._filter_value(key, value)
-                for key, value in data.items()
-            }
+            return {key: self._filter_value(key, value) for key, value in data.items()}
         elif isinstance(data, list):
             return [self._filter_sensitive_data(item) for item in data]
         return data
@@ -73,7 +72,9 @@ class SecurityFilter:
 class PerformanceMonitor:
     """Monitor and log performance metrics."""
 
-    def __call__(self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(
+        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Add performance context to log events."""
         if "duration" in event_dict or "execution_time" in event_dict:
             # Add performance category for analytics
@@ -96,7 +97,9 @@ class RequestTracker:
     def __init__(self):
         self._context: Dict[str, Any] = {}
 
-    def __call__(self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(
+        self, logger: WrappedLogger, method_name: str, event_dict: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Add request context to log events."""
         # Add request context if available
         try:
@@ -142,12 +145,10 @@ def configure_structlog(
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
-
         # Custom processors
         SecurityFilter(),
         PerformanceMonitor(),
         RequestTracker(),
-
         # Context processors
         structlog.contextvars.merge_contextvars,
         structlog.processors.CallsiteParameterAdder(
@@ -163,15 +164,19 @@ def configure_structlog(
     if log_format == "json":
         processors.append(structlog.processors.JSONRenderer())
     elif log_format == "console":
-        processors.extend([
-            structlog.processors.add_log_level,
-            structlog.dev.ConsoleRenderer(colors=enable_colors),
-        ])
+        processors.extend(
+            [
+                structlog.processors.add_log_level,
+                structlog.dev.ConsoleRenderer(colors=enable_colors),
+            ]
+        )
     else:  # human-readable
-        processors.extend([
-            structlog.processors.add_log_level,
-            structlog.dev.ConsoleRenderer(colors=enable_colors),
-        ])
+        processors.extend(
+            [
+                structlog.processors.add_log_level,
+                structlog.dev.ConsoleRenderer(colors=enable_colors),
+            ]
+        )
 
     # Configure structlog
     structlog.configure(
@@ -256,11 +261,7 @@ class OperationLogger:
     def __enter__(self):
         """Start operation logging."""
         self.start_time = time.time()
-        self.logger.info(
-            "Operation started",
-            operation=self.operation,
-            **self.context
-        )
+        self.logger.info("Operation started", operation=self.operation, **self.context)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -272,7 +273,7 @@ class OperationLogger:
                 "Operation completed successfully",
                 operation=self.operation,
                 duration=duration,
-                **self.context
+                **self.context,
             )
         else:
             self.logger.error(
@@ -281,7 +282,7 @@ class OperationLogger:
                 duration=duration,
                 error=str(exc_val),
                 error_type=exc_type.__name__,
-                **self.context
+                **self.context,
             )
 
     async def __aenter__(self):
@@ -317,8 +318,10 @@ def log_operation(
         log_args: Whether to log function arguments
         log_result: Whether to log function result
     """
+
     def decorator(func):
         if asyncio.iscoroutinefunction(func):
+
             async def async_wrapper(*args, **kwargs):
                 logger = get_logger(func.__module__)
                 log_context = dict(context or {})
@@ -327,7 +330,9 @@ def log_operation(
                     log_context["args"] = args
                     log_context["kwargs"] = kwargs
 
-                async with OperationLogger(logger, operation, log_context, log_args, log_result) as op_logger:
+                async with OperationLogger(
+                    logger, operation, log_context, log_args, log_result
+                ) as op_logger:
                     result = await func(*args, **kwargs)
 
                     if log_result:
@@ -337,6 +342,7 @@ def log_operation(
 
             return async_wrapper
         else:
+
             def sync_wrapper(*args, **kwargs):
                 logger = get_logger(func.__module__)
                 log_context = dict(context or {})
@@ -345,7 +351,9 @@ def log_operation(
                     log_context["args"] = args
                     log_context["kwargs"] = kwargs
 
-                with OperationLogger(logger, operation, log_context, log_args, log_result) as op_logger:
+                with OperationLogger(
+                    logger, operation, log_context, log_args, log_result
+                ) as op_logger:
                     result = func(*args, **kwargs)
 
                     if log_result:
@@ -383,17 +391,23 @@ class PerformanceTimer:
 
 def measure_performance(name: str):
     """Decorator for automatic performance measurement."""
+
     def decorator(func):
         if asyncio.iscoroutinefunction(func):
+
             async def async_wrapper(*args, **kwargs):
                 with PerformanceTimer(name):
                     return await func(*args, **kwargs)
+
             return async_wrapper
         else:
+
             def sync_wrapper(*args, **kwargs):
                 with PerformanceTimer(name):
                     return func(*args, **kwargs)
+
             return sync_wrapper
+
     return decorator
 
 
