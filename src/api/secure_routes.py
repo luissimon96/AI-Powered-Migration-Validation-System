@@ -9,16 +9,8 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    File,
-    Form,
-    HTTPException,
-    Request,
-    UploadFile,
-)
+from fastapi import (BackgroundTasks, Depends, FastAPI, File, Form,
+                     HTTPException, Request, UploadFile)
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -26,13 +18,8 @@ from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
 from ..core.models import ValidationResult, ValidationSession
-from ..security.auth import (
-    User,
-    get_current_user,
-    require_admin,
-    require_validator,
-    require_viewer,
-)
+from ..security.auth import (User, get_current_user, require_admin,
+                             require_validator, require_viewer)
 from ..security.middleware import SecurityMiddleware
 from ..security.rate_limiter import rate_limit
 from ..security.validation import SecurityValidationError, input_validator

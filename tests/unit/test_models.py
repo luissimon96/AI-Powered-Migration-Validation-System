@@ -8,22 +8,12 @@ from datetime import datetime
 
 import pytest
 
-from src.core.models import (
-    AbstractRepresentation,
-    BackendFunction,
-    DataField,
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    SeverityLevel,
-    TechnologyContext,
-    TechnologyType,
-    UIElement,
-    ValidationDiscrepancy,
-    ValidationResult,
-    ValidationScope,
-    ValidationSession,
-)
+from src.core.models import (AbstractRepresentation, BackendFunction,
+                             DataField, InputData, InputType,
+                             MigrationValidationRequest, SeverityLevel,
+                             TechnologyContext, TechnologyType, UIElement,
+                             ValidationDiscrepancy, ValidationResult,
+                             ValidationScope, ValidationSession)
 
 
 @pytest.mark.unit

@@ -7,14 +7,8 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, Dict, Optional
 
-from prometheus_client import (
-    CollectorRegistry,
-    Counter,
-    Gauge,
-    Histogram,
-    Info,
-    generate_latest,
-)
+from prometheus_client import (CollectorRegistry, Counter, Gauge, Histogram,
+                               Info, generate_latest)
 
 from src.core.logging import logger
 

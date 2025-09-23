@@ -7,15 +7,9 @@ and identify discrepancies between source and target systems.
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
-from ..core.models import (
-    AbstractRepresentation,
-    BackendFunction,
-    DataField,
-    SeverityLevel,
-    UIElement,
-    ValidationDiscrepancy,
-    ValidationScope,
-)
+from ..core.models import (AbstractRepresentation, BackendFunction, DataField,
+                           SeverityLevel, UIElement, ValidationDiscrepancy,
+                           ValidationScope)
 from ..services.llm_service import create_llm_service
 
 

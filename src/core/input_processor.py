@@ -13,14 +13,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from .exceptions import resource_error
 from .logging import LoggerMixin
-from .models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-)
+from .models import (InputData, InputType, MigrationValidationRequest,
+                     TechnologyContext, TechnologyType, ValidationScope)
 
 
 class InputProcessor(LoggerMixin):

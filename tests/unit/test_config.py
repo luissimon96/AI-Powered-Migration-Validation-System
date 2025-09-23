@@ -6,14 +6,9 @@ from unittest.mock import mock_open, patch
 
 import pytest
 
-from src.core.config import (
-    BrowserAutomationConfig,
-    LLMProviderConfig,
-    ValidationConfig,
-    get_validation_config,
-    load_config_from_file,
-    validate_config,
-)
+from src.core.config import (BrowserAutomationConfig, LLMProviderConfig,
+                             ValidationConfig, get_validation_config,
+                             load_config_from_file, validate_config)
 
 
 @pytest.mark.unit

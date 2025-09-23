@@ -8,11 +8,11 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from alembic.config import Config
-from alembic.script import ScriptDirectory
 from sqlalchemy import MetaData, text
 
 from alembic import command
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 
 from .models import Base
 from .session import DatabaseManager

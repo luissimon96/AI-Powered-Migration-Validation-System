@@ -9,12 +9,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.behavioral.crews import (
-    BehavioralValidationCrew,
-    BehavioralValidationRequest,
-    BehavioralValidationResult,
-    create_behavioral_validation_crew,
-)
+from src.behavioral.crews import (BehavioralValidationCrew,
+                                  BehavioralValidationRequest,
+                                  BehavioralValidationResult,
+                                  create_behavioral_validation_crew)
 from src.core.models import SeverityLevel, ValidationDiscrepancy
 
 

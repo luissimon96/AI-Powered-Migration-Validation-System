@@ -11,15 +11,9 @@ from sqlalchemy import and_, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from .security_models import (
-    APIKeyModel,
-    AuditLogModel,
-    ComplianceLogModel,
-    FileUploadModel,
-    RateLimitModel,
-    SecurityIncidentModel,
-    SecurityMetricsModel,
-)
+from .security_models import (APIKeyModel, AuditLogModel, ComplianceLogModel,
+                              FileUploadModel, RateLimitModel,
+                              SecurityIncidentModel, SecurityMetricsModel)
 
 logger = logging.getLogger(__name__)
 

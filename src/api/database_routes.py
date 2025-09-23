@@ -9,32 +9,24 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import (BackgroundTasks, Depends, FastAPI, File, HTTPException,
+                     Query, UploadFile)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
-from ..behavioral.crews import BehavioralValidationRequest, create_behavioral_validation_crew
+from ..behavioral.crews import (BehavioralValidationRequest,
+                                create_behavioral_validation_crew)
 from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
-from ..core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-    ValidationSession,
-)
-from ..database.integration import (
-    DatabaseIntegration,
-    HybridSessionManager,
-    database_lifespan,
-    get_database_integration,
-    get_db_service,
-    get_hybrid_session_manager,
-)
+from ..core.models import (InputData, InputType, MigrationValidationRequest,
+                           TechnologyContext, TechnologyType, ValidationScope,
+                           ValidationSession)
+from ..database.integration import (DatabaseIntegration, HybridSessionManager,
+                                    database_lifespan,
+                                    get_database_integration, get_db_service,
+                                    get_hybrid_session_manager)
 from ..database.service import ValidationDatabaseService
 from ..reporters.validation_reporter import ValidationReporter
 

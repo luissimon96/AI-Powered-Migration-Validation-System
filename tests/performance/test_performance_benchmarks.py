@@ -20,14 +20,9 @@ from memory_profiler import profile
 from src.analyzers.code_analyzer import CodeAnalyzer
 from src.core.input_processor import InputProcessor
 from src.core.migration_validator import MigrationValidator
-from src.core.models import (
-    InputData,
-    InputType,
-    MigrationValidationRequest,
-    TechnologyContext,
-    TechnologyType,
-    ValidationScope,
-)
+from src.core.models import (InputData, InputType, MigrationValidationRequest,
+                             TechnologyContext, TechnologyType,
+                             ValidationScope)
 
 # ═══════════════════════════════════════════════════════════════
 # Performance Testing Framework

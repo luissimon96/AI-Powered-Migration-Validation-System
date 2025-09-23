@@ -9,13 +9,9 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from ..behavioral.crews import BehavioralValidationResult
-from ..core.models import (
-    AbstractRepresentation,
-    MigrationValidationRequest,
-    SeverityLevel,
-    ValidationDiscrepancy,
-    ValidationResult,
-)
+from ..core.models import (AbstractRepresentation, MigrationValidationRequest,
+                           SeverityLevel, ValidationDiscrepancy,
+                           ValidationResult)
 
 
 class ValidationReporter:

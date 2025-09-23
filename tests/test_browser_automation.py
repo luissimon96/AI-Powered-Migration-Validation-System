@@ -5,7 +5,6 @@ to verify the implementation works correctly.
 """
 
 import asyncio
-
 # Import the browser automation module
 import sys
 from pathlib import Path
@@ -15,12 +14,9 @@ import pytest
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
 from behavioral.browser_automation import (
-    BrowserAction,
-    BrowserAutomationEngine,
-    create_comprehensive_validation_scenario,
-    create_form_submission_scenario,
-    create_login_scenario,
-)
+    BrowserAction, BrowserAutomationEngine,
+    create_comprehensive_validation_scenario, create_form_submission_scenario,
+    create_login_scenario)
 
 
 class TestBrowserAutomation:

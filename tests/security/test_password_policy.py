@@ -4,7 +4,8 @@ Ultra-compressed test implementation for T001 completion.
 
 import pytest
 
-from src.security.password_policy import PasswordPolicy, PasswordValidator, password_validator
+from src.security.password_policy import (PasswordPolicy, PasswordValidator,
+                                          password_validator)
 
 
 class TestPasswordPolicy:

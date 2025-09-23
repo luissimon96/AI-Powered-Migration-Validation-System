@@ -7,7 +7,8 @@ migration validation system.
 from abc import ABC, abstractmethod
 from typing import List
 
-from ..core.models import AbstractRepresentation, InputData, TechnologyContext, ValidationScope
+from ..core.models import (AbstractRepresentation, InputData,
+                           TechnologyContext, ValidationScope)
 
 
 class BaseAnalyzer(ABC):

@@ -7,7 +7,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.security.session_manager import SessionData, SessionManager, session_manager
+from src.security.session_manager import (SessionData, SessionManager,
+                                          session_manager)
 
 
 class TestSessionData:

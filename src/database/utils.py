@@ -11,13 +11,10 @@ from typing import Any, Dict, Optional
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import (
-    MigrationValidationRequest,
-    ValidationDiscrepancy,
-    ValidationResult,
-    ValidationSession,
-)
-from .models import DiscrepancyModel, ValidationResultModel, ValidationSessionModel
+from ..core.models import (MigrationValidationRequest, ValidationDiscrepancy,
+                           ValidationResult, ValidationSession)
+from .models import (DiscrepancyModel, ValidationResultModel,
+                     ValidationSessionModel)
 
 logger = logging.getLogger(__name__)
 

@@ -17,7 +17,8 @@ import structlog
 try:
     from browser_use.browser import Browser as BrowserUseAgent
     from browser_use.controller import Controller
-    from playwright.async_api import Browser, BrowserContext, Page, async_playwright
+    from playwright.async_api import (Browser, BrowserContext, Page,
+                                      async_playwright)
 except ImportError:
     # Graceful fallback for environments without browser dependencies
     async_playwright = None

@@ -13,13 +13,8 @@ from fastapi.testclient import TestClient
 from jsonschema import Draft7Validator
 
 from src.api.routes import app
-from src.core.models import (
-    InputType,
-    TechnologyType,
-    ValidationResult,
-    ValidationScope,
-    ValidationStatus,
-)
+from src.core.models import (InputType, TechnologyType, ValidationResult,
+                             ValidationScope, ValidationStatus)
 
 # ═══════════════════════════════════════════════════════════════
 # Contract Testing Framework

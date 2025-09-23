@@ -9,7 +9,8 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from src.core.migration_validator import MigrationValidator
-from src.core.models import ValidationRequest, ValidationScope, ValidationStatus
+from src.core.models import (ValidationRequest, ValidationScope,
+                             ValidationStatus)
 
 
 @pytest.mark.integration

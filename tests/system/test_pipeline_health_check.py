@@ -111,7 +111,8 @@ class TestSystemHealthCheck:
     async def test_browser_automation_availability(self):
         """Test browser automation system availability."""
         try:
-            from src.behavioral.browser_automation import BrowserAutomationEngine
+            from src.behavioral.browser_automation import \
+                BrowserAutomationEngine
 
             engine = BrowserAutomationEngine(headless=True)
             initialization_success = await engine.initialize()
@@ -158,14 +159,10 @@ class TestSystemIntegrationHealth:
 
     async def test_static_validation_pipeline_health(self):
         """Test static validation pipeline health."""
-        from src.core.models import (
-            InputData,
-            InputType,
-            MigrationValidationRequest,
-            TechnologyContext,
-            TechnologyType,
-            ValidationScope,
-        )
+        from src.core.models import (InputData, InputType,
+                                     MigrationValidationRequest,
+                                     TechnologyContext, TechnologyType,
+                                     ValidationScope)
 
         mock_llm_service = AsyncMock()
         mock_llm_service.analyze_code_semantic_similarity.return_value = {
@@ -216,7 +213,8 @@ class TestSystemIntegrationHealth:
     def test_unified_reporting_pipeline_health(self):
         """Test unified reporting pipeline health."""
         from src.behavioral.crews import BehavioralValidationResult
-        from src.core.models import SeverityLevel, ValidationDiscrepancy, ValidationResult
+        from src.core.models import (SeverityLevel, ValidationDiscrepancy,
+                                     ValidationResult)
 
         reporter = ValidationReporter()
 

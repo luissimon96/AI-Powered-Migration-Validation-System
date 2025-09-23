@@ -10,21 +10,13 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import (
-    MigrationValidationRequest,
-    TechnologyType,
-    ValidationDiscrepancy,
-    ValidationResult,
-    ValidationSession,
-)
+from ..core.models import (MigrationValidationRequest, TechnologyType,
+                           ValidationDiscrepancy, ValidationResult,
+                           ValidationSession)
 from .models import ValidationSessionModel
-from .repositories import (
-    BehavioralTestRepository,
-    DiscrepancyRepository,
-    MetricsRepository,
-    ValidationResultRepository,
-    ValidationSessionRepository,
-)
+from .repositories import (BehavioralTestRepository, DiscrepancyRepository,
+                           MetricsRepository, ValidationResultRepository,
+                           ValidationSessionRepository)
 
 logger = logging.getLogger(__name__)
 
@@ -392,7 +384,8 @@ class ValidationDatabaseService:
 
         """
         # Reconstruct the validation request
-        from ..core.models import InputData, MigrationValidationRequest, TechnologyContext
+        from ..core.models import (InputData, MigrationValidationRequest,
+                                   TechnologyContext)
 
         source_technology = TechnologyContext(
             type=session_model.source_technology,

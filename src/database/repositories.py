@@ -11,14 +11,11 @@ from sqlalchemy import and_, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..core.models import SeverityLevel, TechnologyType, ValidationDiscrepancy, ValidationScope
-from .models import (
-    BehavioralTestResultModel,
-    DiscrepancyModel,
-    ValidationMetricsModel,
-    ValidationResultModel,
-    ValidationSessionModel,
-)
+from ..core.models import (SeverityLevel, TechnologyType,
+                           ValidationDiscrepancy, ValidationScope)
+from .models import (BehavioralTestResultModel, DiscrepancyModel,
+                     ValidationMetricsModel, ValidationResultModel,
+                     ValidationSessionModel)
 
 
 class BaseRepository:
