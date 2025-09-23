@@ -3,18 +3,19 @@ Enhanced end-to-end pipeline tests for T002 completion.
 Comprehensive validation pipeline testing with error scenarios.
 """
 
-import pytest
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import AsyncMock, Mock, patch
 
-from src.core.migration_validator import MigrationValidator
-from src.core.models import ValidationRequest, ValidationScope, ValidationStatus
-from src.services.llm_service import LLMService
+import pytest
+
 from src.analyzers.code_analyzer import CodeAnalyzer
 from src.analyzers.visual_analyzer import VisualAnalyzer
 from src.comparators.semantic_comparator import SemanticComparator
+from src.core.migration_validator import MigrationValidator
+from src.core.models import ValidationRequest, ValidationScope, ValidationStatus
+from src.services.llm_service import LLMService
 
 
 @pytest.mark.integration
@@ -274,8 +275,9 @@ class TestEnhancedE2EPipeline:
         )
         
         # Monitor memory usage during validation
-        import psutil
         import os
+
+        import psutil
         
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss

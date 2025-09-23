@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     DateTime,
@@ -18,7 +19,6 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
-    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -27,8 +27,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
+from ..core.models import InputType, SeverityLevel, TechnologyType, ValidationScope
 from .config import metadata
-from ..core.models import SeverityLevel, TechnologyType, ValidationScope, InputType
 
 # Base class for all models
 Base = declarative_base(metadata=metadata)

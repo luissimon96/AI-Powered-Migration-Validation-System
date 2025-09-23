@@ -3,16 +3,16 @@ Monitoring API endpoints for I002 implementation.
 Prometheus metrics, health checks, and observability endpoints.
 """
 
-from fastapi import APIRouter, Response, HTTPException, Query
-from fastapi.responses import PlainTextResponse
-from typing import Dict, Any, Optional, List
 import asyncio
+from typing import Any, Dict, List, Optional
 
-from src.monitoring.metrics import metrics_collector, MetricsCollector
-from src.monitoring.health import health_monitor, HealthStatus
+from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi.responses import PlainTextResponse
+
+from src.monitoring.health import HealthStatus, health_monitor
 from src.monitoring.logging import structured_logger
+from src.monitoring.metrics import MetricsCollector, metrics_collector
 from src.services.task_queue import async_validation_service
-
 
 # Create router
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])

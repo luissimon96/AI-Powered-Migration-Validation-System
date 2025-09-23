@@ -5,14 +5,15 @@ Tests for JWT authentication, user management, role-based access control,
 and authentication security features.
 """
 
-import pytest
 from datetime import datetime, timedelta, timezone
-from fastapi.testclient import TestClient
 from unittest.mock import patch
 
+import pytest
+from fastapi.testclient import TestClient
+
 from src.security.auth import (
-    AuthManager,
     AuthenticationError,
+    AuthManager,
     JWTAuthenticator,
     User,
     UserRole,

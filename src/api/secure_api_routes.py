@@ -23,6 +23,8 @@ from fastapi.responses import JSONResponse
 
 from ..behavioral.crews import (
     BehavioralValidationRequest as CrewBehavioralRequest,
+)
+from ..behavioral.crews import (
     create_behavioral_validation_crew,
 )
 from ..core.config import get_settings
@@ -31,20 +33,20 @@ from ..core.migration_validator import MigrationValidator
 from ..core.models import ValidationSession
 from ..security.api_keys import (
     APIKeyMetadata,
+    APIKeyScope,
     api_key_manager,
     api_key_rate_limiter,
     get_api_key_metadata,
-    require_validation_scope,
     require_admin_scope,
     require_read_scope,
-    APIKeyScope,
+    require_validation_scope,
 )
 from ..security.audit import security_audit
 from ..security.headers import create_security_headers
 from ..security.schemas import (
     APIKeyCreateRequest,
-    APIKeyResponse,
     APIKeyListResponse,
+    APIKeyResponse,
     BehavioralValidationRequest,
     BehavioralValidationResultResponse,
     ErrorResponse,
@@ -57,11 +59,10 @@ from ..security.schemas import (
     ValidationListQuery,
     ValidationResultResponse,
     ValidationStatusResponse,
-    validate_request_schema,
     sanitize_response_data,
+    validate_request_schema,
 )
-from ..security.validation import input_validator, SecurityValidationError
-
+from ..security.validation import SecurityValidationError, input_validator
 
 # Initialize components
 settings = get_settings()
@@ -231,9 +232,9 @@ async def revoke_api_key(
 # File Upload Endpoints
 @router.post("/files/upload", response_model=FileUploadBatchResponse)
 async def upload_files(
+    req: Request,
     files: List[UploadFile] = File(...),
     metadata: str = Form(...),
-    req: Request,
     api_key_metadata: APIKeyMetadata = Depends(require_validation_scope),
     rate_limit_check: APIKeyMetadata = Depends(api_key_rate_limiter.require_rate_limit_check),
 ):
@@ -633,8 +634,9 @@ async def health_check(
 ):
     """System health check."""
     try:
-        import psutil
         import time
+
+        import psutil
 
         uptime = time.time() - psutil.boot_time()
 
@@ -713,11 +715,11 @@ async def _process_migration_validation(
 
         # Initialize real validation pipeline
         from ..core.models import (
+            InputData,
+            InputType,
             MigrationValidationRequest,
             TechnologyContext,
             TechnologyType,
-            InputData,
-            InputType
         )
 
         # Create technology contexts
@@ -797,18 +799,23 @@ async def _process_behavioral_validation(
                 "scenarios_failed": crew_result.get("scenarios_failed", []),
                 "execution_time": crew_result.get("execution_time", 0.0),
                 "screenshot_urls": crew_result.get("screenshot_urls", []),
-                "detailed_results": crew_result.get("detailed_results", [])
-            ],
-            "timestamp": datetime.utcnow()
-        }
+                "detailed_results": crew_result.get("detailed_results", []),
+                "timestamp": datetime.utcnow()
+            }
 
-        session["result"] = result
-        session["status"] = "completed"
-        session["updated_at"] = datetime.utcnow()
+            session["result"] = result
+            session["status"] = "completed"
+            session["updated_at"] = datetime.utcnow()
 
+        except Exception as e:
+            session = behavioral_validation_sessions.get(session_id)
+            if session:
+                session["status"] = "failed"
+                session["message"] = f"Behavioral validation failed: {str(e)}"
+                session["updated_at"] = datetime.utcnow()
     except Exception as e:
         session = behavioral_validation_sessions.get(session_id)
         if session:
             session["status"] = "failed"
-            session["message"] = f"Behavioral validation failed: {str(e)}"
+            session["message"] = f"Process failed: {str(e)}"
             session["updated_at"] = datetime.utcnow()

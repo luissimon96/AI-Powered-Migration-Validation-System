@@ -4,17 +4,17 @@ Real-time validation with progress tracking and WebSocket support.
 """
 
 import json
-from typing import Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from src.core.models import ValidationRequest
-from src.services.task_queue import async_validation_service, AsyncValidationService
 from src.api.middleware import validate_request
 from src.core.logging import logger
+from src.core.models import ValidationRequest
+from src.services.task_queue import AsyncValidationService, async_validation_service
 
 
 # Request/Response models

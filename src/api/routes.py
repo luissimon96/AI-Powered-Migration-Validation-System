@@ -13,14 +13,14 @@ import json
 import os
 import tempfile
 from datetime import datetime
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile, Depends
+from fastapi import BackgroundTasks, Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
-from enum import Enum
 
 
 class UserRole(str, Enum):
@@ -51,6 +51,7 @@ behavioral_validation_sessions: Dict[str, Dict[str, Any]] = {}
 
 
 from src.api.async_routes import router as async_router
+
 
 def create_app() -> FastAPI:
     """Create and configure FastAPI application."""

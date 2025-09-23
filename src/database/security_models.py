@@ -5,17 +5,17 @@ Defines SQLAlchemy models for API keys, audit logs, and security configurations.
 """
 
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     DateTime,
+    Index,
     Integer,
-    JSON,
     String,
     Text,
-    Index,
     UniqueConstraint,
 )
 from sqlalchemy.sql import func

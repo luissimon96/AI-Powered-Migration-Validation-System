@@ -3,14 +3,15 @@ Database integration tests for T002 completion.
 Ultra-compressed implementation focusing on core database operations.
 """
 
-import pytest
 from datetime import datetime, timedelta
 from unittest.mock import Mock
+
+import pytest
 from sqlalchemy.exc import IntegrityError
 
-from src.database.models import ValidationSession, User, ValidationResult
-from src.database.integration import DatabaseManager
 from src.core.models import ValidationRequest, ValidationScope
+from src.database.integration import DatabaseManager
+from src.database.models import User, ValidationResult, ValidationSession
 
 
 @pytest.mark.integration
@@ -182,8 +183,9 @@ class TestDatabaseMigrations:
     def test_migration_version_tracking(self, db_session):
         """Test migration version tracking."""
         from alembic.config import Config
-        from alembic import command
         from alembic.runtime.migration import MigrationContext
+
+        from alembic import command
         
         # Get current migration version
         context = MigrationContext.configure(db_session.connection())

@@ -6,26 +6,26 @@ and validate request/response schemas against OpenAPI specifications.
 """
 
 import json
-import pytest
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 from unittest.mock import Mock, patch
-from fastapi.testclient import TestClient
-from pydantic import ValidationError
+
 import jsonschema
+import pytest
+from fastapi.testclient import TestClient
 from jsonschema import Draft7Validator
+from pydantic import ValidationError
 
 from src.api.routes import app
 from src.core.models import (
+    InputData,
+    InputType,
     MigrationValidationRequest,
     TechnologyContext,
     TechnologyType,
-    ValidationScope,
-    InputData,
-    InputType,
     ValidationResult,
+    ValidationScope,
     ValidationStatus,
 )
-
 
 # ═══════════════════════════════════════════════════════════════
 # Contract Testing Framework

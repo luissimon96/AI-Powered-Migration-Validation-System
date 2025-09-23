@@ -6,17 +6,18 @@ for property-based testing, performance testing, and visual regression testing.
 """
 
 import asyncio
+import json
+import logging
 import os
 import sys
 import tempfile
-import json
-import pytest
 import time
-from pathlib import Path
-from typing import Any, Dict, List, Generator, Optional
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
 from contextlib import contextmanager
-import logging
+from pathlib import Path
+from typing import Any, Dict, Generator, List, Optional
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import pytest
 
 # Third-party imports for advanced testing
 try:
@@ -32,7 +33,9 @@ except ImportError:
     PSUTIL_AVAILABLE = False
 
 # Project imports
+from src.analyzers.code_analyzer import CodeAnalyzer
 from src.behavioral.crews import BehavioralValidationCrew
+from src.core.input_processor import InputProcessor
 from src.core.migration_validator import MigrationValidator
 from src.core.models import (
     InputData,
@@ -40,16 +43,13 @@ from src.core.models import (
     MigrationValidationRequest,
     TechnologyContext,
     TechnologyType,
-    ValidationScope,
     ValidationResult,
+    ValidationScope,
     ValidationStatus,
 )
-from src.services.llm_service import LLMConfig, LLMProvider, LLMResponse, LLMService
-from src.analyzers.code_analyzer import CodeAnalyzer
-from src.core.input_processor import InputProcessor
 from src.security.api_keys import APIKeyManager, APIKeyMetadata
 from src.security.schemas import APIKeyScope
-
+from src.services.llm_service import LLMConfig, LLMProvider, LLMResponse, LLMService
 
 # ═══════════════════════════════════════════════════════════════
 # Test Configuration and Setup
@@ -1380,7 +1380,6 @@ def security_test_data():
 
 # Import datetime here for fixtures that need it
 from datetime import datetime
-
 
 # Mark aliases for convenience
 pytest.mark.unit = pytest.mark.unit

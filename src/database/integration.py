@@ -10,12 +10,12 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..core.models import ValidationResult, ValidationSession
 from .service import ValidationDatabaseService, get_validation_service
-from .session import get_db_session, initialize_database, close_database
-from ..core.models import ValidationSession, ValidationResult
+from .session import close_database, get_db_session, initialize_database
 
 logger = logging.getLogger(__name__)
 

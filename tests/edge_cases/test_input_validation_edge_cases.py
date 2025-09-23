@@ -5,22 +5,24 @@ This module contains comprehensive edge case tests for all input validation scen
 focusing on boundary conditions, malformed inputs, and error handling robustness.
 """
 
-import pytest
-import tempfile
+import json
 import os
+import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
-from hypothesis import given, strategies as st, assume, example
-from hypothesis.stateful import RuleBasedStateMachine, rule, invariant, Bundle
-import json
+
+import pytest
+from hypothesis import assume, example, given
+from hypothesis import strategies as st
+from hypothesis.stateful import Bundle, RuleBasedStateMachine, invariant, rule
 
 from src.core.input_processor import InputProcessor
 from src.core.models import (
     InputData,
     InputType,
-    TechnologyType,
     MigrationValidationRequest,
     TechnologyContext,
+    TechnologyType,
     ValidationScope,
 )
 

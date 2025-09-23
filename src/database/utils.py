@@ -13,15 +13,15 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .models import ValidationSessionModel, ValidationResultModel, DiscrepancyModel
-from .session import get_database_manager
 from ..core.models import (
+    MigrationValidationRequest,
+    SeverityLevel,
     ValidationDiscrepancy,
     ValidationResult,
     ValidationSession,
-    MigrationValidationRequest,
-    SeverityLevel,
 )
+from .models import DiscrepancyModel, ValidationResultModel, ValidationSessionModel
+from .session import get_database_manager
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ async def convert_db_model_to_pydantic(
     Returns:
         ValidationSession: Pydantic validation session
     """
-    from ..core.models import TechnologyContext, InputData, MigrationValidationRequest
+    from ..core.models import InputData, MigrationValidationRequest, TechnologyContext
 
     # Reconstruct technology contexts
     source_technology = TechnologyContext(

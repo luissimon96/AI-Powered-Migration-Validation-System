@@ -6,8 +6,9 @@ Comprehensive health monitoring with dependency checks.
 import asyncio
 import time
 from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional, Union
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
 import redis
 
 from src.core.config import get_validation_config

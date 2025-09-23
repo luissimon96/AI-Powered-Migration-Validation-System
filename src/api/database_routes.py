@@ -46,14 +46,15 @@ from ..core.models import (
 from ..database.integration import (
     DatabaseIntegration,
     HybridSessionManager,
-    get_database_integration,
-    get_hybrid_session_manager,
-    get_db_service,
     database_lifespan,
+    get_database_integration,
+    get_db_service,
+    get_hybrid_session_manager,
 )
 from ..database.service import ValidationDatabaseService
 from ..database.session import get_db_session
 from ..reporters.validation_reporter import ValidationReporter
+
 
 # Pydantic models for API requests/responses
 class ValidationRequest(BaseModel):

@@ -5,36 +5,35 @@ This module provides comprehensive performance testing including load testing,
 stress testing, memory profiling, and performance regression detection.
 """
 
-import time
 import asyncio
-import statistics
-import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Dict, Any, Callable
-from dataclasses import dataclass
-from unittest.mock import Mock, patch
-import tempfile
-import os
 import gc
-import sys
 import json
+import os
+import statistics
+import sys
+import tempfile
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, List
+from unittest.mock import Mock, patch
 
-import pytest
 import psutil
+import pytest
 from memory_profiler import profile
 
-from src.core.migration_validator import MigrationValidator
-from src.core.input_processor import InputProcessor
 from src.analyzers.code_analyzer import CodeAnalyzer
+from src.core.input_processor import InputProcessor
+from src.core.migration_validator import MigrationValidator
 from src.core.models import (
+    InputData,
+    InputType,
     MigrationValidationRequest,
     TechnologyContext,
     TechnologyType,
     ValidationScope,
-    InputData,
-    InputType,
 )
-
 
 # ═══════════════════════════════════════════════════════════════
 # Performance Testing Framework

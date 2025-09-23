@@ -3,8 +3,10 @@ Integration tests for security API components.
 Ultra-compressed test implementation completing T001.
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
+
 
 # Quick integration test for API security components
 class TestSecurityAPIIntegration:

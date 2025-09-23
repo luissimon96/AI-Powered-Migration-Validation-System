@@ -3,10 +3,11 @@ Unit tests for session manager module.
 Ultra-compressed test implementation for T001 completion.
 """
 
-import pytest
 import time
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
+
+import pytest
 
 from src.security.session_manager import SessionData, SessionManager, session_manager
 

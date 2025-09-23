@@ -10,13 +10,13 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import NullPool
 
 from .config import DatabaseConfig, get_database_config

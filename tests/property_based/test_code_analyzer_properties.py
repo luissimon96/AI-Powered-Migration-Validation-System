@@ -7,16 +7,16 @@ and validating invariants that should hold for all inputs.
 
 import ast
 import re
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 from unittest.mock import Mock, patch
 
 import pytest
-from hypothesis import given, strategies as st, assume, example, note, settings
-from hypothesis.stateful import RuleBasedStateMachine, rule, invariant, Bundle
+from hypothesis import assume, example, given, note, settings
+from hypothesis import strategies as st
+from hypothesis.stateful import Bundle, RuleBasedStateMachine, invariant, rule
 
 from src.analyzers.code_analyzer import CodeAnalyzer
 from src.core.models import TechnologyType
-
 
 # ═══════════════════════════════════════════════════════════════
 # Hypothesis Strategies for Code Generation

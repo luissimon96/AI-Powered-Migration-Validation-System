@@ -4,13 +4,14 @@ JSON-formatted logging with comprehensive context tracking.
 """
 
 import json
+import logging
 import sys
 import uuid
-from datetime import datetime
-from typing import Dict, Any, Optional, Union
-import logging
-import structlog
 from contextlib import contextmanager
+from datetime import datetime
+from typing import Any, Dict, Optional, Union
+
+import structlog
 
 from src.core.config import get_validation_config
 

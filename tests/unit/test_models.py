@@ -5,24 +5,25 @@ Tests all model classes, validation logic, serialization/deserialization,
 and edge cases for the core data structures.
 """
 
-import pytest
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from typing import Any, Dict
+
+import pytest
 
 from src.core.models import (
-    TechnologyType,
-    ValidationScope,
-    InputType,
-    SeverityLevel,
-    TechnologyContext,
-    InputData,
-    UIElement,
+    AbstractRepresentation,
     BackendFunction,
     DataField,
-    AbstractRepresentation,
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    SeverityLevel,
+    TechnologyContext,
+    TechnologyType,
+    UIElement,
     ValidationDiscrepancy,
     ValidationResult,
-    MigrationValidationRequest,
+    ValidationScope,
     ValidationSession,
 )
 

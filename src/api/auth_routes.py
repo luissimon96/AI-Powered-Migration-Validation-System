@@ -12,8 +12,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
 from ..security.auth import (
-    AuthManager,
     AuthenticationError,
+    AuthManager,
     User,
     UserRole,
     auth_manager,
@@ -21,7 +21,7 @@ from ..security.auth import (
     require_admin,
     require_viewer,
 )
-from ..security.rate_limiter import rate_limit, RateLimitConfig
+from ..security.rate_limiter import RateLimitConfig, rate_limit
 from ..security.validation import input_validator
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])

@@ -10,14 +10,14 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import Request, Response, HTTPException, status
+from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from ..core.config import get_settings
 from ..core.logging import logger
-from ..security.audit import security_audit, AuditEventType, AuditSeverity
-from ..security.validation import SecurityValidator, SecurityValidationError
+from ..security.audit import AuditEventType, AuditSeverity, security_audit
+from ..security.validation import SecurityValidationError, SecurityValidator
 
 
 class SecurityMiddleware(BaseHTTPMiddleware):

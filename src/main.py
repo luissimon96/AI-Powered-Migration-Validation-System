@@ -390,8 +390,8 @@ def db_init(target: str, verbose: bool):
 
     try:
         from .database.config import get_database_config
-        from .database.session import DatabaseManager
         from .database.migrations import MigrationManager
+        from .database.session import DatabaseManager
 
         async def init_database():
             db_config = get_database_config()

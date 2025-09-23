@@ -13,20 +13,20 @@ from sqlalchemy import and_, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from ..core.models import (
+    SeverityLevel,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationScope,
+    ValidationSession,
+)
 from .models import (
     BehavioralTestResultModel,
     DiscrepancyModel,
     ValidationMetricsModel,
     ValidationResultModel,
     ValidationSessionModel,
-)
-from ..core.models import (
-    SeverityLevel,
-    TechnologyType,
-    ValidationScope,
-    ValidationDiscrepancy,
-    ValidationResult,
-    ValidationSession,
 )
 
 
