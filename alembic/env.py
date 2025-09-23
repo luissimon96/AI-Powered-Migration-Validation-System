@@ -1,26 +1,26 @@
-"""
-Alembic environment configuration for AI-Powered Migration Validation System.
+"""Alembic environment configuration for AI-Powered Migration Validation System.
 
 This file is used by Alembic to configure the migration environment,
 including database connection and metadata setup.
 """
 
+from src.database.models import Base
+from src.database.config import get_database_config
 import asyncio
 import os
 import sys
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
+
+from alembic import context
 
 # Add the project source directory to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 # Import the models and configuration
-from src.database.models import Base
-from src.database.config import get_database_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

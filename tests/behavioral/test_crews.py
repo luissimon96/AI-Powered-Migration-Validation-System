@@ -5,11 +5,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.behavioral.crews import (BehavioralValidationCrew,
-                                  BehavioralValidationRequest,
-                                  ComparisonJudgeAgent, ReportManagerAgent,
-                                  SourceExplorerAgent, TargetExecutorAgent,
-                                  create_behavioral_validation_crew)
+from src.behavioral.crews import (
+    BehavioralValidationCrew,
+    BehavioralValidationRequest,
+    ComparisonJudgeAgent,
+    ReportManagerAgent,
+    SourceExplorerAgent,
+    TargetExecutorAgent,
+    create_behavioral_validation_crew,
+)
 
 
 @pytest.mark.behavioral
@@ -162,7 +166,8 @@ class TestBehavioralValidationCrew:
             '{"source_exploration": "completed", "scenarios_tested": 3}',  # source exploration
             '{"target_execution": "completed", "scenarios_replicated": 3}',  # target execution
             '{"comparison": "completed", "discrepancies": [], "similarity": 0.95}',  # comparison
-            '{"overall_status": "approved", "fidelity_score": 0.95, "discrepancies": []}',  # final report
+            # final report
+            '{"overall_status": "approved", "fidelity_score": 0.95, "discrepancies": []}',
         ]
 
         crew = BehavioralValidationCrew(mock_llm_service)
@@ -185,7 +190,8 @@ class TestBehavioralValidationCrew:
         assert mock_crew_instance.kickoff.call_count == 4
 
     @patch("src.behavioral.crews.Crew")
-    async def test_validate_migration_with_errors(self, mock_crew_class, mock_llm_service):
+    async def test_validate_migration_with_errors(
+            self, mock_crew_class, mock_llm_service):
         """Test migration validation with errors."""
         # Mock crew execution with error
         mock_crew_instance = MagicMock()

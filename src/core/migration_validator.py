@@ -16,13 +16,23 @@ from ..comparators.semantic_comparator import SemanticComparator
 from ..reporters.validation_reporter import ValidationReporter
 from ..services.llm_service import create_llm_service
 from .config import get_validation_config
-from .exceptions import (BaseValidationError, ErrorRecoveryManager,
-                         configuration_error, processing_error,
-                         validation_input_error)
+from .exceptions import (
+    BaseValidationError,
+    ErrorRecoveryManager,
+    configuration_error,
+    processing_error,
+    validation_input_error,
+)
 from .logging import LoggerMixin, log_operation
-from .models import (InputType, MigrationValidationRequest, SeverityLevel,
-                     TechnologyContext, ValidationResult, ValidationScope,
-                     ValidationSession)
+from .models import (
+    InputType,
+    MigrationValidationRequest,
+    SeverityLevel,
+    TechnologyContext,
+    ValidationResult,
+    ValidationScope,
+    ValidationSession,
+)
 
 
 class MigrationValidator(LoggerMixin):
@@ -77,8 +87,8 @@ class MigrationValidator(LoggerMixin):
             except Exception as e:
                 self.logger.error("Failed to initialize LLM service", error=str(e))
                 raise configuration_error(
-                    f"Failed to initialize LLM service: {e!s}", config_key="llm_config", cause=e,
-                )
+                    f"Failed to initialize LLM service: {
+                        e!s}", config_key="llm_config", cause=e, )
         else:
             self.llm_service = llm_client
             self.logger.info("LLM service provided externally")
@@ -96,7 +106,8 @@ class MigrationValidator(LoggerMixin):
             )
 
     @log_operation("migration_validation_pipeline")
-    async def validate_migration(self, request: MigrationValidationRequest) -> ValidationSession:
+    async def validate_migration(
+            self, request: MigrationValidationRequest) -> ValidationSession:
         """Execute complete migration validation pipeline.
 
         Args:
@@ -148,13 +159,17 @@ class MigrationValidator(LoggerMixin):
                 session.target_representation,
                 request.validation_scope,
             )
-            session.add_log(f"Comparison complete: {len(discrepancies)} discrepancies found")
+            session.add_log(
+                f"Comparison complete: {
+                    len(discrepancies)} discrepancies found")
 
             # Stage 3: Result Analysis and Report Generation
-            session.add_log("Stage 3: Analyzing results and generating validation outcome")
+            session.add_log(
+                "Stage 3: Analyzing results and generating validation outcome")
             execution_time = time.time() - start_time
 
-            session.result = self._analyze_validation_results(discrepancies, execution_time)
+            session.result = self._analyze_validation_results(
+                discrepancies, execution_time)
 
             session.add_log(
                 f"Validation complete: {session.result.overall_status} "
@@ -164,7 +179,8 @@ class MigrationValidator(LoggerMixin):
             return session
 
         except BaseValidationError as e:
-            session.add_log(f"Validation failed with structured error: {e.error_code} - {e!s}")
+            session.add_log(
+                f"Validation failed with structured error: {e.error_code} - {e!s}")
 
             # Log structured error details
             self.logger.error(
@@ -269,8 +285,10 @@ class MigrationValidator(LoggerMixin):
 
         """
         # Count discrepancies by severity
-        critical_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.CRITICAL)
-        warning_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.WARNING)
+        critical_count = sum(
+            1 for d in discrepancies if d.severity == SeverityLevel.CRITICAL)
+        warning_count = sum(
+            1 for d in discrepancies if d.severity == SeverityLevel.WARNING)
         info_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.INFO)
 
         # Determine overall status
@@ -280,14 +298,14 @@ class MigrationValidator(LoggerMixin):
         elif warning_count > 0:
             overall_status = "approved_with_warnings"
             summary = (
-                f"Migration validation passed with {warning_count} warnings requiring review."
-            )
+                f"Migration validation passed with {warning_count} warnings requiring review.")
         else:
             overall_status = "approved"
             summary = "Migration validation passed successfully with no critical issues found."
 
         # Calculate fidelity score
-        fidelity_score = self._calculate_fidelity_score(critical_count, warning_count, info_count)
+        fidelity_score = self._calculate_fidelity_score(
+            critical_count, warning_count, info_count)
 
         return ValidationResult(
             overall_status=overall_status,
@@ -327,7 +345,9 @@ class MigrationValidator(LoggerMixin):
 
         # Apply confidence weighting based on individual discrepancy scores
         if discrepancies:
-            confidence_weights = [d.confidence_score for d in discrepancies if hasattr(d, "confidence_score")]
+            confidence_weights = [
+                d.confidence_score for d in discrepancies if hasattr(
+                    d, "confidence_score")]
             if confidence_weights:
                 avg_confidence = sum(confidence_weights) / len(confidence_weights)
                 score *= avg_confidence  # Weight by average confidence
@@ -336,7 +356,10 @@ class MigrationValidator(LoggerMixin):
         return max(0.0, min(1.0, score))
 
     @log_operation("validation_report_generation")
-    async def generate_report(self, session: ValidationSession, format: str = "json") -> str:
+    async def generate_report(
+            self,
+            session: ValidationSession,
+            format: str = "json") -> str:
         """Generate validation report in specified format.
 
         Args:
@@ -402,7 +425,8 @@ class MigrationValidator(LoggerMixin):
         }
 
     @log_operation("request_validation")
-    async def validate_request(self, request: MigrationValidationRequest) -> Dict[str, Any]:
+    async def validate_request(
+            self, request: MigrationValidationRequest) -> Dict[str, Any]:
         """Validate migration request parameters before processing.
 
         Args:
@@ -422,9 +446,9 @@ class MigrationValidator(LoggerMixin):
             )
             if not source_analyzer.supports_scope(request.validation_scope):
                 issues.append(
-                    f"Source technology {request.source_technology.type.value} "
-                    f"doesn't support validation scope {request.validation_scope.value}",
-                )
+                    f"Source technology {
+                        request.source_technology.type.value} " f"doesn't support validation scope {
+                        request.validation_scope.value}", )
         except AnalyzerError as e:
             issues.append(f"Source technology not supported: {e!s}")
 
@@ -434,9 +458,9 @@ class MigrationValidator(LoggerMixin):
             )
             if not target_analyzer.supports_scope(request.validation_scope):
                 issues.append(
-                    f"Target technology {request.target_technology.type.value} "
-                    f"doesn't support validation scope {request.validation_scope.value}",
-                )
+                    f"Target technology {
+                        request.target_technology.type.value} " f"doesn't support validation scope {
+                        request.validation_scope.value}", )
         except AnalyzerError as e:
             issues.append(f"Target technology not supported: {e!s}")
 
@@ -463,11 +487,11 @@ class MigrationValidator(LoggerMixin):
         )
 
         if total_files > 50:
-            warnings.append(f"Large number of files ({total_files}) may impact processing time")
+            warnings.append(
+                f"Large number of files ({total_files}) may impact processing time")
 
         if total_screenshots > 10:
             warnings.append(
-                f"Large number of screenshots ({total_screenshots}) may impact processing time",
-            )
+                f"Large number of screenshots ({total_screenshots}) may impact processing time", )
 
         return {"valid": len(issues) == 0, "issues": issues, "warnings": warnings}

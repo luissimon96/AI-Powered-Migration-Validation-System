@@ -13,8 +13,13 @@ from fastapi.testclient import TestClient
 from jsonschema import Draft7Validator
 
 from src.api.routes import app
-from src.core.models import (InputType, TechnologyType, ValidationResult,
-                             ValidationScope, ValidationStatus)
+from src.core.models import (
+    InputType,
+    TechnologyType,
+    ValidationResult,
+    ValidationScope,
+    ValidationStatus,
+)
 
 # ═══════════════════════════════════════════════════════════════
 # Contract Testing Framework
@@ -158,14 +163,27 @@ VALIDATION_RESULT_SCHEMA = {
 
 HEALTH_CHECK_SCHEMA = {
     "type": "object",
-    "required": ["status", "timestamp"],
+    "required": [
+        "status",
+        "timestamp"],
     "properties": {
-        "status": {"type": "string", "enum": ["healthy", "unhealthy"]},
-        "timestamp": {"type": "string", "format": "date-time"},
-        "version": {"type": "string"},
+        "status": {
+            "type": "string",
+            "enum": [
+                    "healthy",
+                    "unhealthy"]},
+        "timestamp": {
+            "type": "string",
+            "format": "date-time"},
+        "version": {
+            "type": "string"},
         "dependencies": {
             "type": "object",
-            "properties": {"llm_service": {"type": "string"}, "database": {"type": "string"}},
+            "properties": {
+                "llm_service": {
+                    "type": "string"},
+                "database": {
+                    "type": "string"}},
         },
     },
 }
@@ -215,8 +233,12 @@ class TestAPIContracts:
     def test_migration_validation_contract_success(self):
         """Test successful migration validation contract."""
         request_data = {
-            "source_technology": {"type": TechnologyType.PYTHON_FLASK.value, "version": "2.0"},
-            "target_technology": {"type": TechnologyType.JAVA_SPRING.value, "version": "3.0"},
+            "source_technology": {
+                "type": TechnologyType.PYTHON_FLASK.value,
+                "version": "2.0"},
+            "target_technology": {
+                "type": TechnologyType.JAVA_SPRING.value,
+                "version": "3.0"},
             "validation_scope": ValidationScope.BUSINESS_LOGIC.value,
             "source_input": {
                 "type": InputType.TEXT.value,
@@ -384,7 +406,8 @@ class TestBehavioralAPIContracts:
         }
 
         # Validate request schema
-        self.contract_tester.validate_request_schema(request_data, behavioral_request_schema)
+        self.contract_tester.validate_request_schema(
+            request_data, behavioral_request_schema)
 
         with patch("src.behavioral.crews.BehavioralValidationCrew.validate") as mock_validate:
             mock_validate.return_value = {
@@ -461,17 +484,24 @@ class TestAPIBackwardCompatibility:
     def test_response_field_stability(self):
         """Test that response fields remain stable across versions."""
         request_data = {
-            "source_technology": {"type": TechnologyType.PYTHON_FLASK.value, "version": "2.0"},
-            "target_technology": {"type": TechnologyType.JAVA_SPRING.value, "version": "3.0"},
+            "source_technology": {
+                "type": TechnologyType.PYTHON_FLASK.value,
+                "version": "2.0"},
+            "target_technology": {
+                "type": TechnologyType.JAVA_SPRING.value,
+                "version": "3.0"},
             "validation_scope": ValidationScope.BUSINESS_LOGIC.value,
-            "source_input": {"type": InputType.TEXT.value, "text": "def test(): pass"},
-            "target_input": {"type": InputType.TEXT.value, "text": "public void test() {}"},
+            "source_input": {
+                "type": InputType.TEXT.value,
+                "text": "def test(): pass"},
+            "target_input": {
+                "type": InputType.TEXT.value,
+                "text": "public void test() {}"},
         }
 
         with patch("src.core.migration_validator.MigrationValidator.validate") as mock_validate:
             mock_validate.return_value = ValidationResult(
-                validation_id="test-123", status=ValidationStatus.COMPLETED, similarity_score=0.85,
-            )
+                validation_id="test-123", status=ValidationStatus.COMPLETED, similarity_score=0.85, )
 
             response = self.client.post("/validate", json=request_data)
             assert response.status_code == 200
@@ -520,15 +550,24 @@ class TestAPIVersionCompatibility:
 
         if endpoint == "/validate":
             request_data = {
-                "source_technology": {"type": TechnologyType.PYTHON_FLASK.value, "version": "2.0"},
-                "target_technology": {"type": TechnologyType.JAVA_SPRING.value, "version": "3.0"},
+                "source_technology": {
+                    "type": TechnologyType.PYTHON_FLASK.value,
+                    "version": "2.0"},
+                "target_technology": {
+                    "type": TechnologyType.JAVA_SPRING.value,
+                    "version": "3.0"},
                 "validation_scope": ValidationScope.BUSINESS_LOGIC.value,
-                "source_input": {"type": InputType.TEXT.value, "text": "def test(): pass"},
-                "target_input": {"type": InputType.TEXT.value, "text": "public void test() {}"},
+                "source_input": {
+                    "type": InputType.TEXT.value,
+                    "text": "def test(): pass"},
+                "target_input": {
+                    "type": InputType.TEXT.value,
+                    "text": "public void test() {}"},
             }
 
             with patch("src.core.migration_validator.MigrationValidator.validate"):
-                response = self.client.post(endpoint, json=request_data, headers=headers)
+                response = self.client.post(
+                    endpoint, json=request_data, headers=headers)
         else:
             response = self.client.get(endpoint, headers=headers)
 
@@ -537,7 +576,8 @@ class TestAPIVersionCompatibility:
             assert response.status_code in [200, 201, 202]  # Success codes
         else:
             # Future versions might not be implemented yet
-            assert response.status_code in [200, 201, 202, 404, 501]  # Success or not implemented
+            assert response.status_code in [
+                200, 201, 202, 404, 501]  # Success or not implemented
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -556,11 +596,19 @@ class ContractTestHelper:
     ) -> Dict[str, Any]:
         """Generate a valid migration validation request."""
         return {
-            "source_technology": {"type": source_tech.value, "version": "2.0"},
-            "target_technology": {"type": target_tech.value, "version": "3.0"},
+            "source_technology": {
+                "type": source_tech.value,
+                "version": "2.0"},
+            "target_technology": {
+                "type": target_tech.value,
+                "version": "3.0"},
             "validation_scope": scope.value,
-            "source_input": {"type": InputType.TEXT.value, "text": "def test(): pass"},
-            "target_input": {"type": InputType.TEXT.value, "text": "public void test() {}"},
+            "source_input": {
+                "type": InputType.TEXT.value,
+                "text": "def test(): pass"},
+            "target_input": {
+                "type": InputType.TEXT.value,
+                "text": "public void test() {}"},
         }
 
     @staticmethod
@@ -591,7 +639,8 @@ class ContractTestHelper:
             ), f"Error response field '{field}' must be string"
 
         if "details" in response:
-            assert isinstance(response["details"], dict), "Error details must be an object"
+            assert isinstance(
+                response["details"], dict), "Error details must be an object"
 
 
 @pytest.mark.contract

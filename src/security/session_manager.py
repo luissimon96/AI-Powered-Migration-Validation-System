@@ -31,7 +31,7 @@ class SessionManager:
         self.session_timeout = 3600  # 1 hour
 
     async def create_session(self, user_id: str, api_key_id: str,
-                           request: Request, scopes: list[str]) -> str:
+                             request: Request, scopes: list[str]) -> str:
         """Create new session."""
         session_id = f"sess_{user_id}_{int(time.time())}"
 

@@ -4,6 +4,7 @@ Provides comprehensive fixtures, test data management, and advanced testing util
 for property-based testing, performance testing, and visual regression testing.
 """
 
+from datetime import datetime
 import asyncio
 import json
 import logging
@@ -35,9 +36,14 @@ from src.analyzers.code_analyzer import CodeAnalyzer
 from src.behavioral.crews import BehavioralValidationCrew
 from src.core.input_processor import InputProcessor
 from src.core.migration_validator import MigrationValidator
-from src.core.models import (InputData, InputType, MigrationValidationRequest,
-                             TechnologyContext, TechnologyType,
-                             ValidationScope)
+from src.core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+)
 from src.security.api_keys import APIKeyManager, APIKeyMetadata
 from src.security.schemas import APIKeyScope
 from src.services.llm_service import LLMResponse, LLMService
@@ -55,13 +61,17 @@ def pytest_configure(config):
     )
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
-    config.addinivalue_line("markers", "behavioral: marks tests as behavioral validation tests")
+    config.addinivalue_line(
+        "markers",
+        "behavioral: marks tests as behavioral validation tests")
     config.addinivalue_line("markers", "performance: marks tests as performance tests")
     config.addinivalue_line("markers", "benchmark: marks tests as benchmark tests")
     config.addinivalue_line("markers", "memory: marks tests as memory profiling tests")
     config.addinivalue_line("markers", "security: marks tests as security tests")
     config.addinivalue_line("markers", "property: marks tests as property-based tests")
-    config.addinivalue_line("markers", "mutation: marks tests as mutation testing targets")
+    config.addinivalue_line(
+        "markers",
+        "mutation: marks tests as mutation testing targets")
     config.addinivalue_line("markers", "contract: marks tests as contract tests")
     config.addinivalue_line("markers", "chaos: marks tests as chaos engineering tests")
     config.addinivalue_line("markers", "visual: marks tests as visual regression tests")
@@ -70,10 +80,16 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "smoke: marks tests as smoke tests")
     config.addinivalue_line("markers", "fuzz: marks tests as fuzzing tests")
     config.addinivalue_line("markers", "penetration: marks tests as penetration tests")
-    config.addinivalue_line("markers", "external: marks tests requiring external services")
+    config.addinivalue_line(
+        "markers",
+        "external: marks tests requiring external services")
     config.addinivalue_line("markers", "llm: marks tests requiring LLM API access")
-    config.addinivalue_line("markers", "browser: marks tests requiring browser automation")
-    config.addinivalue_line("markers", "database: marks tests requiring database connections")
+    config.addinivalue_line(
+        "markers",
+        "browser: marks tests requiring browser automation")
+    config.addinivalue_line(
+        "markers",
+        "database: marks tests requiring database connections")
     config.addinivalue_line("markers", "network: marks tests requiring network access")
     config.addinivalue_line("markers", "api: marks tests for API endpoints")
 
@@ -97,7 +113,11 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_addoption(parser):
     """Add custom command line options."""
-    parser.addoption("--fast", action="store_true", default=False, help="Skip slow tests")
+    parser.addoption(
+        "--fast",
+        action="store_true",
+        default=False,
+        help="Skip slow tests")
     parser.addoption(
         "--hypothesis-profile",
         action="store",
@@ -172,7 +192,10 @@ def mock_llm_service():
         content='{"similarity_score": 0.85, "functionally_equivalent": true, "confidence": 0.9}',
         model="mock-model",
         provider="mock",
-        usage={"total_tokens": 150, "prompt_tokens": 100, "completion_tokens": 50},
+        usage={
+            "total_tokens": 150,
+            "prompt_tokens": 100,
+            "completion_tokens": 50},
     )
     mock_service.generate_response.return_value = mock_response
 
@@ -202,7 +225,9 @@ def mock_llm_service():
         "functional_equivalent": True,
         "ux_preserved": True,
         "accessibility_score": 0.92,
-        "recommendations": ["Add missing submit button", "Consider accessibility improvements"],
+        "recommendations": [
+            "Add missing submit button",
+            "Consider accessibility improvements"],
     }
 
     mock_service.validate_business_logic.return_value = AsyncMock(
@@ -234,8 +259,10 @@ def mock_llm_service():
     ]
 
     # Mock error scenarios for edge case testing
-    mock_service.simulate_rate_limit = AsyncMock(side_effect=Exception("Rate limit exceeded"))
-    mock_service.simulate_timeout = AsyncMock(side_effect=asyncio.TimeoutError("Request timeout"))
+    mock_service.simulate_rate_limit = AsyncMock(
+        side_effect=Exception("Rate limit exceeded"))
+    mock_service.simulate_timeout = AsyncMock(
+        side_effect=asyncio.TimeoutError("Request timeout"))
     mock_service.simulate_invalid_response = AsyncMock(
         return_value=LLMResponse(
             content="Invalid JSON response", model="mock-model", provider="mock", usage={},
@@ -258,7 +285,9 @@ def mock_database():
     mock_db.rollback.return_value = True
 
     # Mock CRUD operations
-    mock_db.create.return_value = {"id": "test-123", "created_at": "2023-01-01T00:00:00Z"}
+    mock_db.create.return_value = {
+        "id": "test-123",
+        "created_at": "2023-01-01T00:00:00Z"}
     mock_db.read.return_value = {"id": "test-123", "status": "completed"}
     mock_db.update.return_value = True
     mock_db.delete.return_value = True
@@ -1167,8 +1196,8 @@ def mock_fastapi_client():
 
     # Mock the dependencies before creating the app
     with patch("src.api.routes.MigrationValidator"), \
-         patch("src.api.routes.InputProcessor"), \
-         patch("src.api.routes.create_behavioral_validation_crew"):
+            patch("src.api.routes.InputProcessor"), \
+            patch("src.api.routes.create_behavioral_validation_crew"):
 
         from src.api.routes import app
         return TestClient(app)
@@ -1329,7 +1358,8 @@ def test_logger():
 
     # Add test-specific handler
     handler = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
@@ -1370,7 +1400,6 @@ def security_test_data():
 
 
 # Import datetime here for fixtures that need it
-from datetime import datetime
 
 # Mark aliases for convenience
 pytest.mark.unit = pytest.mark.unit

@@ -9,10 +9,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.behavioral.crews import (BehavioralValidationCrew,
-                                  BehavioralValidationRequest,
-                                  BehavioralValidationResult,
-                                  create_behavioral_validation_crew)
+from src.behavioral.crews import (
+    BehavioralValidationCrew,
+    BehavioralValidationRequest,
+    BehavioralValidationResult,
+    create_behavioral_validation_crew,
+)
 from src.core.models import SeverityLevel, ValidationDiscrepancy
 
 
@@ -38,7 +40,8 @@ class TestBehavioralValidationPipeline:
                 "SESSION END session_123",  # End session
                 "SESSION START session_456",  # Start target session
                 "NAVIGATE SUCCESS - https://target.test",  # Navigate target
-                "CAPTURE_STATE SUCCESS - {'forms': 2, 'inputs': 4}",  # Capture state (different)
+                # Capture state (different)
+                "CAPTURE_STATE SUCCESS - {'forms': 2, 'inputs': 4}",
                 "SCENARIO LOGIN SUCCESS - 3/3 actions successful",  # Login scenario
                 "SESSION END session_456",  # End target session
             ]
@@ -145,7 +148,8 @@ class TestBehavioralValidationPipeline:
 
             # Verify execution log
             assert len(result.execution_log) > 0
-            assert any("Source system exploration" in log for log in result.execution_log)
+            assert any(
+                "Source system exploration" in log for log in result.execution_log)
             assert any("Target system execution" in log for log in result.execution_log)
             assert any("Behavioral comparison" in log for log in result.execution_log)
 

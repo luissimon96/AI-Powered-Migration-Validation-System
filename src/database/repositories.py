@@ -11,11 +11,19 @@ from sqlalchemy import and_, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..core.models import (SeverityLevel, TechnologyType,
-                           ValidationDiscrepancy, ValidationScope)
-from .models import (BehavioralTestResultModel, DiscrepancyModel,
-                     ValidationMetricsModel, ValidationResultModel,
-                     ValidationSessionModel)
+from ..core.models import (
+    SeverityLevel,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationScope,
+)
+from .models import (
+    BehavioralTestResultModel,
+    DiscrepancyModel,
+    ValidationMetricsModel,
+    ValidationResultModel,
+    ValidationSessionModel,
+)
 
 
 class BaseRepository:
@@ -81,7 +89,8 @@ class ValidationSessionRepository(BaseRepository):
         await self.session.flush()  # Get ID without committing
         return session_model
 
-    async def get_by_request_id(self, request_id: str) -> Optional[ValidationSessionModel]:
+    async def get_by_request_id(
+            self, request_id: str) -> Optional[ValidationSessionModel]:
         """Get session by request ID.
 
         Args:
@@ -338,7 +347,8 @@ class ValidationResultRepository(BaseRepository):
         )
         return list(result.scalars().all())
 
-    async def get_latest_by_session_id(self, session_id: int) -> Optional[ValidationResultModel]:
+    async def get_latest_by_session_id(
+            self, session_id: int) -> Optional[ValidationResultModel]:
         """Get latest result for a session.
 
         Args:
@@ -507,7 +517,8 @@ class DiscrepancyRepository(BaseRepository):
             List of discrepancies
 
         """
-        query = select(DiscrepancyModel).where(DiscrepancyModel.session_id == session_id)
+        query = select(DiscrepancyModel).where(
+            DiscrepancyModel.session_id == session_id)
 
         if severity:
             query = query.where(DiscrepancyModel.severity == severity)
@@ -636,7 +647,8 @@ class BehavioralTestRepository(BaseRepository):
         await self.session.flush()
         return test_model
 
-    async def get_by_session_id(self, session_id: int) -> List[BehavioralTestResultModel]:
+    async def get_by_session_id(
+            self, session_id: int) -> List[BehavioralTestResultModel]:
         """Get behavioral test results for a session.
 
         Args:
@@ -780,12 +792,14 @@ class MetricsRepository(BaseRepository):
         rejected_count = len([r for r in results if r.overall_status == "rejected"])
 
         execution_times = [r.execution_time for r in results if r.execution_time]
-        avg_execution_time = sum(execution_times) / len(execution_times) if execution_times else 0
+        avg_execution_time = sum(execution_times) / \
+            len(execution_times) if execution_times else 0
         max_execution_time = max(execution_times) if execution_times else 0
         min_execution_time = min(execution_times) if execution_times else 0
 
         fidelity_scores = [r.fidelity_score for r in results]
-        avg_fidelity_score = sum(fidelity_scores) / len(fidelity_scores) if fidelity_scores else 0
+        avg_fidelity_score = sum(fidelity_scores) / \
+            len(fidelity_scores) if fidelity_scores else 0
         max_fidelity_score = max(fidelity_scores) if fidelity_scores else 0
         min_fidelity_score = min(fidelity_scores) if fidelity_scores else 0
 

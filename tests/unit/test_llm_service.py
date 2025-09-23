@@ -5,9 +5,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.services.llm_service import (LLMConfig, LLMProvider,
-                                      LLMProviderNotAvailable, LLMResponse,
-                                      LLMService, create_llm_service)
+from src.services.llm_service import (
+    LLMConfig,
+    LLMProvider,
+    LLMProviderNotAvailable,
+    LLMResponse,
+    LLMService,
+    create_llm_service,
+)
 
 
 class TestLLMConfig:
@@ -61,7 +66,10 @@ class TestLLMService:
         """Test OpenAI client initialization."""
         mock_openai.AsyncOpenAI.return_value = MagicMock()
 
-        config = LLMConfig(provider=LLMProvider.OPENAI, model="gpt-4", api_key="test-key")
+        config = LLMConfig(
+            provider=LLMProvider.OPENAI,
+            model="gpt-4",
+            api_key="test-key")
 
         service = LLMService(config)
         assert service.config.provider == LLMProvider.OPENAI
@@ -91,7 +99,10 @@ class TestLLMService:
 
         mock_client.chat.completions.create.return_value = mock_response
 
-        config = LLMConfig(provider=LLMProvider.OPENAI, model="gpt-4", api_key="test-key")
+        config = LLMConfig(
+            provider=LLMProvider.OPENAI,
+            model="gpt-4",
+            api_key="test-key")
 
         service = LLMService(config)
 
@@ -130,7 +141,10 @@ class TestLLMService:
 
         mock_client.chat.completions.create.return_value = mock_response
 
-        config = LLMConfig(provider=LLMProvider.OPENAI, model="gpt-4", api_key="test-key")
+        config = LLMConfig(
+            provider=LLMProvider.OPENAI,
+            model="gpt-4",
+            api_key="test-key")
 
         service = LLMService(config)
 

@@ -11,8 +11,12 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
-                                    async_sessionmaker, create_async_engine)
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.pool import NullPool
 
 from .config import DatabaseConfig, get_database_config
@@ -221,7 +225,9 @@ class DatabaseManager:
                     )
                     await asyncio.sleep(wait_time)
                 else:
-                    logger.error(f"Database operation failed after {max_retries + 1} attempts")
+                    logger.error(
+                        f"Database operation failed after {
+                            max_retries + 1} attempts")
 
         raise last_exception
 

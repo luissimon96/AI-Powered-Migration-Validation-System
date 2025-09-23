@@ -151,7 +151,7 @@ class SystemHealthMonitor:
         )
 
     def register_check(self, name: str, check_func, timeout: float = 30.0,
-                      critical: bool = True):
+                       critical: bool = True):
         """Register a new health check."""
         self.health_checks[name] = HealthCheck(
             name=name,
@@ -424,7 +424,8 @@ class SystemHealthMonitor:
                 "details": {
                     "environment": self.config.settings.environment,
                     "debug_mode": self.config.settings.debug,
-                    "llm_providers_configured": len(self.config.list_available_providers()),
+                    "llm_providers_configured": len(
+                        self.config.list_available_providers()),
                     "issues": config_status,
                 },
             }

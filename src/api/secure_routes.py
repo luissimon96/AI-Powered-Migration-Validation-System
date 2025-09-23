@@ -9,8 +9,16 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import (BackgroundTasks, Depends, FastAPI, File, Form,
-                     HTTPException, Request, UploadFile)
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -18,8 +26,13 @@ from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
 from ..core.models import ValidationResult, ValidationSession
-from ..security.auth import (User, get_current_user, require_admin,
-                             require_validator, require_viewer)
+from ..security.auth import (
+    User,
+    get_current_user,
+    require_admin,
+    require_validator,
+    require_viewer,
+)
 from ..security.middleware import SecurityMiddleware
 from ..security.rate_limiter import rate_limit
 from ..security.validation import SecurityValidationError, input_validator
@@ -179,9 +192,10 @@ def create_secure_app() -> FastAPI:
                 status_code=500, detail=f"Failed to get technology options: {e!s}",
             )
 
-    @app.post(
-        "/api/compatibility/check", tags=["Configuration"], dependencies=[Depends(require_viewer)],
-    )
+    @app.post("/api/compatibility/check",
+              tags=["Configuration"],
+              dependencies=[Depends(require_viewer)],
+              )
     @rate_limit("api_general")
     async def check_compatibility(
         request: Request,
@@ -204,20 +218,25 @@ def create_secure_app() -> FastAPI:
         except SecurityValidationError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Compatibility check failed: {e!s}")
+            raise HTTPException(status_code=500,
+                                detail=f"Compatibility check failed: {e!s}")
 
-    @app.get("/api/capabilities", tags=["Configuration"], dependencies=[Depends(require_viewer)])
+    @app.get("/api/capabilities",
+             tags=["Configuration"],
+             dependencies=[Depends(require_viewer)])
     async def get_system_capabilities(current_user: User = Depends(get_current_user)):
         """Get system capabilities and supported features."""
         try:
             capabilities = validator.get_supported_technologies()
             return capabilities
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to get capabilities: {e!s}")
+            raise HTTPException(status_code=500,
+                                detail=f"Failed to get capabilities: {e!s}")
 
-    @app.post(
-        "/api/upload/source", tags=["File Management"], dependencies=[Depends(require_validator)],
-    )
+    @app.post("/api/upload/source",
+              tags=["File Management"],
+              dependencies=[Depends(require_validator)],
+              )
     @rate_limit("upload")
     async def upload_source_files(
         request: Request,
@@ -233,9 +252,9 @@ def create_secure_app() -> FastAPI:
             for file, validation_result in validated_files:
                 if not validation_result.is_valid:
                     raise HTTPException(
-                        status_code=400,
-                        detail=f"File {file.filename} failed security validation: {validation_result.security_issues}",
-                    )
+                        status_code=400, detail=f"File {
+                            file.filename} failed security validation: {
+                            validation_result.security_issues}", )
 
             # Process uploads
             uploaded_files = []
@@ -244,7 +263,8 @@ def create_secure_app() -> FastAPI:
                     contents = await file.read()
                     uploaded_files.append((file.filename, contents))
 
-            saved_paths = input_processor.upload_files(uploaded_files, f"source_{current_user.id}")
+            saved_paths = input_processor.upload_files(
+                uploaded_files, f"source_{current_user.id}")
 
             return {
                 "message": f"Successfully uploaded {len(saved_paths)} source files",
@@ -261,9 +281,10 @@ def create_secure_app() -> FastAPI:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Upload failed: {e!s}")
 
-    @app.post(
-        "/api/upload/target", tags=["File Management"], dependencies=[Depends(require_validator)],
-    )
+    @app.post("/api/upload/target",
+              tags=["File Management"],
+              dependencies=[Depends(require_validator)],
+              )
     @rate_limit("upload")
     async def upload_target_files(
         request: Request,
@@ -278,9 +299,9 @@ def create_secure_app() -> FastAPI:
             for file, validation_result in validated_files:
                 if not validation_result.is_valid:
                     raise HTTPException(
-                        status_code=400,
-                        detail=f"File {file.filename} failed security validation: {validation_result.security_issues}",
-                    )
+                        status_code=400, detail=f"File {
+                            file.filename} failed security validation: {
+                            validation_result.security_issues}", )
 
             uploaded_files = []
             for file, _ in validated_files:
@@ -288,7 +309,8 @@ def create_secure_app() -> FastAPI:
                     contents = await file.read()
                     uploaded_files.append((file.filename, contents))
 
-            saved_paths = input_processor.upload_files(uploaded_files, f"target_{current_user.id}")
+            saved_paths = input_processor.upload_files(
+                uploaded_files, f"target_{current_user.id}")
 
             return {
                 "message": f"Successfully uploaded {len(saved_paths)} target files",
@@ -305,7 +327,8 @@ def create_secure_app() -> FastAPI:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Upload failed: {e!s}")
 
-    @app.post("/api/validate", tags=["Validation"], dependencies=[Depends(require_validator)])
+    @app.post("/api/validate", tags=["Validation"],
+              dependencies=[Depends(require_validator)])
     @rate_limit("validation")
     async def validate_migration(
         request: Request,
@@ -332,9 +355,9 @@ def create_secure_app() -> FastAPI:
                 for file, validation_result in validated_files:
                     if not validation_result.is_valid:
                         raise HTTPException(
-                            status_code=400,
-                            detail=f"File {file.filename} failed security validation: {validation_result.security_issues}",
-                        )
+                            status_code=400, detail=f"File {
+                                file.filename} failed security validation: {
+                                validation_result.security_issues}", )
 
             # Process files with user isolation
             source_file_paths = []
@@ -454,8 +477,10 @@ def create_secure_app() -> FastAPI:
             user_id=current_user.id,
         )
 
-    @app.get("/api/validate", tags=["Validation"], dependencies=[Depends(require_viewer)])
-    async def list_user_validation_sessions(current_user: User = Depends(get_current_user)):
+    @app.get("/api/validate", tags=["Validation"],
+             dependencies=[Depends(require_viewer)])
+    async def list_user_validation_sessions(
+            current_user: User = Depends(get_current_user)):
         """List validation sessions for current user."""
         user_sessions = []
 
@@ -483,8 +508,11 @@ def create_secure_app() -> FastAPI:
         return {"sessions": user_sessions, "total_count": len(user_sessions)}
 
     # Admin-only endpoints
-    @app.get("/api/admin/sessions", tags=["Administration"], dependencies=[Depends(require_admin)])
-    async def list_all_validation_sessions(admin_user: User = Depends(get_current_user)):
+    @app.get("/api/admin/sessions",
+             tags=["Administration"],
+             dependencies=[Depends(require_admin)])
+    async def list_all_validation_sessions(
+            admin_user: User = Depends(get_current_user)):
         """List all validation sessions (admin only)."""
         all_sessions = []
 

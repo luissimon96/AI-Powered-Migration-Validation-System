@@ -10,13 +10,21 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import (MigrationValidationRequest, TechnologyType,
-                           ValidationDiscrepancy, ValidationResult,
-                           ValidationSession)
+from ..core.models import (
+    MigrationValidationRequest,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationSession,
+)
 from .models import ValidationSessionModel
-from .repositories import (BehavioralTestRepository, DiscrepancyRepository,
-                           MetricsRepository, ValidationResultRepository,
-                           ValidationSessionRepository)
+from .repositories import (
+    BehavioralTestRepository,
+    DiscrepancyRepository,
+    MetricsRepository,
+    ValidationResultRepository,
+    ValidationSessionRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +102,8 @@ class ValidationDatabaseService:
             logger.error(f"Failed to create validation session: {e}")
             raise
 
-    async def get_validation_session(self, request_id: str) -> Optional[ValidationSession]:
+    async def get_validation_session(
+            self, request_id: str) -> Optional[ValidationSession]:
         """Retrieve a validation session by request ID.
 
         Args:
@@ -259,8 +268,7 @@ class ValidationDatabaseService:
                     technology_pair = (source_tech, target_tech)
                 except ValueError:
                     logger.warning(
-                        f"Invalid technology types: {source_technology}, {target_technology}",
-                    )
+                        f"Invalid technology types: {source_technology}, {target_technology}", )
 
             sessions, total_count = await self.session_repo.list_sessions(
                 limit=limit,
@@ -278,7 +286,8 @@ class ValidationDatabaseService:
 
                 # Add summary information
                 if session_model.results:
-                    latest_result = session_model.results[0]  # Already ordered by created_at desc
+                    # Already ordered by created_at desc
+                    latest_result = session_model.results[0]
                     session_dict["fidelity_score"] = latest_result.fidelity_score
                     session_dict["result_status"] = latest_result.overall_status
 
@@ -384,8 +393,11 @@ class ValidationDatabaseService:
 
         """
         # Reconstruct the validation request
-        from ..core.models import (InputData, MigrationValidationRequest,
-                                   TechnologyContext)
+        from ..core.models import (
+            InputData,
+            MigrationValidationRequest,
+            TechnologyContext,
+        )
 
         source_technology = TechnologyContext(
             type=session_model.source_technology,

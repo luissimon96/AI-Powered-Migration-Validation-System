@@ -83,7 +83,9 @@ class TestBehavioralValidationAPIEndpoints:
     ):
         """Test successful behavioral validation initiation."""
         with patch("src.api.routes.run_behavioral_validation_background") as mock_background_task:
-            response = client.post("/api/behavioral/validate", json=sample_behavioral_request_data)
+            response = client.post(
+                "/api/behavioral/validate",
+                json=sample_behavioral_request_data)
 
             assert response.status_code == 200
             response_data = response.json()
@@ -500,7 +502,9 @@ class TestBehavioralValidationBackgroundTasks:
             # Run background task
             import asyncio
 
-            asyncio.run(run_behavioral_validation_background(request_id, behavioral_request))
+            asyncio.run(
+                run_behavioral_validation_background(
+                    request_id, behavioral_request))
 
             # Verify session was updated
             session = mock_sessions[request_id]
@@ -540,7 +544,9 @@ class TestBehavioralValidationBackgroundTasks:
             # Run background task
             import asyncio
 
-            asyncio.run(run_behavioral_validation_background(request_id, behavioral_request))
+            asyncio.run(
+                run_behavioral_validation_background(
+                    request_id, behavioral_request))
 
             # Verify error handling
             session = mock_sessions[request_id]
@@ -591,7 +597,9 @@ class TestBehavioralValidationBackgroundTasks:
             # Run background task
             import asyncio
 
-            asyncio.run(run_behavioral_validation_background(request_id, behavioral_request))
+            asyncio.run(
+                run_behavioral_validation_background(
+                    request_id, behavioral_request))
 
             # Verify progress updates occurred
             session = mock_sessions[request_id]

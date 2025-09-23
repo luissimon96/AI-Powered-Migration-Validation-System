@@ -9,8 +9,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from src.core.migration_validator import MigrationValidator
-from src.core.models import (ValidationRequest, ValidationScope,
-                             ValidationStatus)
+from src.core.models import ValidationRequest, ValidationScope, ValidationStatus
 
 
 @pytest.mark.integration
@@ -18,7 +17,8 @@ from src.core.models import (ValidationRequest, ValidationScope,
 class TestEnhancedE2EPipeline:
     """Enhanced end-to-end pipeline tests."""
 
-    async def test_complete_migration_validation_workflow(self, sample_files, mock_llm_service):
+    async def test_complete_migration_validation_workflow(
+            self, sample_files, mock_llm_service):
         """Test complete migration validation workflow with real components."""
         validator = MigrationValidator(llm_client=mock_llm_service)
 
@@ -135,7 +135,8 @@ class TestEnhancedE2EPipeline:
         """Test pipeline error recovery mechanisms."""
         # Test with failing LLM service
         failing_llm = Mock()
-        failing_llm.generate_response = AsyncMock(side_effect=Exception("LLM service unavailable"))
+        failing_llm.generate_response = AsyncMock(
+            side_effect=Exception("LLM service unavailable"))
 
         validator = MigrationValidator(llm_client=failing_llm)
 
@@ -299,7 +300,8 @@ class TestPipelineErrorScenarios:
             source_technology="python-flask",
             target_technology="java-spring",
             validation_scope=ValidationScope.BUSINESS_LOGIC,
-            source_files=[{"name": "malformed.py", "content": "def incomplete_function("}],  # Malformed
+            source_files=[{"name": "malformed.py",
+                           "content": "def incomplete_function("}],  # Malformed
             target_files=[{"name": "Valid.java", "content": "public void valid() {}"}],
         )
 
@@ -307,17 +309,21 @@ class TestPipelineErrorScenarios:
 
         # Should handle gracefully
         assert session.result is not None
-        assert session.result.overall_status in [ValidationStatus.REJECTED, ValidationStatus.APPROVED_WITH_WARNINGS]
+        assert session.result.overall_status in [
+            ValidationStatus.REJECTED,
+            ValidationStatus.APPROVED_WITH_WARNINGS]
 
         # Should have error logs
-        error_logs = [log for log in session.processing_log if "malformed" in log.message.lower()]
+        error_logs = [
+            log for log in session.processing_log if "malformed" in log.message.lower()]
         assert len(error_logs) > 0
 
     async def test_timeout_handling(self, mock_llm_service):
         """Test timeout handling for long-running operations."""
         # Mock slow LLM service
         slow_llm = Mock()
-        slow_llm.generate_response = AsyncMock(side_effect=asyncio.TimeoutError("Operation timed out"))
+        slow_llm.generate_response = AsyncMock(
+            side_effect=asyncio.TimeoutError("Operation timed out"))
 
         validator = MigrationValidator(llm_client=slow_llm)
 
@@ -333,7 +339,8 @@ class TestPipelineErrorScenarios:
 
         # Should complete with timeout handling
         assert session.result is not None
-        timeout_logs = [log for log in session.processing_log if "timeout" in log.message.lower()]
+        timeout_logs = [
+            log for log in session.processing_log if "timeout" in log.message.lower()]
         assert len(timeout_logs) > 0
 
     async def test_resource_exhaustion_recovery(self, mock_llm_service):
@@ -358,5 +365,6 @@ class TestPipelineErrorScenarios:
             assert session.result is not None
             assert session.result.overall_status == ValidationStatus.ERROR
 
-            memory_logs = [log for log in session.processing_log if "memory" in log.message.lower()]
+            memory_logs = [
+                log for log in session.processing_log if "memory" in log.message.lower()]
             assert len(memory_logs) > 0

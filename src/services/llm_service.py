@@ -83,10 +83,8 @@ class LLMServiceError(Exception):
     """Base exception for LLM service errors."""
 
 
-
 class LLMProviderNotAvailable(LLMServiceError):
     """Raised when requested LLM provider is not available."""
-
 
 
 class LLMService:
@@ -139,12 +137,14 @@ class LLMService:
 
                 elif config.provider == LLMProvider.GOOGLE:
                     if genai is None:
-                        raise LLMProviderNotAvailable("Google GenAI package not installed")
+                        raise LLMProviderNotAvailable(
+                            "Google GenAI package not installed")
                     api_key = config.api_key or os.getenv("GOOGLE_API_KEY")
                     if not api_key:
                         raise LLMProviderNotAvailable("Google API key not found")
                     genai.configure(api_key=api_key)
-                    # Note: Google's client is model-specific, so we store the model object
+                    # Note: Google's client is model-specific, so we store the model
+                    # object
                     self._clients[config.provider] = genai.GenerativeModel(config.model)
 
                 self.logger.info(
@@ -203,7 +203,9 @@ class LLMService:
                     )
                 if config.provider == LLMProvider.GOOGLE:
                     return await self._google_generate(config, messages, system_prompt, **kwargs)
-                self.logger.warning(f"Unsupported provider configured: {config.provider}")
+                self.logger.warning(
+                    f"Unsupported provider configured: {
+                        config.provider}")
                 continue
 
             except Exception as e:
@@ -236,7 +238,8 @@ class LLMService:
 
         """
         # Get formatted prompts
-        system_prompt, user_prompt = prompt_manager.format_prompt(analysis_type, context)
+        system_prompt, user_prompt = prompt_manager.format_prompt(
+            analysis_type, context)
 
         # Enhance user prompt with format expectations
         enhanced_user_prompt = f"""{user_prompt}
@@ -399,7 +402,8 @@ Do not include any text before or after the JSON response."""
         quality_factors.append(value_quality)
 
         # Calculate weighted confidence
-        quality_score = sum(quality_factors) / len(quality_factors) if quality_factors else 0.5
+        quality_score = sum(quality_factors) / \
+            len(quality_factors) if quality_factors else 0.5
 
         return min(base_confidence * quality_score, 1.0)
 
@@ -442,7 +446,8 @@ Do not include any text before or after the JSON response."""
     ) -> LLMResponse:
         """Generate response using Anthropic Claude."""
         client = self._clients[LLMProvider.ANTHROPIC]
-        anthropic_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
+        anthropic_messages = [{"role": msg["role"],
+                               "content": msg["content"]} for msg in messages]
 
         response = await client.messages.create(
             model=config.model,
@@ -671,7 +676,9 @@ Provide comprehensive UI comparison analysis.""",
                 elif provider == LLMProvider.GOOGLE:
                     vision_model = "gemini-pro-vision"
                     vision_client = genai.GenerativeModel(vision_model)
-                    img_blob = {"mime_type": "image/png", "data": base64.b64decode(image_base64)}
+                    img_blob = {
+                        "mime_type": "image/png",
+                        "data": base64.b64decode(image_base64)}
                     response = await asyncio.to_thread(
                         vision_client.generate_content, [prompt, img_blob],
                     )
@@ -825,7 +832,8 @@ def create_llm_service(
     model_names = [m.strip() for m in models.split(",")] if models else []
 
     if model_names and len(provider_names) != len(model_names):
-        raise LLMServiceError("The number of models must match the number of providers.")
+        raise LLMServiceError(
+            "The number of models must match the number of providers.")
 
     configs: List[LLMConfig] = []
     for i, provider_name in enumerate(provider_names):

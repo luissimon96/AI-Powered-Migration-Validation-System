@@ -105,13 +105,19 @@ def python_function(draw):
 @st.composite
 def python_class(draw):
     """Generate a valid Python class."""
-    class_name = draw(valid_python_names.filter(lambda x: x[0].isupper() or x.startswith("_")))
+    class_name = draw(valid_python_names.filter(
+        lambda x: x[0].isupper() or x.startswith("_")))
     methods = draw(st.lists(python_function(), min_size=0, max_size=3))
 
     if not methods:
         methods = ["    pass"]
     else:
-        methods = [f"    {method.replace(chr(10), chr(10) + '    ')}" for method in methods]
+        methods = [
+            f"    {
+                method.replace(
+                    chr(10),
+                    chr(10)
+                    + '    ')}" for method in methods]
 
     methods_str = "\n\n".join(methods)
 
@@ -191,7 +197,8 @@ class TestCodeAnalyzerProperties:
                 for func in result["functions"]:
                     assert isinstance(func, dict), "Function info must be a dictionary"
                     assert "name" in func, "Function must have a name"
-                    assert isinstance(func["name"], str), "Function name must be a string"
+                    assert isinstance(
+                        func["name"], str), "Function name must be a string"
                     assert func["name"].strip(), "Function name cannot be empty"
 
             # Class analysis invariants
@@ -233,7 +240,8 @@ class TestCodeAnalyzerProperties:
             assert isinstance(extracted, list), "Extracted functions must be a list"
 
             # Number of extracted functions should not exceed input functions
-            assert len(extracted) <= len(functions), "Cannot extract more functions than exist"
+            assert len(extracted) <= len(
+                functions), "Cannot extract more functions than exist"
 
             # Each extracted function should have required properties
             for func_info in extracted:
@@ -245,7 +253,8 @@ class TestCodeAnalyzerProperties:
 
                 # Function name should be valid Python identifier
                 func_name = func_info["name"]
-                assert func_name.isidentifier(), f"'{func_name}' is not a valid identifier"
+                assert func_name.isidentifier(
+                ), f"'{func_name}' is not a valid identifier"
                 assert func_name not in PYTHON_KEYWORDS, f"'{func_name}' is a Python keyword"
 
         except Exception as e:
@@ -266,7 +275,8 @@ class TestCodeAnalyzerProperties:
 
             # Properties that should hold
             assert isinstance(extracted, list), "Extracted classes must be a list"
-            assert len(extracted) <= len(classes), "Cannot extract more classes than exist"
+            assert len(extracted) <= len(
+                classes), "Cannot extract more classes than exist"
 
             for class_info in extracted:
                 assert isinstance(class_info, dict)
@@ -277,7 +287,8 @@ class TestCodeAnalyzerProperties:
 
                 # Class name should follow Python conventions
                 class_name = class_info["name"]
-                assert class_name.isidentifier(), f"'{class_name}' is not a valid identifier"
+                assert class_name.isidentifier(
+                ), f"'{class_name}' is not a valid identifier"
 
         except Exception as e:
             note(f"Exception during class extraction: {type(e).__name__}: {e}")
@@ -313,10 +324,16 @@ class TestCodeAnalyzerProperties:
 
                 # Lines of code should correlate with actual line count
                 if "lines_of_code" in metrics:
-                    actual_lines = len([line for line in code.split("\n") if line.strip()])
+                    actual_lines = len(
+                        [line for line in code.split("\n") if line.strip()])
                     reported_lines = metrics["lines_of_code"]
                     # Allow some variance for different counting methods
-                    assert abs(actual_lines - reported_lines) <= max(actual_lines * 0.2, 5)
+                    assert abs(
+                        actual_lines
+                        - reported_lines) <= max(
+                        actual_lines
+                        * 0.2,
+                        5)
 
         except Exception as e:
             note(f"Exception during metrics calculation: {type(e).__name__}: {e}")
@@ -334,13 +351,16 @@ class TestCodeAnalyzerProperties:
         note(f"Testing security analysis for: {tech_type}")
 
         try:
-            security_issues = self.analyzer.identify_security_issues(code, tech_type.value.lower())
+            security_issues = self.analyzer.identify_security_issues(
+                code, tech_type.value.lower())
 
             if security_issues is not None:
-                assert isinstance(security_issues, list), "Security issues must be a list"
+                assert isinstance(
+                    security_issues, list), "Security issues must be a list"
 
                 for issue in security_issues:
-                    assert isinstance(issue, dict), "Security issue must be a dictionary"
+                    assert isinstance(
+                        issue, dict), "Security issue must be a dictionary"
                     assert "type" in issue, "Security issue must have a type"
                     assert "severity" in issue, "Security issue must have a severity"
                     assert "description" in issue, "Security issue must have a description"
@@ -348,7 +368,8 @@ class TestCodeAnalyzerProperties:
                     # Severity should be valid
                     severity = issue["severity"]
                     valid_severities = ["low", "medium", "high", "critical"]
-                    assert severity.lower() in valid_severities, f"Invalid severity: {severity}"
+                    assert severity.lower(
+                    ) in valid_severities, f"Invalid severity: {severity}"
 
         except Exception as e:
             note(f"Exception during security analysis: {type(e).__name__}: {e}")
@@ -389,12 +410,14 @@ class TestCodeAnalyzerProperties:
             dependencies = self.analyzer.analyze_dependencies(code, "python")
 
             if dependencies is not None:
-                assert isinstance(dependencies, dict), "Dependencies must be a dictionary"
+                assert isinstance(
+                    dependencies, dict), "Dependencies must be a dictionary"
 
                 expected_keys = ["internal_dependencies", "external_dependencies"]
                 for key in expected_keys:
                     if key in dependencies:
-                        assert isinstance(dependencies[key], list), f"'{key}' must be a list"
+                        assert isinstance(
+                            dependencies[key], list), f"'{key}' must be a list"
 
                 # Total dependencies should not exceed imports
                 total_deps = 0
@@ -615,9 +638,8 @@ def complex_function(a, b, c):
             "cyclomatic_complexity" in simple_metrics
             and "cyclomatic_complexity" in complex_metrics
         ):
-            assert (
-                complex_metrics["cyclomatic_complexity"] > simple_metrics["cyclomatic_complexity"]
-            )
+            assert (complex_metrics["cyclomatic_complexity"]
+                    > simple_metrics["cyclomatic_complexity"])
 
         # Complex code should have more lines
         if "lines_of_code" in simple_metrics and "lines_of_code" in complex_metrics:
@@ -712,7 +734,8 @@ class Outer:
     def test_large_file_regression(self):
         """Regression test for large file handling."""
         # Generate a reasonably large code file
-        large_code = "\n".join([f"def function_{i}():\n    return {i}" for i in range(1000)])
+        large_code = "\n".join(
+            [f"def function_{i}():\n    return {i}" for i in range(1000)])
 
         # Should handle large files efficiently
         import time

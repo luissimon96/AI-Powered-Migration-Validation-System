@@ -361,7 +361,8 @@ class SecurityAuditLogger:
         request_id: Optional[str] = None,
     ):
         """Log file upload event."""
-        severity = AuditSeverity.HIGH if not validation_result.get("is_valid") else AuditSeverity.LOW
+        severity = AuditSeverity.HIGH if not validation_result.get(
+            "is_valid") else AuditSeverity.LOW
 
         await self.log_event(
             event_type=AuditEventType.FILE_UPLOAD,
@@ -528,10 +529,12 @@ class SecurityAuditLogger:
                 severity = event.get("severity")
 
                 # Count by type
-                metrics["events_by_type"][event_type] = metrics["events_by_type"].get(event_type, 0) + 1
+                metrics["events_by_type"][event_type] = metrics["events_by_type"].get(
+                    event_type, 0) + 1
 
                 # Count by severity
-                metrics["events_by_severity"][severity] = metrics["events_by_severity"].get(severity, 0) + 1
+                metrics["events_by_severity"][severity] = metrics["events_by_severity"].get(
+                    severity, 0) + 1
 
                 # Specific metrics
                 if event_type == AuditEventType.LOGIN_FAILURE:

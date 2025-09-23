@@ -7,8 +7,12 @@ migration validation system.
 from abc import ABC, abstractmethod
 from typing import List
 
-from ..core.models import (AbstractRepresentation, InputData,
-                           TechnologyContext, ValidationScope)
+from ..core.models import (
+    AbstractRepresentation,
+    InputData,
+    TechnologyContext,
+    ValidationScope,
+)
 
 
 class BaseAnalyzer(ABC):
@@ -47,17 +51,13 @@ class AnalyzerError(Exception):
     """Base exception for analyzer errors."""
 
 
-
 class UnsupportedScopeError(AnalyzerError):
     """Raised when analyzer doesn't support requested scope."""
-
 
 
 class InvalidInputError(AnalyzerError):
     """Raised when input data is invalid or cannot be processed."""
 
 
-
 class ExtractionError(AnalyzerError):
     """Raised when feature extraction fails."""
-

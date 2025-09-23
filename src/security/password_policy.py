@@ -27,13 +27,16 @@ class PasswordValidator:
     def __init__(self, policy: PasswordPolicy = None):
         self.policy = policy or PasswordPolicy()
 
-    def validate_password(self, password: str, username: str = "") -> Tuple[bool, List[str]]:
+    def validate_password(self, password: str,
+                          username: str = "") -> Tuple[bool, List[str]]:
         """Validate password against policy. Returns (is_valid, errors)."""
         errors = []
 
         # Length check
         if len(password) < self.policy.min_length:
-            errors.append(f"Password must be at least {self.policy.min_length} characters")
+            errors.append(
+                f"Password must be at least {
+                    self.policy.min_length} characters")
 
         # Character requirements
         if self.policy.require_uppercase and not re.search(r"[A-Z]", password):
@@ -48,7 +51,9 @@ class PasswordValidator:
         if self.policy.require_special:
             special_chars = re.findall(r'[!@#$%^&*(),.?":{}|<>]', password)
             if len(special_chars) < self.policy.min_special_chars:
-                errors.append(f"Password must contain at least {self.policy.min_special_chars} special character(s)")
+                errors.append(
+                    f"Password must contain at least {
+                        self.policy.min_special_chars} special character(s)")
 
         # Forbidden patterns
         password_lower = password.lower()

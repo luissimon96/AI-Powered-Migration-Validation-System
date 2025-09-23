@@ -11,10 +11,13 @@ from typing import Any, Dict, Optional
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import (MigrationValidationRequest, ValidationDiscrepancy,
-                           ValidationResult, ValidationSession)
-from .models import (DiscrepancyModel, ValidationResultModel,
-                     ValidationSessionModel)
+from ..core.models import (
+    MigrationValidationRequest,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationSession,
+)
+from .models import DiscrepancyModel, ValidationResultModel, ValidationSessionModel
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +186,8 @@ async def migrate_in_memory_sessions_to_db(
                 {"request_id": request_id},
             )
             if existing.scalar():
-                logger.info(f"Session {request_id} already exists in database, skipping")
+                logger.info(
+                    f"Session {request_id} already exists in database, skipping")
                 migration_results[request_id] = True
                 continue
 
@@ -564,7 +568,8 @@ async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
         )
         completed_without_results = result.scalar()
         if completed_without_results > 0:
-            issues.append(f"{completed_without_results} completed sessions without results")
+            issues.append(
+                f"{completed_without_results} completed sessions without results")
 
         # Check for invalid fidelity scores
         result = await session.execute(

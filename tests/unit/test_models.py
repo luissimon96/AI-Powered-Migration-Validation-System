@@ -8,12 +8,22 @@ from datetime import datetime
 
 import pytest
 
-from src.core.models import (AbstractRepresentation, BackendFunction,
-                             DataField, InputData, InputType,
-                             MigrationValidationRequest, SeverityLevel,
-                             TechnologyContext, TechnologyType, UIElement,
-                             ValidationDiscrepancy, ValidationResult,
-                             ValidationScope, ValidationSession)
+from src.core.models import (
+    AbstractRepresentation,
+    BackendFunction,
+    DataField,
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    SeverityLevel,
+    TechnologyContext,
+    TechnologyType,
+    UIElement,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationScope,
+    ValidationSession,
+)
 
 
 @pytest.mark.unit
@@ -285,10 +295,14 @@ class TestBackendFunction:
         """Test creating a backend function."""
         backend_func = BackendFunction(
             name="validate_user",
-            parameters=["email", "password"],
+            parameters=[
+                "email",
+                "password"],
             return_type="bool",
             logic_summary="Validates user credentials and returns authentication status",
-            validation_rules=["email_format", "password_strength"],
+            validation_rules=[
+                "email_format",
+                "password_strength"],
             endpoint="/api/auth/validate",
             http_method="POST",
         )
@@ -793,7 +807,10 @@ class TestValidationSession:
         target_repr = AbstractRepresentation(
             screen_name="Login Form",
             ui_elements=[UIElement(type="input", id="username")],  # Different ID
-            backend_functions=[BackendFunction(name="authenticate_user")],  # Different name
+            backend_functions=[
+                BackendFunction(
+                    name="authenticate_user")],
+            # Different name
         )
         session.target_representation = target_repr
         session.add_log("Target representation created")
@@ -969,7 +986,7 @@ class TestModelEdgeCases:
 
         # Check timestamp ordering (should be in chronological order or very close)
         for i in range(1, len(results)):
-            time_diff = results[i].timestamp - results[i-1].timestamp
+            time_diff = results[i].timestamp - results[i - 1].timestamp
             assert time_diff.total_seconds() >= 0  # Later timestamp should be >= earlier
 
 
@@ -1083,7 +1100,9 @@ class TestMigrationValidationRequest:
         source_tech = TechnologyContext(type=TechnologyType.PYTHON_DJANGO)
         target_tech = TechnologyContext(type=TechnologyType.JAVA_SPRING)
 
-        source_input = InputData(type=InputType.CODE_FILES, files=["views.py", "models.py"])
+        source_input = InputData(
+            type=InputType.CODE_FILES, files=[
+                "views.py", "models.py"])
 
         target_input = InputData(
             type=InputType.CODE_FILES, files=["Controller.java", "Entity.java"],

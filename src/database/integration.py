@@ -325,7 +325,8 @@ class HybridSessionManager:
         try:
             await self.db_integration.update_session_status(request_id, status)
         except Exception as e:
-            logger.warning(f"Failed to update session {request_id} status in database: {e}")
+            logger.warning(
+                f"Failed to update session {request_id} status in database: {e}")
 
     async def add_session_log(self, request_id: str, message: str) -> None:
         """Add log entry to session in both memory and database.
@@ -343,7 +344,8 @@ class HybridSessionManager:
         try:
             await self.db_integration.add_session_log(request_id, message)
         except Exception as e:
-            logger.warning(f"Failed to add log to session {request_id} in database: {e}")
+            logger.warning(
+                f"Failed to add log to session {request_id} in database: {e}")
 
     async def list_sessions(
         self, include_memory: bool = True, include_database: bool = True, **filters,
@@ -456,8 +458,7 @@ async def database_lifespan(app: FastAPI):
             logger.info("Database initialization completed successfully")
         else:
             logger.warning(
-                "Database initialization completed but database may not be fully available",
-            )
+                "Database initialization completed but database may not be fully available", )
 
         yield
 

@@ -488,7 +488,8 @@ Provide comprehensive fidelity assessment and recommendations.""",
 
         enhanced = base_context.copy()
         enhanced["confidence_factors"] = template.confidence_factors
-        enhanced["expected_format"] = json.dumps(template.expected_response_format, indent=2)
+        enhanced["expected_format"] = json.dumps(
+            template.expected_response_format, indent=2)
 
         return enhanced
 

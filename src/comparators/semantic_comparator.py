@@ -7,9 +7,15 @@ and identify discrepancies between source and target systems.
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
-from ..core.models import (AbstractRepresentation, BackendFunction, DataField,
-                           SeverityLevel, UIElement, ValidationDiscrepancy,
-                           ValidationScope)
+from ..core.models import (
+    AbstractRepresentation,
+    BackendFunction,
+    DataField,
+    SeverityLevel,
+    UIElement,
+    ValidationDiscrepancy,
+    ValidationScope,
+)
 from ..services.llm_service import create_llm_service
 
 
@@ -22,7 +28,8 @@ class SemanticComparator:
         if self.llm_service is None:
             try:
                 # Create default LLM service with structured analysis capabilities
-                self.llm_service = create_llm_service(providers="openai,anthropic,google")
+                self.llm_service = create_llm_service(
+                    providers="openai,anthropic,google")
             except Exception:
                 # LLM service not available, will use fallback analysis
                 self.llm_service = None
@@ -143,7 +150,9 @@ class SemanticComparator:
                     discrepancy = ValidationDiscrepancy(
                         type="ui_element_renamed",
                         severity=SeverityLevel.WARNING,
-                        description=f"UI element '{self._describe_ui_element(source_elem)}' appears to be renamed to '{self._describe_ui_element(fuzzy_match)}'",
+                        description=f"UI element '{
+                            self._describe_ui_element(source_elem)}' appears to be renamed to '{
+                            self._describe_ui_element(fuzzy_match)}'",
                         source_element=self._describe_ui_element(source_elem),
                         target_element=self._describe_ui_element(fuzzy_match),
                         recommendation="Verify that the renamed element maintains the same functionality",
@@ -153,7 +162,8 @@ class SemanticComparator:
                     discrepancy = ValidationDiscrepancy(
                         type="missing_ui_element",
                         severity=SeverityLevel.CRITICAL,
-                        description=f"UI element '{self._describe_ui_element(source_elem)}' is missing in target",
+                        description=f"UI element '{
+                            self._describe_ui_element(source_elem)}' is missing in target",
                         source_element=self._describe_ui_element(source_elem),
                         recommendation="Add the missing UI element to maintain feature parity",
                     )
@@ -167,7 +177,8 @@ class SemanticComparator:
                     discrepancy = ValidationDiscrepancy(
                         type="additional_ui_element",
                         severity=SeverityLevel.INFO,
-                        description=f"Additional UI element '{self._describe_ui_element(target_elem)}' found in target",
+                        description=f"Additional UI element '{
+                            self._describe_ui_element(target_elem)}' found in target",
                         target_element=self._describe_ui_element(target_elem),
                         recommendation="Verify if this element is intentional or represents new functionality",
                     )
@@ -178,7 +189,8 @@ class SemanticComparator:
             source_elem = source_map[key]
             target_elem = target_map[key]
 
-            elem_discrepancies = self._compare_ui_element_attributes(source_elem, target_elem)
+            elem_discrepancies = self._compare_ui_element_attributes(
+                source_elem, target_elem)
             discrepancies.extend(elem_discrepancies)
 
         return discrepancies
@@ -236,7 +248,10 @@ class SemanticComparator:
 
         return len(common_chars) / len(total_chars) if total_chars else 0.0
 
-    def _is_likely_rename(self, target_elem: UIElement, source_elements: List[UIElement]) -> bool:
+    def _is_likely_rename(
+            self,
+            target_elem: UIElement,
+            source_elements: List[UIElement]) -> bool:
         """Check if target element is likely a rename of a source element."""
         return self._find_fuzzy_ui_match(target_elem, source_elements) is not None
 
@@ -255,7 +270,9 @@ class SemanticComparator:
             discrepancy = ValidationDiscrepancy(
                 type="ui_position_change",
                 severity=SeverityLevel.WARNING,
-                description=f"UI element position changed from {source_elem.position} to {target_elem.position}",
+                description=f"UI element position changed from {
+                    source_elem.position} to {
+                    target_elem.position}",
                 source_element=self._describe_ui_element(source_elem),
                 target_element=self._describe_ui_element(target_elem),
                 recommendation="Verify that position change doesn't affect usability",
@@ -283,9 +300,13 @@ class SemanticComparator:
                     discrepancy = ValidationDiscrepancy(
                         type="field_renamed",
                         severity=SeverityLevel.WARNING,
-                        description=f"Data field '{source_field.name}' appears to be renamed to '{fuzzy_match.name}'",
-                        source_element=f"field:{source_field.name}",
-                        target_element=f"field:{fuzzy_match.name}",
+                        description=f"Data field '{
+                            source_field.name}' appears to be renamed to '{
+                            fuzzy_match.name}'",
+                        source_element=f"field:{
+                            source_field.name}",
+                        target_element=f"field:{
+                            fuzzy_match.name}",
                         recommendation="Verify that renamed field maintains the same data semantics",
                         confidence=0.7,
                     )
@@ -293,8 +314,11 @@ class SemanticComparator:
                     discrepancy = ValidationDiscrepancy(
                         type="missing_field",
                         severity=SeverityLevel.CRITICAL,
-                        description=f"Data field '{source_field.name}' (type: {source_field.type}) is missing in target",
-                        source_element=f"field:{source_field.name}",
+                        description=f"Data field '{
+                            source_field.name}' (type: {
+                            source_field.type}) is missing in target",
+                        source_element=f"field:{
+                            source_field.name}",
                         recommendation="Add the missing data field or ensure data is handled elsewhere",
                     )
                 discrepancies.append(discrepancy)
@@ -307,8 +331,11 @@ class SemanticComparator:
                 discrepancy = ValidationDiscrepancy(
                     type="additional_field",
                     severity=SeverityLevel.INFO,
-                    description=f"Additional data field '{target_field.name}' (type: {target_field.type}) found in target",
-                    target_element=f"field:{target_field.name}",
+                    description=f"Additional data field '{
+                        target_field.name}' (type: {
+                        target_field.type}) found in target",
+                    target_element=f"field:{
+                        target_field.name}",
                     recommendation="Verify if this field represents new functionality or data requirements",
                 )
                 discrepancies.append(discrepancy)
@@ -339,9 +366,13 @@ class SemanticComparator:
                 discrepancy = ValidationDiscrepancy(
                     type="constraint_change",
                     severity=severity,
-                    description=f"Field '{name}' required constraint changed from {source_field.required} to {target_field.required}",
-                    source_element=f"field:{source_field.name}",
-                    target_element=f"field:{target_field.name}",
+                    description=f"Field '{name}' required constraint changed from {
+                        source_field.required} to {
+                        target_field.required}",
+                    source_element=f"field:{
+                        source_field.name}",
+                    target_element=f"field:{
+                        target_field.name}",
                     recommendation="Verify that constraint changes don't break data validation",
                 )
                 discrepancies.append(discrepancy)
@@ -354,10 +385,8 @@ class SemanticComparator:
         """Find potential fuzzy match for a data field."""
         # Look for fields with similar names and same type
         for target_field in target_fields:
-            if (
-                source_field.type == target_field.type
-                and self._field_name_similarity(source_field.name, target_field.name) > 0.7
-            ):
+            if (source_field.type == target_field.type and self._field_name_similarity(
+                    source_field.name, target_field.name) > 0.7):
                 return target_field
         return None
 
@@ -394,14 +423,19 @@ class SemanticComparator:
         # Find missing functions
         for name, source_func in source_map.items():
             if name not in target_map:
-                fuzzy_match = self._find_fuzzy_function_match(source_func, target_functions)
+                fuzzy_match = self._find_fuzzy_function_match(
+                    source_func, target_functions)
                 if fuzzy_match:
                     discrepancy = ValidationDiscrepancy(
                         type="function_renamed",
                         severity=SeverityLevel.WARNING,
-                        description=f"Function '{source_func.name}' appears to be renamed to '{fuzzy_match.name}'",
-                        source_element=f"function:{source_func.name}",
-                        target_element=f"function:{fuzzy_match.name}",
+                        description=f"Function '{
+                            source_func.name}' appears to be renamed to '{
+                            fuzzy_match.name}'",
+                        source_element=f"function:{
+                            source_func.name}",
+                        target_element=f"function:{
+                            fuzzy_match.name}",
                         recommendation="Verify that renamed function maintains the same business logic",
                         confidence=0.7,
                     )
@@ -409,8 +443,10 @@ class SemanticComparator:
                     discrepancy = ValidationDiscrepancy(
                         type="missing_function",
                         severity=SeverityLevel.CRITICAL,
-                        description=f"Function '{source_func.name}' is missing in target",
-                        source_element=f"function:{source_func.name}",
+                        description=f"Function '{
+                            source_func.name}' is missing in target",
+                        source_element=f"function:{
+                            source_func.name}",
                         recommendation="Implement the missing function or ensure functionality is preserved elsewhere",
                     )
                 discrepancies.append(discrepancy)
@@ -431,11 +467,9 @@ class SemanticComparator:
         """Find potential fuzzy match for a backend function."""
         # Look for functions with similar names and parameters
         for target_func in target_functions:
-            if (
-                self._function_name_similarity(source_func.name, target_func.name) > 0.7
-                and self._parameter_similarity(source_func.parameters, target_func.parameters)
-                > 0.8
-            ):
+            if (self._function_name_similarity(source_func.name,
+                                               target_func.name) > 0.7 and self._parameter_similarity(source_func.parameters,
+                                                                                                      target_func.parameters) > 0.8):
                 return target_func
         return None
 
@@ -464,13 +498,12 @@ class SemanticComparator:
         # Compare parameters
         if set(source_func.parameters) != set(target_func.parameters):
             discrepancy = ValidationDiscrepancy(
-                type="function_signature_change",
-                severity=SeverityLevel.WARNING,
-                description=f"Function '{source_func.name}' parameters changed from {source_func.parameters} to {target_func.parameters}",
-                source_element=f"function:{source_func.name}",
-                target_element=f"function:{target_func.name}",
-                recommendation="Verify that parameter changes don't break calling code",
-            )
+                type="function_signature_change", severity=SeverityLevel.WARNING, description=f"Function '{
+                    source_func.name}' parameters changed from {
+                    source_func.parameters} to {
+                    target_func.parameters}", source_element=f"function:{
+                    source_func.name}", target_element=f"function:{
+                        target_func.name}", recommendation="Verify that parameter changes don't break calling code", )
             discrepancies.append(discrepancy)
 
         # Enhanced LLM-based logic comparison if both functions have logic summaries
@@ -490,7 +523,8 @@ class SemanticComparator:
                 )
 
                 similarity_score = logic_analysis.result.get("similarity_score", 0.5)
-                functionally_equivalent = logic_analysis.result.get("functionally_equivalent", False)
+                functionally_equivalent = logic_analysis.result.get(
+                    "functionally_equivalent", False)
 
                 # Create discrepancy based on LLM analysis
                 if similarity_score < 0.7 or not functionally_equivalent:
@@ -499,10 +533,16 @@ class SemanticComparator:
                     discrepancy = ValidationDiscrepancy(
                         type="business_logic_change",
                         severity=severity,
-                        description=f"Function '{source_func.name}' business logic has changed significantly (similarity: {similarity_score:.2f})",
-                        source_element=f"function:{source_func.name}",
-                        target_element=f"function:{target_func.name}",
-                        recommendation=logic_analysis.result.get("recommendations", ["Review logic changes carefully"])[0] if logic_analysis.result.get("recommendations") else "Review logic changes to ensure business requirements are still met",
+                        description=f"Function '{
+                            source_func.name}' business logic has changed significantly (similarity: {
+                            similarity_score:.2f})",
+                        source_element=f"function:{
+                            source_func.name}",
+                        target_element=f"function:{
+                            target_func.name}",
+                        recommendation=logic_analysis.result.get(
+                            "recommendations",
+                            ["Review logic changes carefully"])[0] if logic_analysis.result.get("recommendations") else "Review logic changes to ensure business requirements are still met",
                         confidence=logic_analysis.confidence,
                     )
                     discrepancies.append(discrepancy)
@@ -514,9 +554,12 @@ class SemanticComparator:
                     discrepancy = ValidationDiscrepancy(
                         type="logic_change",
                         severity=SeverityLevel.WARNING,
-                        description=f"Function '{source_func.name}' logic appears to have changed",
-                        source_element=f"function:{source_func.name}",
-                        target_element=f"function:{target_func.name}",
+                        description=f"Function '{
+                            source_func.name}' logic appears to have changed",
+                        source_element=f"function:{
+                            source_func.name}",
+                        target_element=f"function:{
+                            target_func.name}",
                         recommendation="Review logic changes to ensure business requirements are still met",
                     )
                     discrepancies.append(discrepancy)
@@ -530,9 +573,12 @@ class SemanticComparator:
             discrepancy = ValidationDiscrepancy(
                 type="logic_change",
                 severity=SeverityLevel.WARNING,
-                description=f"Function '{source_func.name}' logic appears to have changed",
-                source_element=f"function:{source_func.name}",
-                target_element=f"function:{target_func.name}",
+                description=f"Function '{
+                    source_func.name}' logic appears to have changed",
+                source_element=f"function:{
+                    source_func.name}",
+                target_element=f"function:{
+                    target_func.name}",
                 recommendation="Review logic changes to ensure business requirements are still met",
             )
             discrepancies.append(discrepancy)
@@ -557,7 +603,10 @@ class SemanticComparator:
                 discrepancy = ValidationDiscrepancy(
                     type="missing_endpoint",
                     severity=SeverityLevel.CRITICAL,
-                    description=f"API endpoint '{source_ep.get('path', 'unknown')}' is missing in target",
+                    description=f"API endpoint '{
+                        source_ep.get(
+                            'path',
+                            'unknown')}' is missing in target",
                     source_element=f"endpoint:{key}",
                     recommendation="Implement the missing endpoint or ensure functionality is provided elsewhere",
                 )
@@ -569,7 +618,10 @@ class SemanticComparator:
                 discrepancy = ValidationDiscrepancy(
                     type="additional_endpoint",
                     severity=SeverityLevel.INFO,
-                    description=f"Additional API endpoint '{target_ep.get('path', 'unknown')}' found in target",
+                    description=f"Additional API endpoint '{
+                        target_ep.get(
+                            'path',
+                            'unknown')}' found in target",
                     target_element=f"endpoint:{key}",
                     recommendation="Verify if this endpoint represents new functionality",
                 )
@@ -673,11 +725,13 @@ class SemanticComparator:
                     )
                     enhanced_discrepancies.append(enhanced_discrepancy)
 
-            # Update confidence scores for existing discrepancies based on LLM assessment
+            # Update confidence scores for existing discrepancies based on LLM
+            # assessment
             overall_confidence = fidelity_analysis.confidence
             for discrepancy in enhanced_discrepancies:
                 if discrepancy.confidence is None:
-                    discrepancy.confidence = overall_confidence * 0.8  # Slightly lower for derived confidence
+                    discrepancy.confidence = overall_confidence * \
+                        0.8  # Slightly lower for derived confidence
 
             return enhanced_discrepancies
 
@@ -686,13 +740,17 @@ class SemanticComparator:
             print(f"LLM enhancement failed: {e}")
             return initial_discrepancies
 
-    def _serialize_representation(self, representation: AbstractRepresentation) -> Dict[str, Any]:
+    def _serialize_representation(
+            self, representation: AbstractRepresentation) -> Dict[str, Any]:
         """Serialize representation for LLM analysis."""
         return {
             "screen_name": representation.screen_name,
-            "ui_elements": [asdict(elem) for elem in representation.ui_elements],
-            "backend_functions": [asdict(func) for func in representation.backend_functions],
-            "data_fields": [asdict(field) for field in representation.data_fields],
+            "ui_elements": [
+                asdict(elem) for elem in representation.ui_elements],
+            "backend_functions": [
+                asdict(func) for func in representation.backend_functions],
+            "data_fields": [
+                asdict(field) for field in representation.data_fields],
             "api_endpoints": representation.api_endpoints,
             "metadata": representation.metadata,
         }
@@ -752,10 +810,13 @@ class SemanticComparator:
             print(f"LLM quality assessment failed: {e}")
             return self._fallback_quality_assessment(discrepancies)
 
-    def _fallback_quality_assessment(self, discrepancies: List[ValidationDiscrepancy]) -> Dict[str, Any]:
+    def _fallback_quality_assessment(
+            self, discrepancies: List[ValidationDiscrepancy]) -> Dict[str, Any]:
         """Provide fallback quality assessment when LLM analysis fails."""
-        critical_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.CRITICAL)
-        warning_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.WARNING)
+        critical_count = sum(
+            1 for d in discrepancies if d.severity == SeverityLevel.CRITICAL)
+        warning_count = sum(
+            1 for d in discrepancies if d.severity == SeverityLevel.WARNING)
         info_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.INFO)
 
         # Simple scoring based on discrepancy counts

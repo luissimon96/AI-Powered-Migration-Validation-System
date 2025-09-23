@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""
-Security setup script for AI-Powered Migration Validation System.
+"""Security setup script for AI-Powered Migration Validation System.
 
 Configures security settings, generates keys, and validates the security setup.
 """
 
+import base64
 import os
 import secrets
-import base64
 import sys
 from pathlib import Path
 
@@ -15,9 +14,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
-    from src.security.encryption import EncryptionManager
-    from src.security.config import get_security_config, SecurityLevel
     from src.security.auth import AuthManager
+    from src.security.config import SecurityLevel, get_security_config
+    from src.security.encryption import EncryptionManager
 except ImportError as e:
     print(f"Error importing security modules: {e}")
     print("Please ensure the security modules are properly installed.")

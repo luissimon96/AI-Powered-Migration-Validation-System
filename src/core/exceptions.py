@@ -291,7 +291,11 @@ class ProcessingError(BaseValidationError):
     """Error during migration validation processing."""
 
     def __init__(
-        self, message: str, stage: Optional[str] = None, operation: Optional[str] = None, **kwargs,
+        self,
+        message: str,
+        stage: Optional[str] = None,
+        operation: Optional[str] = None,
+        **kwargs,
     ):
         self.stage = stage
         self.operation = operation
@@ -396,13 +400,23 @@ def configuration_error(
 
 
 def external_service_error(
-    message: str, service: Optional[str] = None, status_code: Optional[int] = None, **kwargs,
+    message: str,
+    service: Optional[str] = None,
+    status_code: Optional[int] = None,
+    **kwargs,
 ) -> ExternalServiceError:
     """Create external service error with proper context."""
-    return ExternalServiceError(message, service=service, status_code=status_code, **kwargs)
+    return ExternalServiceError(
+        message,
+        service=service,
+        status_code=status_code,
+        **kwargs)
 
 
-def security_error(message: str, security_check: Optional[str] = None, **kwargs) -> SecurityError:
+def security_error(
+        message: str,
+        security_check: Optional[str] = None,
+        **kwargs) -> SecurityError:
     """Create security error with proper context."""
     return SecurityError(message, security_check=security_check, **kwargs)
 
@@ -416,29 +430,46 @@ def resource_error(
 ) -> ResourceError:
     """Create resource error with proper context."""
     return ResourceError(
-        message, resource_type=resource_type, current_usage=current_usage, limit=limit, **kwargs,
+        message,
+        resource_type=resource_type,
+        current_usage=current_usage,
+        limit=limit,
+        **kwargs,
     )
 
 
 def processing_error(
-    message: str, stage: Optional[str] = None, operation: Optional[str] = None, **kwargs,
+    message: str,
+    stage: Optional[str] = None,
+    operation: Optional[str] = None,
+    **kwargs,
 ) -> ProcessingError:
     """Create processing error with proper context."""
     return ProcessingError(message, stage=stage, operation=operation, **kwargs)
 
 
 def network_error(
-    message: str, endpoint: Optional[str] = None, timeout: Optional[float] = None, **kwargs,
+    message: str,
+    endpoint: Optional[str] = None,
+    timeout: Optional[float] = None,
+    **kwargs,
 ) -> NetworkError:
     """Create network error with proper context."""
     return NetworkError(message, endpoint=endpoint, timeout=timeout, **kwargs)
 
 
 def data_integrity_error(
-    message: str, data_source: Optional[str] = None, checksum: Optional[str] = None, **kwargs,
+    message: str,
+    data_source: Optional[str] = None,
+    checksum: Optional[str] = None,
+    **kwargs,
 ) -> DataIntegrityError:
     """Create data integrity error with proper context."""
-    return DataIntegrityError(message, data_source=data_source, checksum=checksum, **kwargs)
+    return DataIntegrityError(
+        message,
+        data_source=data_source,
+        checksum=checksum,
+        **kwargs)
 
 
 # Error recovery utilities
@@ -484,7 +515,8 @@ class ErrorRecoveryManager:
         for attempt in range(self.max_retries + 1):
             try:
                 if attempt > 0:
-                    delay = self.base_delay * (2 ** (attempt - 1))  # Exponential backoff
+                    delay = self.base_delay * \
+                        (2 ** (attempt - 1))  # Exponential backoff
                     await asyncio.sleep(delay)
                     self.logger.info(
                         "Retrying operation",
@@ -511,8 +543,7 @@ class ErrorRecoveryManager:
 
                 # Check if error is recoverable
                 is_recoverable = (isinstance(e, BaseValidationError) and e.recoverable) or any(
-                    isinstance(e, exc_type) for exc_type in recoverable_exceptions
-                )
+                    isinstance(e, exc_type) for exc_type in recoverable_exceptions)
 
                 if not is_recoverable or attempt == self.max_retries:
                     self.logger.error(

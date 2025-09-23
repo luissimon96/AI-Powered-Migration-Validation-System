@@ -7,31 +7,51 @@ authorization, rate limiting, and audit logging.
 from datetime import datetime
 from typing import Any, Dict, List
 
-from fastapi import (APIRouter, BackgroundTasks, Depends, File, Form,
-                     HTTPException, Request, UploadFile, status)
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import JSONResponse
 
-from ..behavioral.crews import \
-    BehavioralValidationRequest as CrewBehavioralRequest
+from ..behavioral.crews import BehavioralValidationRequest as CrewBehavioralRequest
 from ..behavioral.crews import create_behavioral_validation_crew
 from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
 from ..core.models import ValidationSession
-from ..security.api_keys import (APIKeyMetadata, api_key_manager,
-                                 api_key_rate_limiter, require_admin_scope,
-                                 require_read_scope, require_validation_scope)
+from ..security.api_keys import (
+    APIKeyMetadata,
+    api_key_manager,
+    api_key_rate_limiter,
+    require_admin_scope,
+    require_read_scope,
+    require_validation_scope,
+)
 from ..security.audit import security_audit
 from ..security.headers import create_security_headers
-from ..security.schemas import (APIKeyCreateRequest, APIKeyListResponse,
-                                APIKeyResponse, BehavioralValidationRequest,
-                                BehavioralValidationResultResponse,
-                                FileUploadBatchResponse, FileUploadMetadata,
-                                FileUploadResponse, HealthCheckResponse,
-                                MigrationValidationRequest,
-                                SystemStatsResponse, ValidationResultResponse,
-                                ValidationStatusResponse,
-                                sanitize_response_data)
+from ..security.schemas import (
+    APIKeyCreateRequest,
+    APIKeyListResponse,
+    APIKeyResponse,
+    BehavioralValidationRequest,
+    BehavioralValidationResultResponse,
+    FileUploadBatchResponse,
+    FileUploadMetadata,
+    FileUploadResponse,
+    HealthCheckResponse,
+    MigrationValidationRequest,
+    SystemStatsResponse,
+    ValidationResultResponse,
+    ValidationStatusResponse,
+    sanitize_response_data,
+)
 from ..security.validation import SecurityValidationError, input_validator
 
 # Initialize components
@@ -206,7 +226,8 @@ async def upload_files(
     files: List[UploadFile] = File(...),
     metadata: str = Form(...),
     api_key_metadata: APIKeyMetadata = Depends(require_validation_scope),
-    rate_limit_check: APIKeyMetadata = Depends(api_key_rate_limiter.require_rate_limit_check),
+    rate_limit_check: APIKeyMetadata = Depends(
+        api_key_rate_limiter.require_rate_limit_check),
 ):
     """Upload files with comprehensive security validation."""
     try:
@@ -294,7 +315,8 @@ async def create_migration_validation(
     background_tasks: BackgroundTasks,
     req: Request,
     api_key_metadata: APIKeyMetadata = Depends(require_validation_scope),
-    rate_limit_check: APIKeyMetadata = Depends(api_key_rate_limiter.require_rate_limit_check),
+    rate_limit_check: APIKeyMetadata = Depends(
+        api_key_rate_limiter.require_rate_limit_check),
 ):
     """Create a new migration validation request."""
     try:
@@ -367,7 +389,8 @@ async def create_behavioral_validation(
     background_tasks: BackgroundTasks,
     req: Request,
     api_key_metadata: APIKeyMetadata = Depends(require_validation_scope),
-    rate_limit_check: APIKeyMetadata = Depends(api_key_rate_limiter.require_rate_limit_check),
+    rate_limit_check: APIKeyMetadata = Depends(
+        api_key_rate_limiter.require_rate_limit_check),
 ):
     """Create a new behavioral validation request."""
     try:
@@ -645,7 +668,8 @@ async def get_system_stats(
         import psutil
 
         response_data = SystemStatsResponse(
-            active_validations=len([s for s in validation_sessions.values() if s.status == "running"]),
+            active_validations=len(
+                [s for s in validation_sessions.values() if s.status == "running"]),
             total_validations_today=len(validation_sessions),
             total_users=1,  # Placeholder
             system_load=psutil.cpu_percent(),
@@ -684,9 +708,13 @@ async def _process_migration_validation(
         session.updated_at = datetime.utcnow()
 
         # Initialize real validation pipeline
-        from ..core.models import (InputData, InputType,
-                                   MigrationValidationRequest,
-                                   TechnologyContext, TechnologyType)
+        from ..core.models import (
+            InputData,
+            InputType,
+            MigrationValidationRequest,
+            TechnologyContext,
+            TechnologyType,
+        )
 
         # Create technology contexts
         source_tech = TechnologyContext(

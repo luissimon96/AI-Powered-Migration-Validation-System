@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 import structlog
 from crewai import Agent, Crew, Process, Task
+
 # BaseTool not available in this version, will create custom tool base
 # from crewai_tools import BaseTool
 from pydantic import BaseModel, Field
@@ -111,7 +112,10 @@ class BrowserTool(BaseModel):
 
         except Exception as e:
             error_msg = f"Browser action failed: {e!s}"
-            self.logger.error("Browser tool execution failed", action=action, error=str(e))
+            self.logger.error(
+                "Browser tool execution failed",
+                action=action,
+                error=str(e))
             return error_msg
 
     async def _run_async(self, action: str, target: str = "", data: str = "") -> str:
@@ -128,9 +132,11 @@ class BrowserTool(BaseModel):
         action_data = action_parts[2] if len(action_parts) > 2 else data
 
         try:
-            from .browser_automation import (BrowserAction,
-                                             create_form_submission_scenario,
-                                             create_login_scenario)
+            from .browser_automation import (
+                BrowserAction,
+                create_form_submission_scenario,
+                create_login_scenario,
+            )
 
             if action_type == "navigate":
                 browser_action = BrowserAction(
@@ -214,7 +220,8 @@ class BrowserTool(BaseModel):
                 return json.dumps(state, indent=2)
 
             elif action_type == "scenario":
-                # Format: scenario:login:username:password or scenario:form:form_selector:field1=value1,field2=value2
+                # Format: scenario:login:username:password or
+                # scenario:form:form_selector:field1=value1,field2=value2
                 scenario_type = action_target
 
                 if scenario_type == "login" and action_data:
@@ -224,7 +231,8 @@ class BrowserTool(BaseModel):
                         actions = create_login_scenario(username, password, login_url)
                         results = await self.automation_engine.execute_scenario("login", actions)
                         success_count = sum(1 for r in results if r.success)
-                        return f"Login scenario executed: {success_count}/{len(results)} actions successful"
+                        return f"Login scenario executed: {success_count}/{
+                            len(results)} actions successful"
                     return "Login scenario requires username:password:login_url"
 
                 if scenario_type == "form" and action_data:
@@ -240,12 +248,14 @@ class BrowserTool(BaseModel):
                                 key, value = pair.split("=", 1)
                                 form_data[key.strip()] = value.strip()
 
-                        actions = create_form_submission_scenario(form_selector, form_data)
+                        actions = create_form_submission_scenario(
+                            form_selector, form_data)
                         results = await self.automation_engine.execute_scenario(
                             "form_submission", actions,
                         )
                         success_count = sum(1 for r in results if r.success)
-                        return f"Form scenario executed: {success_count}/{len(results)} actions successful"
+                        return f"Form scenario executed: {success_count}/{
+                            len(results)} actions successful"
                     return "Form scenario requires form_selector:field1=value1,field2=value2"
                 return f"Unknown scenario type: {scenario_type}"
 
@@ -259,7 +269,9 @@ class BrowserTool(BaseModel):
                 if action_target == "end":
                     session = await self.automation_engine.end_session()
                     if session:
-                        return f"Ended session {session.session_id}, duration: {session.duration:.1f}s"
+                        return f"Ended session {
+                            session.session_id}, duration: {
+                            session.duration:.1f}s"
                     return "No active session to end"
                 return "Session action requires 'start' or 'end'"
 
@@ -285,9 +297,8 @@ class BrowserTool(BaseModel):
 
         except Exception as e:
             error_msg = f"Action execution failed: {e!s}"
-            self.logger.error(
-                "Browser action execution failed", action_type=action_type, error=str(e),
-            )
+            self.logger.error("Browser action execution failed",
+                              action_type=action_type, error=str(e), )
             return error_msg
 
     async def cleanup(self):
@@ -336,9 +347,9 @@ class SourceExplorerAgent:
         self.agent = Agent(
             role="Source System Explorer",
             goal="Thoroughly explore and document the behavior of the source system",
-            backstory="""You are an expert QA tester with years of experience in exploring 
-            web applications. You have a keen eye for detail and can systematically test 
-            user flows, edge cases, and error conditions. Your goal is to create a 
+            backstory="""You are an expert QA tester with years of experience in exploring
+            web applications. You have a keen eye for detail and can systematically test
+            user flows, edge cases, and error conditions. Your goal is to create a
             comprehensive behavioral baseline of the source system.""",
             verbose=True,
             tools=[self.browser_tool],
@@ -410,9 +421,9 @@ class TargetExecutorAgent:
         self.agent = Agent(
             role="Target System Executor",
             goal="Execute the same scenarios on the target system and document results",
-            backstory="""You are a meticulous test executor who follows detailed test 
-            scripts precisely. You excel at replicating exact user interactions and 
-            documenting any differences in system behavior. Your attention to detail 
+            backstory="""You are a meticulous test executor who follows detailed test
+            scripts precisely. You excel at replicating exact user interactions and
+            documenting any differences in system behavior. Your attention to detail
             ensures that no behavioral differences go unnoticed.""",
             verbose=True,
             tools=[self.browser_tool],
@@ -462,17 +473,14 @@ class TargetExecutorAgent:
 
             Document all browser_tool responses and create a behavioral log that exactly
             mirrors the source system structure for precise comparison.
-            """,
-            expected_output="""A parallel behavioral log in JSON format that exactly matches
+            """, expected_output="""A parallel behavioral log in JSON format that exactly matches
             the source system log structure, containing:
             - Identical session timing and interaction patterns
             - Same screenshot capture points for visual comparison
             - Parallel page state documentation for structural analysis
             - Identical error case testing results
             - Performance metrics for timing comparison
-            - Direct mapping to source system behaviors for validation""",
-            agent=self.agent,
-        )
+            - Direct mapping to source system behaviors for validation""", agent=self.agent, )
 
 
 class ComparisonJudgeAgent:
@@ -484,9 +492,9 @@ class ComparisonJudgeAgent:
         self.agent = Agent(
             role="Behavioral Comparison Judge",
             goal="Analyze and compare system behaviors to identify migration discrepancies",
-            backstory="""You are a senior software quality analyst with expertise in 
-            migration validation. You excel at identifying subtle differences in system 
-            behavior that could impact user experience or business logic. Your analysis 
+            backstory="""You are a senior software quality analyst with expertise in
+            migration validation. You excel at identifying subtle differences in system
+            behavior that could impact user experience or business logic. Your analysis
             is thorough, objective, and actionable.""",
             verbose=True,
             llm=self._get_llm_config(),
@@ -613,8 +621,8 @@ class ReportManagerAgent:
         self.agent = Agent(
             role="Validation Report Manager",
             goal="Orchestrate the validation process and generate comprehensive reports",
-            backstory="""You are a project manager and technical writer with expertise 
-            in migration validation. You excel at coordinating teams, synthesizing 
+            backstory="""You are a project manager and technical writer with expertise
+            in migration validation. You excel at coordinating teams, synthesizing
             technical findings, and communicating results clearly to stakeholders.""",
             verbose=True,
             llm=self._get_llm_config(),
@@ -627,19 +635,20 @@ class ReportManagerAgent:
             return f"{provider_info['provider']}/{provider_info['model']}"
         return "openai/gpt-4-turbo-preview"
 
-    def create_report_task(self, comparison_results: str, metadata: Dict[str, Any]) -> Task:
+    def create_report_task(self, comparison_results: str,
+                           metadata: Dict[str, Any]) -> Task:
         """Create task for generating final validation report."""
         return Task(
             description=f"""
-            Generate a comprehensive migration validation report based on the 
+            Generate a comprehensive migration validation report based on the
             behavioral analysis results.
-            
+
             Comparison Results:
             {comparison_results}
-            
+
             Validation Metadata:
             {json.dumps(metadata, indent=2)}
-            
+
             Create a report that includes:
             1. Executive summary with overall validation status
             2. Detailed findings organized by severity
@@ -647,12 +656,12 @@ class ReportManagerAgent:
             4. Business impact assessment
             5. Specific remediation recommendations
             6. Migration readiness assessment
-            
-            The report should be actionable and provide clear guidance for 
+
+            The report should be actionable and provide clear guidance for
             stakeholders on migration decisions.
             """,
-            expected_output="""A comprehensive validation report in JSON format suitable 
-            for both technical teams and business stakeholders, with clear recommendations 
+            expected_output="""A comprehensive validation report in JSON format suitable
+            for both technical teams and business stakeholders, with clear recommendations
             and migration readiness assessment.""",
             agent=self.agent,
         )
@@ -865,7 +874,8 @@ class BehavioralValidationCrew:
                                     ValidationDiscrepancy(
                                         type="parsing_error",
                                         severity=SeverityLevel.WARNING,
-                                        description=f"Failed to parse discrepancy: {e!s}",
+                                        description=f"Failed to parse discrepancy: {
+                                            e!s}",
                                         recommendation="Manual review required",
                                     ),
                                 )
@@ -903,7 +913,9 @@ class BehavioralValidationCrew:
             }
 
         except Exception as e:
-            self.logger.error("Unexpected error parsing validation results", error=str(e))
+            self.logger.error(
+                "Unexpected error parsing validation results",
+                error=str(e))
             return {
                 "overall_status": "error",
                 "fidelity_score": 0.0,
@@ -925,7 +937,11 @@ class BehavioralValidationCrew:
             agents_with_browsers = [self.source_explorer, self.target_executor]
 
             for agent in agents_with_browsers:
-                if hasattr(agent, "browser_tool") and hasattr(agent.browser_tool, "cleanup"):
+                if hasattr(
+                        agent,
+                        "browser_tool") and hasattr(
+                        agent.browser_tool,
+                        "cleanup"):
                     await agent.browser_tool.cleanup()
                     self.logger.info(
                         "Cleaned up browser resources for agent",

@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
-"""
-Comprehensive test runner for AI-Powered Migration Validation System.
+"""Comprehensive test runner for AI-Powered Migration Validation System.
 
 This script provides organized test execution with proper categorization and reporting.
 """
 
-import os
-import sys
-import subprocess
 import argparse
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 
 def run_command(cmd, description=""):
     """Run a command and return the result."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"🚀 {description}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"Command: {' '.join(cmd)}")
     print("-" * 60)
 
@@ -226,8 +225,8 @@ def main():
         overall_success = all(code == 0 for code in exit_codes)
         print("-" * 80)
         print(
-            f"Overall Result: {'✅ ALL TESTS PASSED' if overall_success else '❌ SOME TESTS FAILED'}"
-        )
+            f"Overall Result: {
+                '✅ ALL TESTS PASSED' if overall_success else '❌ SOME TESTS FAILED'}")
 
         if args.coverage:
             print("\n📈 Coverage report generated:")
@@ -243,9 +242,8 @@ def main():
     else:
         # Run specific test category
         exit_code = run_command(
-            pytest_cmd,
-            f"Running tests with markers: {' and '.join(markers) if markers else 'all'}",
-        )
+            pytest_cmd, f"Running tests with markers: {
+                ' and '.join(markers) if markers else 'all'}", )
 
         if args.coverage:
             print("\n📈 Coverage report generated:")
@@ -270,8 +268,10 @@ def validate_test_setup():
         return False
 
     print(
-        f"✅ Python version: {python_version.major}.{python_version.minor}.{python_version.micro}"
-    )
+        f"✅ Python version: {
+            python_version.major}.{
+            python_version.minor}.{
+                python_version.micro}")
 
     # Check required packages
     required_packages = [

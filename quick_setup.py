@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-"""
-Quick setup script for AI-Powered Migration Validation System.
+"""Quick setup script for AI-Powered Migration Validation System.
 This handles dependency installation and basic configuration.
 """
 
 import subprocess
 import sys
-import os
 from pathlib import Path
 
 
@@ -79,8 +77,8 @@ def test_basic_import():
     try:
         # Test core imports
         import fastapi
-        import uvicorn
         import pydantic
+        import uvicorn
 
         print("✅ Core web framework imports work")
 
@@ -133,13 +131,13 @@ def test_api_creation():
 
 if __name__ == "__main__":
     print("🧪 Running basic tests...")
-    
+
     if test_basic_import():
         print("1/2 ✅ Config test passed")
     else:
         print("1/2 ❌ Config test failed")
         exit(1)
-    
+
     if test_api_creation():
         print("2/2 ✅ API test passed")
         print("\\n🎉 Basic system is working!")

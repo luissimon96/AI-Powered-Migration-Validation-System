@@ -6,9 +6,14 @@ from unittest.mock import mock_open, patch
 
 import pytest
 
-from src.core.config import (BrowserAutomationConfig, LLMProviderConfig,
-                             ValidationConfig, get_validation_config,
-                             load_config_from_file, validate_config)
+from src.core.config import (
+    BrowserAutomationConfig,
+    LLMProviderConfig,
+    ValidationConfig,
+    get_validation_config,
+    load_config_from_file,
+    validate_config,
+)
 
 
 @pytest.mark.unit
@@ -63,7 +68,7 @@ class TestValidationConfig:
     def test_config_validation(self):
         """Test configuration validation."""
         valid_config = ValidationConfig()
-        assert validate_config(valid_config) == True
+        assert validate_config(valid_config)
 
         # Test with invalid config
         invalid_config = ValidationConfig(default_llm_provider="invalid")
@@ -89,16 +94,19 @@ class TestLLMProviderConfig:
         assert config.provider == "openai"
         assert config.model == "gpt-4"
         assert config.api_key == "sk-test123"
-        assert config.enabled == True
+        assert config.enabled
         assert config.max_tokens == 4000
         assert config.temperature == 0.1
         assert config.timeout == 60.0
 
     def test_llm_config_defaults(self):
         """Test LLM configuration defaults."""
-        config = LLMProviderConfig(provider="anthropic", model="claude-3", api_key="test-key")
+        config = LLMProviderConfig(
+            provider="anthropic",
+            model="claude-3",
+            api_key="test-key")
 
-        assert config.enabled == True  # Default
+        assert config.enabled  # Default
         assert config.max_tokens == 4000  # Default
         assert config.temperature == 0.1  # Default
         assert config.timeout == 30.0  # Default
@@ -106,8 +114,9 @@ class TestLLMProviderConfig:
     def test_llm_config_validation(self):
         """Test LLM configuration validation."""
         # Valid configuration
-        valid_config = LLMProviderConfig(provider="openai", model="gpt-4", api_key="sk-test")
-        assert valid_config.is_valid() == True
+        valid_config = LLMProviderConfig(
+            provider="openai", model="gpt-4", api_key="sk-test")
+        assert valid_config.is_valid()
 
         # Invalid configuration (missing API key)
         invalid_config = LLMProviderConfig(provider="openai", model="gpt-4", api_key="")
@@ -140,24 +149,24 @@ class TestBrowserAutomationConfig:
         )
 
         assert config.browser == "chrome"
-        assert config.headless == True
+        assert config.headless
         assert config.timeout == 30
         assert config.wait_for_elements == 10
-        assert config.screenshot_on_failure == True
+        assert config.screenshot_on_failure
 
     def test_browser_config_defaults(self):
         """Test browser configuration defaults."""
         config = BrowserAutomationConfig()
 
         assert config.browser == "chrome"  # Default
-        assert config.headless == True  # Default
+        assert config.headless  # Default
         assert config.timeout == 30  # Default
 
     def test_browser_config_validation(self):
         """Test browser configuration validation."""
         # Valid configuration
         valid_config = BrowserAutomationConfig(browser="firefox")
-        assert valid_config.is_valid() == True
+        assert valid_config.is_valid()
 
         # Invalid configuration
         invalid_config = BrowserAutomationConfig(browser="invalid_browser")
@@ -250,7 +259,8 @@ class TestConfigValidation:
 
     def test_validate_complete_config(self):
         """Test validating complete configuration."""
-        llm_config = LLMProviderConfig(provider="openai", model="gpt-4", api_key="sk-test")
+        llm_config = LLMProviderConfig(
+            provider="openai", model="gpt-4", api_key="sk-test")
 
         browser_config = BrowserAutomationConfig(browser="chrome", headless=True)
 
@@ -260,7 +270,7 @@ class TestConfigValidation:
             browser_config=browser_config,
         )
 
-        assert validate_config(config) == True
+        assert validate_config(config)
 
     def test_validate_incomplete_config(self):
         """Test validating incomplete configuration."""
@@ -336,7 +346,7 @@ class TestConfigEnvironmentOverrides:
             config = get_validation_config()
 
             if config.browser_config:
-                assert config.browser_config.headless == True
+                assert config.browser_config.headless
 
     def test_numeric_environment_parsing(self):
         """Test parsing numeric values from environment."""

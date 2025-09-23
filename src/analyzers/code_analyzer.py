@@ -10,12 +10,23 @@ import re
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
-from ..core.models import (AbstractRepresentation, BackendFunction, DataField,
-                           InputData, InputType, TechnologyContext, UIElement,
-                           ValidationScope)
+from ..core.models import (
+    AbstractRepresentation,
+    BackendFunction,
+    DataField,
+    InputData,
+    InputType,
+    TechnologyContext,
+    UIElement,
+    ValidationScope,
+)
 from ..services.llm_service import LLMService, create_llm_service
-from .base import (BaseAnalyzer, ExtractionError, InvalidInputError,
-                   UnsupportedScopeError)
+from .base import (
+    BaseAnalyzer,
+    ExtractionError,
+    InvalidInputError,
+    UnsupportedScopeError,
+)
 
 
 class CodeAnalyzer(BaseAnalyzer):
@@ -444,7 +455,11 @@ class CodeAnalyzer(BaseAnalyzer):
         return elements
 
     async def _analyze_generic_file(
-        self, content: str, file_path: str, scope: ValidationScope, language: str = "auto",
+        self,
+        content: str,
+        file_path: str,
+        scope: ValidationScope,
+        language: str = "auto",
     ) -> AbstractRepresentation:
         """Generic file analysis using LLM for comprehensive code understanding."""
         representation = AbstractRepresentation()

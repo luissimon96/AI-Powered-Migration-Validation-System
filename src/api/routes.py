@@ -7,14 +7,22 @@ Provides REST API endpoints for migration validation functionality:
 - Report generation and retrieval
 """
 
+from src.api.async_routes import router as async_router
 import json
 import os
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List
 
-from fastapi import (BackgroundTasks, Depends, FastAPI, File, Form,
-                     HTTPException, UploadFile)
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -46,9 +54,6 @@ class TechnologyOption(BaseModel):
 # Global storage for validation sessions (in production, use Redis or database)
 validation_sessions: Dict[str, ValidationSession] = {}
 behavioral_validation_sessions: Dict[str, Dict[str, Any]] = {}
-
-
-from src.api.async_routes import router as async_router
 
 
 def create_app() -> FastAPI:
@@ -110,7 +115,8 @@ def create_app() -> FastAPI:
                 detail="Incorrect username or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        access_token = create_access_token(data={"sub": user["username"], "role": user["role"]})
+        access_token = create_access_token(
+            data={"sub": user["username"], "role": user["role"]})
         return {"access_token": access_token, "token_type": "bearer"}
 
     @app.get("/users/me", tags=["Authentication"])
@@ -165,7 +171,8 @@ def create_app() -> FastAPI:
             )
             return CompatibilityCheckResponse(**result)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Compatibility check failed: {e!s}")
+            raise HTTPException(status_code=500,
+                                detail=f"Compatibility check failed: {e!s}")
 
     @app.get(
         "/api/capabilities",
@@ -178,7 +185,8 @@ def create_app() -> FastAPI:
             capabilities = validator.get_supported_technologies()
             return capabilities
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to get capabilities: {e!s}")
+            raise HTTPException(status_code=500,
+                                detail=f"Failed to get capabilities: {e!s}")
 
     @app.post("/api/upload/source", tags=["File Management"])
     async def upload_source_files(files: List[UploadFile] = File(...)):
@@ -471,14 +479,12 @@ def create_app() -> FastAPI:
                 )
             # JSON
             return JSONResponse(
-                content=json.loads(report_content),
-                headers={
-                    "Content-Disposition": f"attachment; filename=validation_report_{request_id}.json",
-                },
-            )
+                content=json.loads(report_content), headers={
+                    "Content-Disposition": f"attachment; filename=validation_report_{request_id}.json", }, )
 
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Report generation failed: {e!s}")
+            raise HTTPException(status_code=500,
+                                detail=f"Report generation failed: {e!s}")
 
     @app.get("/api/validate/{request_id}/logs", tags=["Validation"])
     async def get_validation_logs(request_id: str):
@@ -535,7 +541,8 @@ def create_app() -> FastAPI:
                     "source_technology": session.request.source_technology.type.value,
                     "target_technology": session.request.target_technology.type.value,
                     "validation_scope": session.request.validation_scope.value,
-                    "fidelity_score": (session.result.fidelity_score if session.result else None),
+                    "fidelity_score": (
+                        session.result.fidelity_score if session.result else None),
                 },
             )
 
@@ -552,7 +559,12 @@ def create_app() -> FastAPI:
         """
         try:
             # Generate unique request ID
-            request_id = f"behavioral_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(request.source_url + request.target_url) % 10000:04d}"
+            request_id = f"behavioral_{
+                datetime.now().strftime('%Y%m%d_%H%M%S')}_{
+                hash(
+                    request.source_url
+                    + request.target_url) %
+                10000:04d}"
 
             # Create behavioral validation request
             behavioral_request = BehavioralValidationRequest(
@@ -583,7 +595,8 @@ def create_app() -> FastAPI:
                 "request_id": request_id,
                 "status": "accepted",
                 "message": "Behavioral validation request accepted and processing started",
-                "estimated_time": f"{request.timeout}s maximum",
+                "estimated_time": f"{
+                    request.timeout}s maximum",
             }
 
         except Exception as e:
@@ -600,7 +613,8 @@ def create_app() -> FastAPI:
     async def get_behavioral_validation_status(request_id: str):
         """Get behavioral validation status and progress."""
         if request_id not in behavioral_validation_sessions:
-            raise HTTPException(status_code=404, detail="Behavioral validation request not found")
+            raise HTTPException(status_code=404,
+                                detail="Behavioral validation request not found")
 
         session = behavioral_validation_sessions[request_id]
 
@@ -620,12 +634,14 @@ def create_app() -> FastAPI:
     async def get_behavioral_validation_result(request_id: str):
         """Get behavioral validation results."""
         if request_id not in behavioral_validation_sessions:
-            raise HTTPException(status_code=404, detail="Behavioral validation request not found")
+            raise HTTPException(status_code=404,
+                                detail="Behavioral validation request not found")
 
         session = behavioral_validation_sessions[request_id]
 
         if session["result"] is None:
-            raise HTTPException(status_code=202, detail="Behavioral validation still in progress")
+            raise HTTPException(status_code=202,
+                                detail="Behavioral validation still in progress")
 
         result = session["result"]
 
@@ -678,13 +694,18 @@ def create_app() -> FastAPI:
             hybrid_request = HybridValidationRequest(**json.loads(request_data))
 
             # Generate unique request ID for hybrid validation
-            request_id = f"hybrid_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(str(hybrid_request.dict())) % 10000:04d}"
+            request_id = f"hybrid_{
+                datetime.now().strftime('%Y%m%d_%H%M%S')}_{
+                hash(
+                    str(
+                        hybrid_request.dict())) %
+                10000:04d}"
 
             # Determine validation types to perform
             perform_static = bool(
-                source_files or target_files or source_screenshots or target_screenshots,
-            )
-            perform_behavioral = bool(hybrid_request.source_url and hybrid_request.target_url)
+                source_files or target_files or source_screenshots or target_screenshots, )
+            perform_behavioral = bool(
+                hybrid_request.source_url and hybrid_request.target_url)
 
             if not perform_static and not perform_behavioral:
                 raise HTTPException(
@@ -732,13 +753,15 @@ def create_app() -> FastAPI:
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Hybrid validation failed: {e!s}")
+            raise HTTPException(status_code=500,
+                                detail=f"Hybrid validation failed: {e!s}")
 
     @app.get("/api/behavioral/{request_id}/logs", tags=["Behavioral Validation"])
     async def get_behavioral_validation_logs(request_id: str):
         """Get behavioral validation processing logs."""
         if request_id not in behavioral_validation_sessions:
-            raise HTTPException(status_code=404, detail="Behavioral validation request not found")
+            raise HTTPException(status_code=404,
+                                detail="Behavioral validation request not found")
 
         session = behavioral_validation_sessions[request_id]
 
@@ -752,7 +775,8 @@ def create_app() -> FastAPI:
     async def delete_behavioral_validation_session(request_id: str):
         """Delete behavioral validation session and clean up resources."""
         if request_id not in behavioral_validation_sessions:
-            raise HTTPException(status_code=404, detail="Behavioral validation request not found")
+            raise HTTPException(status_code=404,
+                                detail="Behavioral validation request not found")
 
         # Remove session
         del behavioral_validation_sessions[request_id]
@@ -848,8 +872,8 @@ async def run_behavioral_validation_background(
             ] = "Behavioral validation completed"
             behavioral_validation_sessions[request_id]["result"] = result
             behavioral_validation_sessions[request_id]["logs"].append(
-                f"Behavioral validation completed with fidelity score: {result.fidelity_score:.2f}",
-            )
+                f"Behavioral validation completed with fidelity score: {
+                    result.fidelity_score:.2f}", )
 
     except Exception as e:
         # Update session with error
@@ -872,11 +896,14 @@ async def run_behavioral_validation_background(
                     ValidationDiscrepancy(
                         type="behavioral_validation_error",
                         severity=SeverityLevel.CRITICAL,
-                        description=f"Behavioral validation failed: {e!s}",
+                        description=f"Behavioral validation failed: {
+                            e!s}",
                         recommendation="Review system configuration and retry validation",
                     ),
                 ],
-                execution_log=[f"Error: {e!s}"],
+                execution_log=[
+                    f"Error: {
+                        e!s}"],
                 execution_time=0.0,
                 timestamp=datetime.now(),
             )
@@ -983,8 +1010,8 @@ async def run_hybrid_validation_background(
             static_session = await validator.validate_migration(migration_request)
             static_result = static_session.result
             session.add_log(
-                f"Static validation completed with fidelity score: {static_result.fidelity_score:.2f}",
-            )
+                f"Static validation completed with fidelity score: {
+                    static_result.fidelity_score:.2f}", )
 
         # Perform behavioral validation if URLs were provided
         if perform_behavioral:
@@ -1004,8 +1031,8 @@ async def run_hybrid_validation_background(
             crew = create_behavioral_validation_crew()
             behavioral_result = await crew.validate_migration(behavioral_request)
             session.add_log(
-                f"Behavioral validation completed with fidelity score: {behavioral_result.fidelity_score:.2f}",
-            )
+                f"Behavioral validation completed with fidelity score: {
+                    behavioral_result.fidelity_score:.2f}", )
 
         # Combine results
         session.add_log("Combining static and behavioral validation results")
@@ -1016,34 +1043,37 @@ async def run_hybrid_validation_background(
                 static_result.fidelity_score + behavioral_result.fidelity_score
             ) / 2
             combined_discrepancies = static_result.discrepancies + behavioral_result.discrepancies
-            combined_status = (
-                "approved"
-                if combined_fidelity >= 0.8
-                else ("approved_with_warnings" if combined_fidelity >= 0.6 else "rejected")
-            )
+            combined_status = ("approved" if combined_fidelity >= 0.8 else (
+                "approved_with_warnings" if combined_fidelity >= 0.6 else "rejected"))
 
             session.result = ValidationResult(
                 overall_status=combined_status,
                 fidelity_score=combined_fidelity,
-                summary=f"Hybrid validation completed. Static fidelity: {static_result.fidelity_score:.2f}, Behavioral fidelity: {behavioral_result.fidelity_score:.2f}, Combined: {combined_fidelity:.2f}",
+                summary=f"Hybrid validation completed. Static fidelity: {
+                    static_result.fidelity_score:.2f}, Behavioral fidelity: {
+                    behavioral_result.fidelity_score:.2f}, Combined: {
+                    combined_fidelity:.2f}",
                 discrepancies=combined_discrepancies,
-                execution_time=(static_result.execution_time or 0)
-                + (behavioral_result.execution_time or 0),
+                execution_time=(
+                    static_result.execution_time or 0) + (
+                        behavioral_result.execution_time or 0),
             )
 
         elif static_result:
             # Static-only result
             session.result = static_result
             session.result.summary = (
-                f"Static validation completed. Fidelity score: {static_result.fidelity_score:.2f}"
-            )
+                f"Static validation completed. Fidelity score: {
+                    static_result.fidelity_score:.2f}")
 
         elif behavioral_result:
-            # Behavioral-only result (convert from BehavioralValidationResult to ValidationResult)
+            # Behavioral-only result (convert from BehavioralValidationResult to
+            # ValidationResult)
             session.result = ValidationResult(
                 overall_status=behavioral_result.overall_status,
                 fidelity_score=behavioral_result.fidelity_score,
-                summary=f"Behavioral validation completed. Fidelity score: {behavioral_result.fidelity_score:.2f}",
+                summary=f"Behavioral validation completed. Fidelity score: {
+                    behavioral_result.fidelity_score:.2f}",
                 discrepancies=behavioral_result.discrepancies,
                 execution_time=behavioral_result.execution_time,
             )
@@ -1059,12 +1089,14 @@ async def run_hybrid_validation_background(
             session.result = ValidationResult(
                 overall_status="error",
                 fidelity_score=0.0,
-                summary=f"Hybrid validation failed: {e!s}",
+                summary=f"Hybrid validation failed: {
+                    e!s}",
                 discrepancies=[
                     ValidationDiscrepancy(
                         type="hybrid_validation_error",
                         severity=SeverityLevel.CRITICAL,
-                        description=f"Hybrid validation failed: {e!s}",
+                        description=f"Hybrid validation failed: {
+                            e!s}",
                         recommendation="Review system configuration and retry validation",
                     ),
                 ],

@@ -9,8 +9,13 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from fastapi.testclient import TestClient
 
-from src.security.auth import (AuthenticationError, AuthManager,
-                               JWTAuthenticator, User, UserRole)
+from src.security.auth import (
+    AuthenticationError,
+    AuthManager,
+    JWTAuthenticator,
+    User,
+    UserRole,
+)
 from src.security.config import get_security_config
 
 
@@ -363,7 +368,11 @@ class TestAuthenticationAPI:
 
     def test_security_headers_on_auth(self, client):
         """Test security headers on authentication responses."""
-        response = client.post("/api/auth/login", json={"username": "test", "password": "wrong"})
+        response = client.post(
+            "/api/auth/login",
+            json={
+                "username": "test",
+                "password": "wrong"})
 
         # Check for security headers
         assert "X-Content-Type-Options" in response.headers

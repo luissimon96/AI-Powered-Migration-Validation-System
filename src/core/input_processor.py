@@ -13,8 +13,14 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from .exceptions import resource_error
 from .logging import LoggerMixin
-from .models import (InputData, InputType, MigrationValidationRequest,
-                     TechnologyContext, TechnologyType, ValidationScope)
+from .models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+)
 
 
 class InputProcessor(LoggerMixin):
@@ -77,8 +83,8 @@ class InputProcessor(LoggerMixin):
                 "Failed to create upload directory", path=self.upload_dir, error=str(e),
             )
             raise resource_error(
-                f"Failed to create upload directory: {e!s}", resource_type="filesystem", cause=e,
-            )
+                f"Failed to create upload directory: {
+                    e!s}", resource_type="filesystem", cause=e, )
 
     def create_validation_request(
         self,
@@ -153,13 +159,19 @@ class InputProcessor(LoggerMixin):
         source_context = TechnologyContext(
             type=source_tech_type,
             version=source_tech_version,
-            framework_details=(metadata.get("source_framework_details", {}) if metadata else {}),
+            framework_details=(
+                metadata.get(
+                    "source_framework_details",
+                    {}) if metadata else {}),
         )
 
         target_context = TechnologyContext(
             type=target_tech_type,
             version=target_tech_version,
-            framework_details=(metadata.get("target_framework_details", {}) if metadata else {}),
+            framework_details=(
+                metadata.get(
+                    "target_framework_details",
+                    {}) if metadata else {}),
         )
 
         # Create and return request
@@ -227,7 +239,8 @@ class InputProcessor(LoggerMixin):
                 continue
 
             if not os.path.exists(screenshot_path):
-                raise ValueError(f"{context.title()} screenshot not found: {screenshot_path}")
+                raise ValueError(
+                    f"{context.title()} screenshot not found: {screenshot_path}")
 
             if not os.path.isfile(screenshot_path):
                 raise ValueError(
@@ -253,7 +266,8 @@ class InputProcessor(LoggerMixin):
             validated_screenshots.append(screenshot_path)
 
         # Check total size
-        total_size = sum(os.path.getsize(f) for f in validated_files + validated_screenshots)
+        total_size = sum(os.path.getsize(f)
+                         for f in validated_files + validated_screenshots)
         if total_size > self.max_total_size:
             raise ValueError(
                 f"{context.title()} total file size too large: {total_size} bytes "
@@ -268,7 +282,8 @@ class InputProcessor(LoggerMixin):
         elif validated_screenshots:
             input_type = InputType.SCREENSHOTS
         else:
-            raise ValueError(f"{context.title()} input is empty - provide files or screenshots")
+            raise ValueError(
+                f"{context.title()} input is empty - provide files or screenshots")
 
         return InputData(
             type=input_type,
@@ -312,7 +327,8 @@ class InputProcessor(LoggerMixin):
 
             # Check extension
             _, ext = os.path.splitext(filename.lower())
-            if ext not in (self.allowed_code_extensions | self.allowed_image_extensions):
+            if ext not in (self.allowed_code_extensions
+                           | self.allowed_image_extensions):
                 raise ValueError(f"Unsupported file type: {filename}")
 
             # Save file
@@ -446,6 +462,7 @@ class InputProcessor(LoggerMixin):
 
         if scope == "backend_functionality":
             if source_tech not in backend_techs and target_tech not in backend_techs:
-                warnings.append("Backend validation works best with backend technologies")
+                warnings.append(
+                    "Backend validation works best with backend technologies")
 
         return {"compatible": len(issues) == 0, "issues": issues, "warnings": warnings}

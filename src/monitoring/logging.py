@@ -71,7 +71,7 @@ class StructuredLogger:
         import socket
         try:
             return socket.gethostname()
-        except:
+        except BaseException:
             return "unknown"
 
     def _get_current_request_id(self) -> Optional[str]:
@@ -79,7 +79,7 @@ class StructuredLogger:
         try:
             import contextvars
             return getattr(contextvars, "request_id", {}).get()
-        except:
+        except BaseException:
             return None
 
     @contextmanager
@@ -90,7 +90,8 @@ class StructuredLogger:
 
         try:
             import contextvars
-            token = contextvars.request_id.set(request_id) if hasattr(contextvars, "request_id") else None
+            token = contextvars.request_id.set(request_id) if hasattr(
+                contextvars, "request_id") else None
             yield request_id
         finally:
             if token:

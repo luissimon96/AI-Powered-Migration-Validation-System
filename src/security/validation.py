@@ -19,7 +19,6 @@ class SecurityValidationError(Exception):
     """Security validation error."""
 
 
-
 class FileValidationResult(BaseModel):
     """File validation result."""
 
@@ -83,11 +82,16 @@ class SecurityValidator:
 
         # Compile regex patterns for efficiency
         self.sql_injection_patterns = [
-            re.compile(r"('|(\\'))|(;|--|\s+or\s+|\s+and\s+)", re.IGNORECASE),
             re.compile(
-                r"(union\s+select|insert\s+into|delete\s+from|drop\s+table)", re.IGNORECASE,
+                r"('|(\\'))|(;|--|\s+or\s+|\s+and\s+)",
+                re.IGNORECASE),
+            re.compile(
+                r"(union\s+select|insert\s+into|delete\s+from|drop\s+table)",
+                re.IGNORECASE,
             ),
-            re.compile(r"(exec\s*\(|execute\s*\(|sp_|xp_)", re.IGNORECASE),
+            re.compile(
+                r"(exec\s*\(|execute\s*\(|sp_|xp_)",
+                re.IGNORECASE),
         ]
 
         self.xss_patterns = [
@@ -117,8 +121,8 @@ class SecurityValidator:
         # Length check
         if len(value) > self.rules.max_string_length:
             raise SecurityValidationError(
-                f"{field_name} exceeds maximum length of {self.rules.max_string_length}",
-            )
+                f"{field_name} exceeds maximum length of {
+                    self.rules.max_string_length}", )
 
         # Check for SQL injection patterns
         for pattern in self.sql_injection_patterns:
@@ -130,7 +134,8 @@ class SecurityValidator:
         # Check for XSS patterns
         for pattern in self.xss_patterns:
             if pattern.search(value):
-                raise SecurityValidationError(f"{field_name} contains potential XSS pattern")
+                raise SecurityValidationError(
+                    f"{field_name} contains potential XSS pattern")
 
         # Check for path traversal
         for pattern in self.path_traversal_patterns:
@@ -224,7 +229,9 @@ class SecurityValidator:
 
         # Size check
         if file_size > self.rules.max_file_size:
-            issues.append(f"File size {file_size} exceeds limit {self.rules.max_file_size}")
+            issues.append(
+                f"File size {file_size} exceeds limit {
+                    self.rules.max_file_size}")
 
         # Empty file check
         if file_size == 0:
@@ -249,8 +256,7 @@ class SecurityValidator:
         declared_type = file.content_type
         if declared_type and declared_type != detected_type:
             warnings.append(
-                f"Declared type {declared_type} differs from detected type {detected_type}",
-            )
+                f"Declared type {declared_type} differs from detected type {detected_type}", )
 
         # Scan for suspicious content patterns
         content_str = content.decode("utf-8", errors="ignore")
@@ -311,10 +317,15 @@ class SecurityValidator:
         # for production-grade HTML sanitization
 
         # Remove script tags
-        html = re.sub(r"<script[^>]*>.*?</script>", "", html, flags=re.IGNORECASE | re.DOTALL)
+        html = re.sub(r"<script[^>]*>.*?</script>", "",
+                      html, flags=re.IGNORECASE | re.DOTALL)
 
         # Remove event handlers
-        html = re.sub(r'\s*on\w+\s*=\s*[\'"][^\'"]*[\'"]', "", html, flags=re.IGNORECASE)
+        html = re.sub(
+            r'\s*on\w+\s*=\s*[\'"][^\'"]*[\'"]',
+            "",
+            html,
+            flags=re.IGNORECASE)
 
         # Remove javascript: links
         html = re.sub(r"javascript:", "", html, flags=re.IGNORECASE)
@@ -322,7 +333,8 @@ class SecurityValidator:
         # Remove dangerous tags
         dangerous_tags = ["iframe", "object", "embed", "form"]
         for tag in dangerous_tags:
-            html = re.sub(f"<{tag}[^>]*>.*?</{tag}>", "", html, flags=re.IGNORECASE | re.DOTALL)
+            html = re.sub(f"<{tag}[^>]*>.*?</{tag}>", "", html,
+                          flags=re.IGNORECASE | re.DOTALL)
             html = re.sub(f"<{tag}[^>]*/?>", "", html, flags=re.IGNORECASE)
 
         return html
@@ -334,7 +346,8 @@ class InputValidator:
     def __init__(self):
         self.security_validator = SecurityValidator()
 
-    async def validate_migration_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def validate_migration_request(
+            self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Validate migration validation request."""
         # Validate JSON structure
         validated_data = self.security_validator.validate_json_input(request_data)
@@ -342,22 +355,20 @@ class InputValidator:
         # Validate specific fields
         if "source_technology" in validated_data:
             validated_data["source_technology"] = self.security_validator.validate_string_input(
-                validated_data["source_technology"], "source_technology",
-            )
+                validated_data["source_technology"], "source_technology", )
 
         if "target_technology" in validated_data:
             validated_data["target_technology"] = self.security_validator.validate_string_input(
-                validated_data["target_technology"], "target_technology",
-            )
+                validated_data["target_technology"], "target_technology", )
 
         if "validation_scope" in validated_data:
             validated_data["validation_scope"] = self.security_validator.validate_string_input(
-                validated_data["validation_scope"], "validation_scope",
-            )
+                validated_data["validation_scope"], "validation_scope", )
 
         return validated_data
 
-    async def validate_behavioral_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def validate_behavioral_request(
+            self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Validate behavioral validation request."""
         # Validate JSON structure
         validated_data = self.security_validator.validate_json_input(request_data)
@@ -380,8 +391,8 @@ class InputValidator:
                 validated_scenarios = []
                 for scenario in scenarios:
                     validated_scenarios.append(
-                        self.security_validator.validate_string_input(scenario, "scenario"),
-                    )
+                        self.security_validator.validate_string_input(
+                            scenario, "scenario"), )
                 validated_data["validation_scenarios"] = validated_scenarios
 
         return validated_data

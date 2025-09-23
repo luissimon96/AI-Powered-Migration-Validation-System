@@ -121,7 +121,9 @@ class TaskResultCache:
         request_str = json.dumps(request.dict(), sort_keys=True)
         return f"validation_cache:{hashlib.md5(request_str.encode()).hexdigest()}"
 
-    def get_cached_result(self, request: ValidationRequest) -> Optional[ValidationSession]:
+    def get_cached_result(
+            self,
+            request: ValidationRequest) -> Optional[ValidationSession]:
         """Get cached validation result."""
         cache_key = self.get_cache_key(request)
         cached_data = self.redis.get(cache_key)
@@ -177,26 +179,31 @@ def validate_migration_async(self, request_data: Dict[str, Any]) -> Dict[str, An
         progress_manager.update_progress(task_id, 5, "cache_check", "Checking cache")
         cached_result = result_cache.get_cached_result(request)
         if cached_result:
-            progress_manager.update_progress(task_id, 100, "completed", "Retrieved from cache")
+            progress_manager.update_progress(
+                task_id, 100, "completed", "Retrieved from cache")
             return cached_result.to_dict()
 
         # Initialize validator
-        progress_manager.update_progress(task_id, 10, "initialization", "Initializing validator")
+        progress_manager.update_progress(
+            task_id, 10, "initialization", "Initializing validator")
         llm_service = LLMService()
         validator = MigrationValidator(llm_client=llm_service)
 
         # Execute validation with progress updates
-        progress_manager.update_progress(task_id, 20, "code_analysis", "Analyzing source code")
+        progress_manager.update_progress(
+            task_id, 20, "code_analysis", "Analyzing source code")
 
         # Run validation (this will be broken down into sub-tasks)
         session = asyncio.run(validator.validate_migration(request))
 
-        progress_manager.update_progress(task_id, 90, "finalizing", "Finalizing results")
+        progress_manager.update_progress(
+            task_id, 90, "finalizing", "Finalizing results")
 
         # Cache result
         result_cache.cache_result(request, session)
 
-        progress_manager.update_progress(task_id, 100, "completed", "Validation completed")
+        progress_manager.update_progress(
+            task_id, 100, "completed", "Validation completed")
 
         return session.to_dict()
 
@@ -208,7 +215,11 @@ def validate_migration_async(self, request_data: Dict[str, Any]) -> Dict[str, An
 
 
 @celery_app.task(bind=True, name="analyze_code_async")
-def analyze_code_async(self, files: List[Dict], technology: str, task_id: str = None) -> Dict[str, Any]:
+def analyze_code_async(self,
+                       files: List[Dict],
+                       technology: str,
+                       task_id: str = None) -> Dict[str,
+                                                    Any]:
     """Async code analysis sub-task."""
     parent_task_id = task_id or self.request.id
 
@@ -377,7 +388,8 @@ class AsyncValidationService:
                 stats["active_tasks"] = sum(len(tasks) for tasks in active.values())
 
             if scheduled:
-                stats["scheduled_tasks"] = sum(len(tasks) for tasks in scheduled.values())
+                stats["scheduled_tasks"] = sum(len(tasks)
+                                               for tasks in scheduled.values())
 
             if reserved:
                 stats["reserved_tasks"] = sum(len(tasks) for tasks in reserved.values())
@@ -392,16 +404,32 @@ class AsyncValidationService:
 
 # Task signal handlers for monitoring
 @task_prerun.connect
-def task_prerun_handler(sender=None, task_id=None, task=None, args=None, kwargs=None, **kwds):
+def task_prerun_handler(
+        sender=None,
+        task_id=None,
+        task=None,
+        args=None,
+        kwargs=None,
+        **kwds):
     """Handle task start."""
     progress_manager.update_progress(task_id, 0, "started", f"Task {task.name} started")
 
 
 @task_postrun.connect
-def task_postrun_handler(sender=None, task_id=None, task=None, args=None, kwargs=None, retval=None, state=None, **kwds):
+def task_postrun_handler(
+        sender=None,
+        task_id=None,
+        task=None,
+        args=None,
+        kwargs=None,
+        retval=None,
+        state=None,
+        **kwds):
     """Handle task completion."""
     if state == "SUCCESS":
-        progress_manager.update_progress(task_id, 100, "completed", f"Task {task.name} completed")
+        progress_manager.update_progress(
+            task_id, 100, "completed", f"Task {
+                task.name} completed")
 
 
 @task_failure.connect

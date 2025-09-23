@@ -179,7 +179,9 @@ class APIKeyManager:
             self.logger.error("Failed to revoke API key", error=str(e))
             return False
 
-    async def list_api_keys(self, created_by: Optional[str] = None) -> List[APIKeyResponse]:
+    async def list_api_keys(
+            self,
+            created_by: Optional[str] = None) -> List[APIKeyResponse]:
         """List API keys with optional filtering."""
         try:
             api_keys_data = await self.db.list_api_keys(created_by=created_by)
@@ -208,7 +210,9 @@ class APIKeyManager:
                 detail="Failed to list API keys",
             )
 
-    async def check_scope_permission(self, api_key_metadata: APIKeyMetadata, required_scope: APIKeyScope) -> bool:
+    async def check_scope_permission(self,
+                                     api_key_metadata: APIKeyMetadata,
+                                     required_scope: APIKeyScope) -> bool:
         """Check if API key has required scope permission."""
         return required_scope in api_key_metadata.scopes or APIKeyScope.ADMIN in api_key_metadata.scopes
 
@@ -220,7 +224,8 @@ api_key_manager = APIKeyManager()
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-async def get_api_key_metadata(api_key: str = Security(api_key_header)) -> APIKeyMetadata:
+async def get_api_key_metadata(
+        api_key: str = Security(api_key_header)) -> APIKeyMetadata:
     """FastAPI dependency to get and validate API key."""
     if not api_key:
         raise HTTPException(
@@ -234,7 +239,8 @@ async def get_api_key_metadata(api_key: str = Security(api_key_header)) -> APIKe
 def require_api_scope(required_scope: APIKeyScope):
     """Dependency factory for scope-based API authorization."""
 
-    async def scope_checker(api_key_metadata: APIKeyMetadata = Security(get_api_key_metadata)):
+    async def scope_checker(
+            api_key_metadata: APIKeyMetadata = Security(get_api_key_metadata)):
         if not await api_key_manager.check_scope_permission(api_key_metadata, required_scope):
             logger.warning(
                 "Insufficient API key permissions",
@@ -299,7 +305,8 @@ class APIKeyRateLimiter:
         tracker["count"] += 1
         return True
 
-    async def require_rate_limit_check(self, api_key_metadata: APIKeyMetadata = Security(get_api_key_metadata)):
+    async def require_rate_limit_check(
+            self, api_key_metadata: APIKeyMetadata = Security(get_api_key_metadata)):
         """FastAPI dependency for rate limit checking."""
         if not await self.check_rate_limit(api_key_metadata):
             raise HTTPException(

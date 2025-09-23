@@ -174,7 +174,8 @@ class SecurityConfig(BaseModel):
         """Validate JWT secret key strength."""
         environment = values.get("environment", "development")
         if environment == "production" and len(v) < 32:
-            raise ValueError("JWT secret key must be at least 32 characters in production")
+            raise ValueError(
+                "JWT secret key must be at least 32 characters in production")
         return v
 
     @validator("cors_allow_origins")

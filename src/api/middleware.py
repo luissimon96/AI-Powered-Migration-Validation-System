@@ -175,11 +175,14 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         """Validate query parameters."""
         for param, value in request.query_params.items():
             try:
-                self.security_validator.validate_string_input(param, f"query_param_{param}")
+                self.security_validator.validate_string_input(
+                    param, f"query_param_{param}")
                 if isinstance(value, str):
-                    self.security_validator.validate_string_input(value, f"query_value_{param}")
+                    self.security_validator.validate_string_input(
+                        value, f"query_value_{param}")
             except SecurityValidationError as e:
-                raise SecurityValidationError(f"Query parameter validation failed: {e!s}")
+                raise SecurityValidationError(
+                    f"Query parameter validation failed: {e!s}")
 
     async def _validate_headers(self, request: Request):
         """Validate request headers."""
@@ -231,7 +234,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
             for field_name, field_value in form.items():
                 # Validate field name
-                self.security_validator.validate_string_input(field_name, f"form_field_{field_name}")
+                self.security_validator.validate_string_input(
+                    field_name, f"form_field_{field_name}")
 
                 # Handle file uploads
                 if hasattr(field_value, "filename") and field_value.filename:
@@ -248,7 +252,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     total_size += file_size
 
                     if file_size > self.settings.MAX_UPLOAD_FILE_SIZE:
-                        raise SecurityValidationError(f"File {field_value.filename} too large")
+                        raise SecurityValidationError(
+                            f"File {field_value.filename} too large")
 
                     if total_size > self.settings.MAX_UPLOAD_FILE_SIZE * 5:
                         raise SecurityValidationError("Total upload size too large")
@@ -257,8 +262,9 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     validation_result = await self.security_validator.validate_file_upload(field_value)
                     if not validation_result.is_valid:
                         raise SecurityValidationError(
-                            f"File validation failed: {', '.join(validation_result.security_issues)}",
-                        )
+                            f"File validation failed: {
+                                ', '.join(
+                                    validation_result.security_issues)}", )
 
                 # Handle text fields
                 elif isinstance(field_value, str):
@@ -277,7 +283,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         try:
             form = await request.form()
             for field_name, field_value in form.items():
-                self.security_validator.validate_string_input(field_name, f"form_field_{field_name}")
+                self.security_validator.validate_string_input(
+                    field_name, f"form_field_{field_name}")
                 if isinstance(field_value, str):
                     self.security_validator.validate_string_input(
                         field_value,
@@ -307,7 +314,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 body = await request.body()
                 if body:
                     analysis_data.append(body.decode("utf-8", errors="ignore"))
-        except:
+        except BaseException:
             pass  # Skip body analysis if it fails
 
         # Analyze for attack patterns

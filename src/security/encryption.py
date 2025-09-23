@@ -22,7 +22,6 @@ class EncryptionError(Exception):
     """Encryption-related errors."""
 
 
-
 class KeyManager:
     """Secure key management."""
 
@@ -43,8 +42,9 @@ class KeyManager:
                 self._master_key = secrets.token_bytes(32)
                 if self.settings.environment == "development":
                     print(
-                        f"Generated master key (save this!): {base64.b64encode(self._master_key).decode()}",
-                    )
+                        f"Generated master key (save this!): {
+                            base64.b64encode(
+                                self._master_key).decode()}", )
 
         return self._master_key
 
@@ -188,10 +188,14 @@ class AsymmetricEncryption:
         except Exception as e:
             raise EncryptionError(f"Public key encryption failed: {e!s}")
 
-    def decrypt_with_private_key(self, encrypted_data: str, private_key_pem: bytes) -> str:
+    def decrypt_with_private_key(
+            self,
+            encrypted_data: str,
+            private_key_pem: bytes) -> str:
         """Decrypt data with private key."""
         try:
-            private_key = serialization.load_pem_private_key(private_key_pem, password=None)
+            private_key = serialization.load_pem_private_key(
+                private_key_pem, password=None)
 
             encrypted_bytes = base64.b64decode(encrypted_data.encode("utf-8"))
 
@@ -241,9 +245,8 @@ class SecureStorage:
         """List stored keys (without values)."""
         if context:
             prefix = f"{context}:"
-            return [
-                key[len(prefix) :] for key in self._secure_store.keys() if key.startswith(prefix)
-            ]
+            return [key[len(prefix) :]
+                    for key in self._secure_store.keys() if key.startswith(prefix)]
         return list(self._secure_store.keys())
 
     def delete_secret(self, key: str, context: str = "secrets"):
@@ -286,7 +289,10 @@ class EncryptionManager:
         """Encrypt sensitive data with appropriate context."""
         return self.symmetric_crypto.encrypt_data(data, data_type)
 
-    def decrypt_sensitive_data(self, encrypted_data: str, data_type: str = "general") -> str:
+    def decrypt_sensitive_data(
+            self,
+            encrypted_data: str,
+            data_type: str = "general") -> str:
         """Decrypt sensitive data with appropriate context."""
         return self.symmetric_crypto.decrypt_data(encrypted_data, data_type)
 
@@ -306,7 +312,8 @@ class EncryptionManager:
 
         return api_key
 
-    def hash_password_secure(self, password: str, salt: Optional[bytes] = None) -> Tuple[str, str]:
+    def hash_password_secure(
+            self, password: str, salt: Optional[bytes] = None) -> Tuple[str, str]:
         """Securely hash password with salt."""
         if salt is None:
             salt = secrets.token_bytes(32)
@@ -321,7 +328,8 @@ class EncryptionManager:
 
         key = kdf.derive(password.encode("utf-8"))
 
-        return (base64.b64encode(key).decode("utf-8"), base64.b64encode(salt).decode("utf-8"))
+        return (base64.b64encode(key).decode("utf-8"),
+                base64.b64encode(salt).decode("utf-8"))
 
     def verify_password_secure(self, password: str, hashed: str, salt: str) -> bool:
         """Verify password against secure hash."""

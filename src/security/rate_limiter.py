@@ -49,7 +49,8 @@ class SlidingWindowCounter:
         self.requests: Dict[str, deque] = defaultdict(deque)
         self.lock = asyncio.Lock()
 
-    async def is_allowed(self, key: str, limit: int, window: int) -> Tuple[bool, Dict[str, Any]]:
+    async def is_allowed(self, key: str, limit: int,
+                         window: int) -> Tuple[bool, Dict[str, Any]]:
         """Check if request is allowed under sliding window."""
         async with self.lock:
             now = time.time()
@@ -136,7 +137,8 @@ class FixedWindowCounter:
         self.windows: Dict[str, Dict[int, int]] = defaultdict(lambda: defaultdict(int))
         self.lock = asyncio.Lock()
 
-    async def is_allowed(self, key: str, limit: int, window: int) -> Tuple[bool, Dict[str, Any]]:
+    async def is_allowed(self, key: str, limit: int,
+                         window: int) -> Tuple[bool, Dict[str, Any]]:
         """Check if request is allowed under fixed window."""
         async with self.lock:
             now = time.time()
@@ -181,11 +183,16 @@ class RateLimiter:
 
         # Default rate limits for different endpoint types
         self.default_limits = {
-            "auth": RateLimitConfig(requests=5, window=60),  # 5 auth attempts per minute
-            "upload": RateLimitConfig(requests=10, window=300),  # 10 uploads per 5 minutes
-            "validation": RateLimitConfig(requests=20, window=3600),  # 20 validations per hour
-            "api_general": RateLimitConfig(requests=100, window=60),  # 100 requests per minute
-            "download": RateLimitConfig(requests=50, window=300),  # 50 downloads per 5 minutes
+            # 5 auth attempts per minute
+            "auth": RateLimitConfig(requests=5, window=60),
+            # 10 uploads per 5 minutes
+            "upload": RateLimitConfig(requests=10, window=300),
+            # 20 validations per hour
+            "validation": RateLimitConfig(requests=20, window=3600),
+            # 100 requests per minute
+            "api_general": RateLimitConfig(requests=100, window=60),
+            # 50 downloads per 5 minutes
+            "download": RateLimitConfig(requests=50, window=300),
         }
 
     def get_rate_limit_key(
@@ -240,7 +247,10 @@ class RateLimiter:
 
         if not allowed:
             raise RateLimitExceeded(
-                f"Rate limit exceeded for {limit_type}", retry_after=info.get("retry_after", 60),
+                f"Rate limit exceeded for {limit_type}",
+                retry_after=info.get(
+                    "retry_after",
+                    60),
             )
 
         return info

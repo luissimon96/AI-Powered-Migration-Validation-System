@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""
-Setup configuration for AI-Powered Migration Validation System.
+"""Setup configuration for AI-Powered Migration Validation System.
 
 Supports optional dependencies via extras_require.
 """
 
-from setuptools import setup, find_packages
-import os
+
+from setuptools import find_packages, setup
 
 
 # Read README for long description

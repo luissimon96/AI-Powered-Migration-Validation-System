@@ -9,24 +9,43 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import (BackgroundTasks, Depends, FastAPI, File, HTTPException,
-                     Query, UploadFile)
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
-from ..behavioral.crews import (BehavioralValidationRequest,
-                                create_behavioral_validation_crew)
+from ..behavioral.crews import (
+    BehavioralValidationRequest,
+    create_behavioral_validation_crew,
+)
 from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
-from ..core.models import (InputData, InputType, MigrationValidationRequest,
-                           TechnologyContext, TechnologyType, ValidationScope,
-                           ValidationSession)
-from ..database.integration import (DatabaseIntegration, HybridSessionManager,
-                                    database_lifespan,
-                                    get_database_integration, get_db_service,
-                                    get_hybrid_session_manager)
+from ..core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+    ValidationSession,
+)
+from ..database.integration import (
+    DatabaseIntegration,
+    HybridSessionManager,
+    database_lifespan,
+    get_database_integration,
+    get_db_service,
+    get_hybrid_session_manager,
+)
 from ..database.service import ValidationDatabaseService
 from ..reporters.validation_reporter import ValidationReporter
 
@@ -224,7 +243,9 @@ def create_database_app() -> FastAPI:
             # Save source screenshots
             for file in source_screenshots:
                 if file.filename:
-                    file_path = os.path.join(upload_dir, f"source_screenshot_{file.filename}")
+                    file_path = os.path.join(
+                        upload_dir, f"source_screenshot_{
+                            file.filename}")
                     with open(file_path, "wb") as f:
                         content = await file.read()
                         f.write(content)
@@ -233,7 +254,9 @@ def create_database_app() -> FastAPI:
             # Save target screenshots
             for file in target_screenshots:
                 if file.filename:
-                    file_path = os.path.join(upload_dir, f"target_screenshot_{file.filename}")
+                    file_path = os.path.join(
+                        upload_dir, f"target_screenshot_{
+                            file.filename}")
                     with open(file_path, "wb") as f:
                         content = await file.read()
                         f.write(content)
@@ -241,11 +264,9 @@ def create_database_app() -> FastAPI:
 
             # Determine input types
             source_input_type = InputType.HYBRID if source_file_paths and source_screenshot_paths else (
-                InputType.CODE_FILES if source_file_paths else InputType.SCREENSHOTS
-            )
+                InputType.CODE_FILES if source_file_paths else InputType.SCREENSHOTS)
             target_input_type = InputType.HYBRID if target_file_paths and target_screenshot_paths else (
-                InputType.CODE_FILES if target_file_paths else InputType.SCREENSHOTS
-            )
+                InputType.CODE_FILES if target_file_paths else InputType.SCREENSHOTS)
 
             # Create validation request
             validation_request = MigrationValidationRequest(
@@ -367,17 +388,21 @@ def create_database_app() -> FastAPI:
                     # Create a validation session with the result
                     # For behavioral validation, we create a simplified request
                     migration_request = MigrationValidationRequest(
-                        source_technology=TechnologyContext(type=TechnologyType.JAVASCRIPT_REACT),
-                        target_technology=TechnologyContext(type=TechnologyType.JAVASCRIPT_REACT),
+                        source_technology=TechnologyContext(
+                            type=TechnologyType.JAVASCRIPT_REACT),
+                        target_technology=TechnologyContext(
+                            type=TechnologyType.JAVASCRIPT_REACT),
                         validation_scope=ValidationScope.BEHAVIORAL_VALIDATION,
                         source_input=InputData(
                             type=InputType.SCREENSHOTS,
-                            urls=[request.source_url],
+                            urls=[
+                                request.source_url],
                             validation_scenarios=request.validation_scenarios,
                         ),
                         target_input=InputData(
                             type=InputType.SCREENSHOTS,
-                            urls=[request.target_url],
+                            urls=[
+                                request.target_url],
                             validation_scenarios=request.validation_scenarios,
                         ),
                         request_id=request_id,
@@ -431,9 +456,11 @@ def create_database_app() -> FastAPI:
             if status:
                 sessions = [s for s in sessions if s.get("status") == status]
             if source_technology:
-                sessions = [s for s in sessions if s.get("source_technology") == source_technology]
+                sessions = [s for s in sessions if s.get(
+                    "source_technology") == source_technology]
             if target_technology:
-                sessions = [s for s in sessions if s.get("target_technology") == target_technology]
+                sessions = [s for s in sessions if s.get(
+                    "target_technology") == target_technology]
 
             total_count = len(sessions)
 
@@ -550,7 +577,8 @@ def create_database_app() -> FastAPI:
                 return PlainTextResponse(content=report_content, media_type="text/html")
 
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Report generation failed: {e!s}")
+            raise HTTPException(status_code=500,
+                                detail=f"Report generation failed: {e!s}")
 
     @app.get("/api/statistics")
     async def get_statistics(

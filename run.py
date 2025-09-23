@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""
-Quick run script for AI-Powered Migration Validation System.
+"""Quick run script for AI-Powered Migration Validation System.
 
 This provides a simple way to start the system without using the CLI.
 """
 
 import uvicorn
+
 from src.core.config import get_settings
 
 

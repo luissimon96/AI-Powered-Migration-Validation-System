@@ -9,8 +9,15 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
-from ..security.auth import (AuthenticationError, User, UserRole, auth_manager,
-                             get_current_user, require_admin, require_viewer)
+from ..security.auth import (
+    AuthenticationError,
+    User,
+    UserRole,
+    auth_manager,
+    get_current_user,
+    require_admin,
+    require_viewer,
+)
 from ..security.rate_limiter import rate_limit
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -162,7 +169,8 @@ async def refresh_token(request: Request, refresh_data: RefreshTokenRequest):
 
 @router.post("/logout")
 async def logout(
-    request: Request, credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+    request: Request,
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
 ):
     """Logout user by revoking token.
     """
@@ -203,11 +211,12 @@ async def change_password(
     """Change user password.
     """
     # Verify current password
-    user = auth_manager.authenticate_user(current_user.username, password_data.current_password)
+    user = auth_manager.authenticate_user(
+        current_user.username,
+        password_data.current_password)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Current password is incorrect", )
 
     # Validate new password strength
     if len(password_data.new_password) < 8:
@@ -224,7 +233,9 @@ async def change_password(
 # User management endpoints (admin only)
 @router.post("/users", response_model=Dict)
 async def create_user(
-    request: Request, user_data: CreateUserRequest, admin_user: User = Depends(require_admin),
+    request: Request,
+    user_data: CreateUserRequest,
+    admin_user: User = Depends(require_admin),
 ):
     """Create new user (admin only).
     """
@@ -287,7 +298,9 @@ async def get_user(user_id: str, admin_user: User = Depends(require_admin)):
     """
     user = auth_manager.get_user_by_id(user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found")
 
     return {
         "id": user.id,
@@ -302,13 +315,17 @@ async def get_user(user_id: str, admin_user: User = Depends(require_admin)):
 
 @router.put("/users/{user_id}")
 async def update_user(
-    user_id: str, update_data: UpdateUserRequest, admin_user: User = Depends(require_admin),
+    user_id: str,
+    update_data: UpdateUserRequest,
+    admin_user: User = Depends(require_admin),
 ):
     """Update user (admin only).
     """
     user = auth_manager.get_user_by_id(user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found")
 
     # Update roles
     if update_data.roles is not None:
@@ -327,13 +344,14 @@ async def deactivate_user(user_id: str, admin_user: User = Depends(require_admin
     """
     user = auth_manager.get_user_by_id(user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found")
 
     # Prevent self-deactivation
     if user_id == admin_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot deactivate your own account",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Cannot deactivate your own account", )
 
     auth_manager.deactivate_user(user_id)
     return {"message": "User deactivated successfully"}
@@ -346,9 +364,12 @@ async def get_auth_system_info(current_user: User = Depends(require_viewer)):
     """
     return {
         "auth_enabled": True,
-        "supported_roles": [role.value for role in UserRole],
+        "supported_roles": [
+            role.value for role in UserRole],
         "token_expiry_minutes": auth_manager.jwt_auth.settings.access_token_expire_minutes,
-        "user_count": len(auth_manager.users),
+        "user_count": len(
+            auth_manager.users),
         "failed_attempts_limit": auth_manager.max_failed_attempts,
-        "lockout_duration_minutes": auth_manager.lockout_duration.total_seconds() / 60,
+        "lockout_duration_minutes": auth_manager.lockout_duration.total_seconds()
+            / 60,
     }

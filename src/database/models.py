@@ -7,15 +7,25 @@ with proper relationships, constraints, and indexes.
 from datetime import datetime
 from typing import Any, Dict
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, Enum, Float,
-                        ForeignKey, Index, Integer, String, Text,
-                        UniqueConstraint)
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from ..core.models import (InputType, SeverityLevel, TechnologyType,
-                           ValidationScope)
+from ..core.models import InputType, SeverityLevel, TechnologyType, ValidationScope
 from .config import metadata
 
 # Base class for all models
@@ -274,7 +284,8 @@ class DiscrepancyModel(Base, TimestampMixin, SoftDeleteMixin):
     confidence = Column(Float, default=1.0, index=True)  # 0.0 to 1.0
 
     # Context information
-    component_type = Column(String(50), index=True)  # ui, backend, data, api, behavioral
+    # ui, backend, data, api, behavioral
+    component_type = Column(String(50), index=True)
     validation_context = Column(JSON)  # Additional context data
 
     # Resolution tracking
@@ -328,7 +339,10 @@ class ValidationMetricsModel(Base, TimestampMixin):
 
     # Time period
     metric_date = Column(DateTime(timezone=True), nullable=False, index=True)
-    metric_period = Column(String(20), nullable=False, index=True)  # daily, weekly, monthly
+    metric_period = Column(
+        String(20),
+        nullable=False,
+        index=True)  # daily, weekly, monthly
 
     # Session counts
     total_sessions = Column(Integer, default=0)
@@ -410,7 +424,10 @@ class BehavioralTestResultModel(Base, TimestampMixin):
     # Execution details
     source_url = Column(String(1000), nullable=False)
     target_url = Column(String(1000), nullable=False)
-    execution_status = Column(String(50), nullable=False, index=True)  # passed, failed, error
+    execution_status = Column(
+        String(50),
+        nullable=False,
+        index=True)  # passed, failed, error
 
     # Results
     source_result = Column(JSON)  # Source system interaction result
@@ -436,8 +453,14 @@ class BehavioralTestResultModel(Base, TimestampMixin):
 
     # Indexes for performance
     __table_args__ = (
-        Index("ix_behavioral_tests_status_scenario", "execution_status", "scenario_name"),
-        Index("ix_behavioral_tests_session_created", "session_id", "created_at"),
+        Index(
+            "ix_behavioral_tests_status_scenario",
+            "execution_status",
+            "scenario_name"),
+        Index(
+            "ix_behavioral_tests_session_created",
+            "session_id",
+            "created_at"),
     )
 
     def to_dict(self) -> Dict[str, Any]:

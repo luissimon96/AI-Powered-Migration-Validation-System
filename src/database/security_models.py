@@ -4,8 +4,17 @@ Defines SQLAlchemy models for API keys, audit logs, and security configurations.
 """
 
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, Index, Integer,
-                        String, Text, UniqueConstraint)
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 
 from .models import Base, TimestampMixin
 
@@ -160,7 +169,8 @@ class SecurityIncidentModel(Base, TimestampMixin):
     api_key_id = Column(String(32), nullable=True, index=True)
     attack_vectors = Column(JSON, nullable=True)
     mitigation_actions = Column(JSON, nullable=True)
-    status = Column(String(20), nullable=False, default="open")  # open, investigating, resolved
+    # open, investigating, resolved
+    status = Column(String(20), nullable=False, default="open")
     assigned_to = Column(String(32), nullable=True)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
     resolution_notes = Column(Text, nullable=True)
@@ -178,7 +188,8 @@ class ComplianceLogModel(Base, TimestampMixin):
     __tablename__ = "compliance_logs"
 
     id = Column(String(36), primary_key=True)  # UUID
-    compliance_framework = Column(String(50), nullable=False, index=True)  # GDPR, SOX, HIPAA, etc.
+    # GDPR, SOX, HIPAA, etc.
+    compliance_framework = Column(String(50), nullable=False, index=True)
     event_type = Column(String(50), nullable=False, index=True)
     user_id = Column(String(32), nullable=True, index=True)
     data_subject_id = Column(String(32), nullable=True, index=True)

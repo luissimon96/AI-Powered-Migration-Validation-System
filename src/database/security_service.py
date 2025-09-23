@@ -11,9 +11,15 @@ from sqlalchemy import and_, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from .security_models import (APIKeyModel, AuditLogModel, ComplianceLogModel,
-                              FileUploadModel, RateLimitModel,
-                              SecurityIncidentModel, SecurityMetricsModel)
+from .security_models import (
+    APIKeyModel,
+    AuditLogModel,
+    ComplianceLogModel,
+    FileUploadModel,
+    RateLimitModel,
+    SecurityIncidentModel,
+    SecurityMetricsModel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +96,10 @@ class SecurityDatabaseService:
             logger.error(f"Failed to get API key by hash: {e}")
             return None
 
-    async def update_api_key_last_used(self, api_key_id: str, timestamp: datetime) -> bool:
+    async def update_api_key_last_used(
+            self,
+            api_key_id: str,
+            timestamp: datetime) -> bool:
         """Update API key last used timestamp."""
         try:
             result = await self.session.execute(
@@ -131,7 +140,8 @@ class SecurityDatabaseService:
             logger.error(f"Failed to deactivate API key: {e}")
             return False
 
-    async def list_api_keys(self, created_by: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def list_api_keys(
+            self, created_by: Optional[str] = None) -> List[Dict[str, Any]]:
         """List API keys with optional filtering."""
         try:
             query = select(APIKeyModel).order_by(desc(APIKeyModel.created_at))
@@ -574,7 +584,7 @@ class SecurityDatabaseService:
                     and_(
                         APIKeyModel.expires_at.is_not(None),
                         APIKeyModel.expires_at < current_time,
-                        APIKeyModel.is_active == True,
+                        APIKeyModel.is_active,
                     ),
                 ),
             )
@@ -586,7 +596,7 @@ class SecurityDatabaseService:
                     and_(
                         APIKeyModel.expires_at.is_not(None),
                         APIKeyModel.expires_at < current_time,
-                        APIKeyModel.is_active == True,
+                        APIKeyModel.is_active,
                     ),
                 ),
             )

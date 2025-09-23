@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
-"""
-Database management CLI for AI-Powered Migration Validation System.
+"""Database management CLI for AI-Powered Migration Validation System.
 
 Provides command-line interface for database operations including
 initialization, migration, backup, and maintenance tasks.
 """
 
-import asyncio
+from src.database.utils import (
+    cleanup_database,
+    export_session_data,
+    get_database_statistics,
+    optimize_database_performance,
+    validate_database_integrity,
+)
+from src.database.session import get_database_manager
+from src.database.migrations import MigrationManager
+from src.database.config import get_database_config
 import argparse
+import asyncio
 import json
 import logging
 import sys
@@ -17,16 +26,6 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from src.database.session import DatabaseManager, get_database_manager
-from src.database.migrations import MigrationManager, DataMigrator
-from src.database.utils import (
-    cleanup_database,
-    get_database_statistics,
-    optimize_database_performance,
-    validate_database_integrity,
-    export_session_data,
-)
-from src.database.config import get_database_config
 
 logging.basicConfig(
     level=logging.INFO,
@@ -258,7 +257,10 @@ async def validate_integrity():
         return False
 
 
-async def export_session(request_id: str, output_file: str = None, include_representations: bool = False):
+async def export_session(
+        request_id: str,
+        output_file: str = None,
+        include_representations: bool = False):
     """Export session data."""
     logger.info(f"Exporting session: {request_id}")
 
@@ -339,7 +341,11 @@ async def backup_database(output_file: str = None):
             # SQLite backup
             import shutil
 
-            db_file = db_config.url.replace("sqlite:///", "").replace("sqlite+aiosqlite:///", "")
+            db_file = db_config.url.replace(
+                "sqlite:///",
+                "").replace(
+                "sqlite+aiosqlite:///",
+                "")
             shutil.copy2(db_file, output_file)
             logger.info(f"Database backup created: {output_file}")
             return True
@@ -390,15 +396,25 @@ def main():
 
     # Migration commands
     migrate_parser = subparsers.add_parser("migrate", help="Run database migrations")
-    migrate_parser.add_argument("--revision", default="head", help="Target revision (default: head)")
+    migrate_parser.add_argument(
+        "--revision",
+        default="head",
+        help="Target revision (default: head)")
 
     subparsers.add_parser("migration-status", help="Check migration status")
     subparsers.add_parser("validate-schema", help="Validate database schema")
 
     # Maintenance commands
     cleanup_parser = subparsers.add_parser("cleanup", help="Clean up old data")
-    cleanup_parser.add_argument("--days", type=int, default=30, help="Delete data older than N days")
-    cleanup_parser.add_argument("--exclude-failed", action="store_true", help="Exclude failed sessions from cleanup")
+    cleanup_parser.add_argument(
+        "--days",
+        type=int,
+        default=30,
+        help="Delete data older than N days")
+    cleanup_parser.add_argument(
+        "--exclude-failed",
+        action="store_true",
+        help="Exclude failed sessions from cleanup")
 
     subparsers.add_parser("stats", help="Show database statistics")
     subparsers.add_parser("optimize", help="Optimize database performance")
@@ -409,7 +425,7 @@ def main():
     export_parser.add_argument("request_id", help="Request ID to export")
     export_parser.add_argument("--output", help="Output file path")
     export_parser.add_argument("--include-representations", action="store_true",
-                              help="Include source/target representations")
+                               help="Include source/target representations")
 
     backup_parser = subparsers.add_parser("backup", help="Create database backup")
     backup_parser.add_argument("--output", help="Output file path")

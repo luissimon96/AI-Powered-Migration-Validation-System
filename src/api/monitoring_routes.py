@@ -18,7 +18,9 @@ router = APIRouter(prefix="/monitoring", tags=["monitoring"])
 
 @router.get("/health", response_model=Dict[str, Any])
 async def health_check(
-    include_details: bool = Query(True, description="Include detailed health check results"),
+    include_details: bool = Query(
+        True,
+        description="Include detailed health check results"),
 ):
     """System health check endpoint.
     Returns overall system health status and individual component checks.
@@ -73,7 +75,9 @@ async def readiness_probe():
 
                 if result["status"] != HealthStatus.HEALTHY:
                     return Response(
-                        content={"status": "not_ready", "reason": f"{check_name} unhealthy"},
+                        content={
+                            "status": "not_ready",
+                            "reason": f"{check_name} unhealthy"},
                         status_code=503,
                     )
 
@@ -100,7 +104,8 @@ async def prometheus_metrics():
         metrics_collector.update_queue_metrics(queue_stats)
 
         # Get cache stats and update metrics
-        cache_stats = async_validation_service.result_cache._get_cache_stats() if hasattr(async_validation_service.result_cache, "_get_cache_stats") else {}
+        cache_stats = async_validation_service.result_cache._get_cache_stats() if hasattr(
+            async_validation_service.result_cache, "_get_cache_stats") else {}
         metrics_collector.update_cache_metrics(cache_stats)
 
         # Generate Prometheus metrics
@@ -121,9 +126,8 @@ async def prometheus_metrics():
 
 
 @router.get("/metrics/custom")
-async def custom_metrics(
-    metric_names: Optional[List[str]] = Query(None, description="Specific metrics to return"),
-):
+async def custom_metrics(metric_names: Optional[List[str]] = Query(
+        None, description="Specific metrics to return"), ):
     """Custom metrics endpoint for specific metric queries.
     Returns structured JSON metrics data.
     """
@@ -246,13 +250,13 @@ async def run_individual_health_check(check_name: str):
             component="individual_health_check",
             operation=f"check_{check_name}",
         )
-        raise HTTPException(status_code=500, detail=f"Health check '{check_name}' failed")
+        raise HTTPException(status_code=500,
+                            detail=f"Health check '{check_name}' failed")
 
 
 @router.get("/alerts")
-async def get_active_alerts(
-    severity: Optional[str] = Query(None, description="Filter by severity: warning, critical"),
-):
+async def get_active_alerts(severity: Optional[str] = Query(
+        None, description="Filter by severity: warning, critical"), ):
     """Get active system alerts.
     Returns current alerts and warnings from monitoring systems.
     """

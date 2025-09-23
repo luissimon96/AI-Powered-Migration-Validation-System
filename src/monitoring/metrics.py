@@ -7,8 +7,14 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, Dict, Optional
 
-from prometheus_client import (CollectorRegistry, Counter, Gauge, Histogram,
-                               Info, generate_latest)
+from prometheus_client import (
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    Info,
+    generate_latest,
+)
 
 from src.core.logging import logger
 
@@ -262,7 +268,11 @@ class MetricsCollector:
                     result = await func(*args, **kwargs)
 
                     # Track fidelity score if available
-                    if hasattr(result, "result") and hasattr(result.result, "fidelity_score"):
+                    if hasattr(
+                            result,
+                            "result") and hasattr(
+                            result.result,
+                            "fidelity_score"):
                         self.validation_fidelity_score.labels(
                             source_tech=source_tech,
                             target_tech=target_tech,

@@ -2,6 +2,7 @@
 Ultra-compressed implementation focusing on core database operations.
 """
 
+import asyncio
 from datetime import datetime, timedelta
 
 import pytest
@@ -258,4 +259,3 @@ class TestDatabasePerformance:
 
 
 # Import asyncio for gather
-import asyncio

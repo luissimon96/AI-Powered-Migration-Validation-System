@@ -8,14 +8,23 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.behavioral.crews import (BehavioralValidationCrew,
-                                  BehavioralValidationRequest,
-                                  BehavioralValidationResult)
+from src.behavioral.crews import (
+    BehavioralValidationCrew,
+    BehavioralValidationRequest,
+    BehavioralValidationResult,
+)
 from src.core.migration_validator import MigrationValidator
-from src.core.models import (InputData, InputType, MigrationValidationRequest,
-                             SeverityLevel, TechnologyContext, TechnologyType,
-                             ValidationDiscrepancy, ValidationResult,
-                             ValidationScope)
+from src.core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    SeverityLevel,
+    TechnologyContext,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationScope,
+)
 from src.reporters.validation_reporter import ValidationReporter
 
 
@@ -84,15 +93,24 @@ class TestHybridValidationPipeline:
     def sample_migration_request(self):
         """Sample migration validation request for static analysis."""
         return MigrationValidationRequest(
-            source_technology=TechnologyContext(type=TechnologyType.PYTHON_FLASK, version="2.0"),
-            target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
+            source_technology=TechnologyContext(
+                type=TechnologyType.PYTHON_FLASK,
+                version="2.0"),
+            target_technology=TechnologyContext(
+                type=TechnologyType.JAVA_SPRING,
+                version="3.0"),
             validation_scope=ValidationScope.FULL_SYSTEM,
             source_input=InputData(
-                type=InputType.CODE_FILES, files=["src/auth.py", "src/models.py"],
+                type=InputType.CODE_FILES,
+                files=[
+                    "src/auth.py",
+                    "src/models.py"],
             ),
             target_input=InputData(
                 type=InputType.CODE_FILES,
-                files=["src/main/java/Auth.java", "src/main/java/Models.java"],
+                files=[
+                    "src/main/java/Auth.java",
+                    "src/main/java/Models.java"],
             ),
         )
 
@@ -174,7 +192,8 @@ class TestHybridValidationPipeline:
                     + unified_report["detailed_findings"]["by_severity"]["info"]
                 )
 
-                static_findings = [f for f in all_findings if f["validation_source"] == "static"]
+                static_findings = [
+                    f for f in all_findings if f["validation_source"] == "static"]
                 behavioral_findings = [
                     f for f in all_findings if f["validation_source"] == "behavioral"
                 ]
@@ -468,9 +487,11 @@ class TestHybridValidationPipeline:
 
                 # Verify total pipeline execution was tracked
                 expected_total = (
-                    sample_static_result.execution_time + sample_behavioral_result.execution_time
-                )
-                assert abs(performance_metrics["total_execution_time"] - expected_total) < 1.0
+                    sample_static_result.execution_time
+                    + sample_behavioral_result.execution_time)
+                assert abs(
+                    performance_metrics["total_execution_time"]
+                    - expected_total) < 1.0
 
     async def test_hybrid_validation_pipeline_report_formats(
         self, mock_llm_service, sample_static_result, sample_behavioral_result,
@@ -519,7 +540,8 @@ class TestHybridValidationPipeline:
                 assert "BEHAVIORAL" in html_report  # Should have behavioral badge
 
                 # Verify Markdown report structure
-                assert markdown_report.startswith("# 🔄 Unified Migration Validation Report")
+                assert markdown_report.startswith(
+                    "# 🔄 Unified Migration Validation Report")
                 assert "## Validation Breakdown" in markdown_report
                 assert "### 🔧 Static Analysis" in markdown_report
                 assert "### 🧪 Behavioral Testing" in markdown_report

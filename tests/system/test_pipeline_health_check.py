@@ -111,8 +111,7 @@ class TestSystemHealthCheck:
     async def test_browser_automation_availability(self):
         """Test browser automation system availability."""
         try:
-            from src.behavioral.browser_automation import \
-                BrowserAutomationEngine
+            from src.behavioral.browser_automation import BrowserAutomationEngine
 
             engine = BrowserAutomationEngine(headless=True)
             initialization_success = await engine.initialize()
@@ -149,7 +148,8 @@ class TestSystemHealthCheck:
         ]
 
         for endpoint in expected_endpoints:
-            assert any(endpoint in route for route in routes), f"Missing endpoint: {endpoint}"
+            assert any(
+                endpoint in route for route in routes), f"Missing endpoint: {endpoint}"
 
 
 @pytest.mark.system
@@ -159,10 +159,14 @@ class TestSystemIntegrationHealth:
 
     async def test_static_validation_pipeline_health(self):
         """Test static validation pipeline health."""
-        from src.core.models import (InputData, InputType,
-                                     MigrationValidationRequest,
-                                     TechnologyContext, TechnologyType,
-                                     ValidationScope)
+        from src.core.models import (
+            InputData,
+            InputType,
+            MigrationValidationRequest,
+            TechnologyContext,
+            TechnologyType,
+            ValidationScope,
+        )
 
         mock_llm_service = AsyncMock()
         mock_llm_service.analyze_code_semantic_similarity.return_value = {
@@ -174,11 +178,19 @@ class TestSystemIntegrationHealth:
 
         # Create minimal test request
         request = MigrationValidationRequest(
-            source_technology=TechnologyContext(type=TechnologyType.PYTHON_FLASK, version="2.0"),
-            target_technology=TechnologyContext(type=TechnologyType.JAVA_SPRING, version="3.0"),
+            source_technology=TechnologyContext(
+                type=TechnologyType.PYTHON_FLASK,
+                version="2.0"),
+            target_technology=TechnologyContext(
+                type=TechnologyType.JAVA_SPRING,
+                version="3.0"),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
-            source_input=InputData(type=InputType.CODE_FILES, files=[]),
-            target_input=InputData(type=InputType.CODE_FILES, files=[]),
+            source_input=InputData(
+                type=InputType.CODE_FILES,
+                files=[]),
+            target_input=InputData(
+                type=InputType.CODE_FILES,
+                files=[]),
         )
 
         # Test validation request validation
@@ -213,8 +225,11 @@ class TestSystemIntegrationHealth:
     def test_unified_reporting_pipeline_health(self):
         """Test unified reporting pipeline health."""
         from src.behavioral.crews import BehavioralValidationResult
-        from src.core.models import (SeverityLevel, ValidationDiscrepancy,
-                                     ValidationResult)
+        from src.core.models import (
+            SeverityLevel,
+            ValidationDiscrepancy,
+            ValidationResult,
+        )
 
         reporter = ValidationReporter()
 
@@ -330,7 +345,9 @@ class TestSystemPerformanceHealth:
 
         # Create multiple system components
         mock_llm_service = MagicMock()
-        validators = [MigrationValidator(llm_client=mock_llm_service) for _ in range(10)]
+        validators = [
+            MigrationValidator(
+                llm_client=mock_llm_service) for _ in range(10)]
         crews = [create_behavioral_validation_crew(mock_llm_service) for _ in range(5)]
         reporters = [ValidationReporter() for _ in range(5)]
 

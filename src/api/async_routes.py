@@ -2,18 +2,17 @@
 Real-time validation with progress tracking and WebSocket support.
 """
 
+import asyncio
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from fastapi import (APIRouter, Depends, HTTPException, WebSocket,
-                     WebSocketDisconnect)
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
 from src.api.middleware import validate_request
 from src.core.logging import logger
 from src.core.models import ValidationRequest
-from src.services.task_queue import (AsyncValidationService,
-                                     async_validation_service)
+from src.services.task_queue import AsyncValidationService, async_validation_service
 
 
 # Request/Response models
@@ -23,7 +22,8 @@ class AsyncValidationResponse(BaseModel):
     task_id: str
     status: str = "accepted"
     message: str = "Validation task submitted"
-    estimated_duration: Optional[int] = Field(None, description="Estimated duration in seconds")
+    estimated_duration: Optional[int] = Field(
+        None, description="Estimated duration in seconds")
     progress_url: str
     websocket_url: Optional[str] = None
 
@@ -40,7 +40,8 @@ class TaskStatusResponse(BaseModel):
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     cached: bool = False
-    estimated_remaining: Optional[int] = Field(None, description="Estimated remaining seconds")
+    estimated_remaining: Optional[int] = Field(
+        None, description="Estimated remaining seconds")
 
 
 class QueueStatsResponse(BaseModel):
@@ -61,7 +62,8 @@ router = APIRouter(prefix="/api/async", tags=["async-validation"])
 @router.post("/validate", response_model=AsyncValidationResponse)
 async def submit_async_validation(
     request: ValidationRequest,
-    validation_service: AsyncValidationService = Depends(lambda: async_validation_service),
+    validation_service: AsyncValidationService = Depends(
+        lambda: async_validation_service),
 ):
     """Submit validation request for async processing."""
     try:
@@ -86,13 +88,17 @@ async def submit_async_validation(
 
     except Exception as e:
         logger.error("Failed to submit async validation", error=str(e))
-        raise HTTPException(status_code=500, detail=f"Failed to submit validation: {e!s}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to submit validation: {
+                e!s}")
 
 
 @router.get("/validate/{task_id}/status", response_model=TaskStatusResponse)
 async def get_task_status(
     task_id: str,
-    validation_service: AsyncValidationService = Depends(lambda: async_validation_service),
+    validation_service: AsyncValidationService = Depends(
+        lambda: async_validation_service),
 ):
     """Get current status of validation task."""
     try:
@@ -103,7 +109,8 @@ async def get_task_status(
 
         # Estimate remaining time
         estimated_remaining = None
-        if status_info["status"] in ["PENDING", "STARTED"] and status_info["progress"] > 0:
+        if status_info["status"] in ["PENDING",
+                                     "STARTED"] and status_info["progress"] > 0:
             estimated_remaining = _estimate_remaining_time(status_info["progress"])
 
         response = TaskStatusResponse(
@@ -123,7 +130,8 @@ async def get_task_status(
 @router.delete("/validate/{task_id}")
 async def cancel_task(
     task_id: str,
-    validation_service: AsyncValidationService = Depends(lambda: async_validation_service),
+    validation_service: AsyncValidationService = Depends(
+        lambda: async_validation_service),
 ):
     """Cancel a running validation task."""
     try:
@@ -143,7 +151,8 @@ async def cancel_task(
 
 @router.get("/queue/stats", response_model=QueueStatsResponse)
 async def get_queue_stats(
-    validation_service: AsyncValidationService = Depends(lambda: async_validation_service),
+    validation_service: AsyncValidationService = Depends(
+        lambda: async_validation_service),
 ):
     """Get queue statistics and health information."""
     try:
@@ -180,7 +189,8 @@ async def get_queue_stats(
 async def websocket_task_progress(
     websocket: WebSocket,
     task_id: str,
-    validation_service: AsyncValidationService = Depends(lambda: async_validation_service),
+    validation_service: AsyncValidationService = Depends(
+        lambda: async_validation_service),
 ):
     """WebSocket endpoint for real-time task progress."""
     await websocket.accept()
@@ -247,14 +257,15 @@ async def websocket_task_progress(
     finally:
         try:
             await websocket.close()
-        except:
+        except BaseException:
             pass
 
 
 @router.post("/cache/invalidate")
 async def invalidate_cache(
     pattern: str = "validation_cache:*",
-    validation_service: AsyncValidationService = Depends(lambda: async_validation_service),
+    validation_service: AsyncValidationService = Depends(
+        lambda: async_validation_service),
 ):
     """Invalidate cache entries."""
     try:
@@ -264,7 +275,10 @@ async def invalidate_cache(
 
     except Exception as e:
         logger.error("Failed to invalidate cache", pattern=pattern, error=str(e))
-        raise HTTPException(status_code=500, detail=f"Failed to invalidate cache: {e!s}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to invalidate cache: {
+                e!s}")
 
 
 # Helper functions
@@ -289,8 +303,8 @@ def _estimate_validation_duration(request: ValidationRequest) -> int:
     # Factor in technology complexity
     complex_techs = ["java-spring", "dotnet-core", "python-django"]
     complexity_factor = 1.2 if (
-        request.source_technology in complex_techs or
-        request.target_technology in complex_techs
+        request.source_technology in complex_techs
+        or request.target_technology in complex_techs
     ) else 1.0
 
     total_duration = int(base_duration * scope_factor * complexity_factor) + file_factor
@@ -341,4 +355,3 @@ def _get_cache_statistics() -> Dict[str, Any]:
 
 
 # Import asyncio for sleep
-import asyncio

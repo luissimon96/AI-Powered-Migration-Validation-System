@@ -13,8 +13,7 @@ from fastapi.testclient import TestClient
 
 from src.api.routes import app
 from src.behavioral.crews import BehavioralValidationResult
-from src.core.models import (SeverityLevel, ValidationDiscrepancy,
-                             ValidationResult)
+from src.core.models import SeverityLevel, ValidationDiscrepancy, ValidationResult
 
 
 @pytest.mark.system
@@ -165,7 +164,8 @@ public class UserManager {
         assert "warnings" in data
 
     @patch("src.core.migration_validator.MigrationValidator.validate_migration")
-    def test_static_validation_pipeline_e2e(self, mock_validate, client, sample_code_files):
+    def test_static_validation_pipeline_e2e(
+            self, mock_validate, client, sample_code_files):
         """Test complete static validation pipeline end-to-end."""
         # Mock static validation result
         mock_result = ValidationResult(
@@ -237,7 +237,8 @@ public class UserManager {
             assert result_data["discrepancy_counts"]["info"] == 1
 
             # Get detailed report
-            report_response = client.get(f"/api/validate/{request_id}/report?format=json")
+            report_response = client.get(
+                f"/api/validate/{request_id}/report?format=json")
             assert report_response.status_code == 200
 
             # Clean up
@@ -334,8 +335,7 @@ public class UserManager {
 
             # Verify discrepancy details
             performance_discrepancy = next(
-                d for d in result_data["discrepancies"] if d["type"] == "response_time_degradation"
-            )
+                d for d in result_data["discrepancies"] if d["type"] == "response_time_degradation")
             assert performance_discrepancy["severity"] == "warning"
             assert "400ms slower" in performance_discrepancy["description"]
 
@@ -349,7 +349,8 @@ public class UserManager {
             assert cleanup_response.status_code == 200
 
     @patch("src.api.routes.run_hybrid_validation_background")
-    def test_hybrid_validation_pipeline_e2e(self, mock_background_task, client, sample_code_files):
+    def test_hybrid_validation_pipeline_e2e(
+            self, mock_background_task, client, sample_code_files):
         """Test complete hybrid validation pipeline end-to-end."""
         # Prepare hybrid validation request
         with open(sample_code_files["source_file"], "rb") as source_f, open(
@@ -467,10 +468,12 @@ public class UserManager {
                 assert "Combined: 0.82" in result_data["summary"]
 
                 # Get detailed report in different formats
-                json_report_response = client.get(f"/api/validate/{request_id}/report?format=json")
+                json_report_response = client.get(
+                    f"/api/validate/{request_id}/report?format=json")
                 assert json_report_response.status_code == 200
 
-                html_report_response = client.get(f"/api/validate/{request_id}/report?format=html")
+                html_report_response = client.get(
+                    f"/api/validate/{request_id}/report?format=html")
                 assert html_report_response.status_code == 200
                 assert "text/html" in html_report_response.headers["content-type"]
 
@@ -484,7 +487,8 @@ public class UserManager {
                 assert logs_response.status_code == 200
                 logs_data = logs_response.json()
                 assert len(logs_data["logs"]) == 5
-                assert any("Hybrid validation started" in log for log in logs_data["logs"])
+                assert any(
+                    "Hybrid validation started" in log for log in logs_data["logs"])
 
     def test_validation_session_lifecycle_management(self, client):
         """Test validation session lifecycle management."""
@@ -522,12 +526,18 @@ public class UserManager {
     def test_error_handling_and_recovery(self, client):
         """Test system error handling and recovery."""
         # Test invalid JSON in validation request
-        response = client.post("/api/validate", data={"request_data": "invalid json"}, files=[])
+        response = client.post(
+            "/api/validate",
+            data={
+                "request_data": "invalid json"},
+            files=[])
         assert response.status_code == 400
         assert "Invalid JSON" in response.json()["detail"]
 
         # Test invalid JSON in behavioral validation
-        response = client.post("/api/behavioral/validate", json="invalid json structure")
+        response = client.post(
+            "/api/behavioral/validate",
+            json="invalid json structure")
         assert response.status_code == 422  # Validation error
 
         # Test invalid JSON in hybrid validation
@@ -577,7 +587,8 @@ public class UserManager {
 
         assert response.status_code == 200
         response_time = end_time - start_time
-        assert response_time < 3.0, f"Compatibility check too slow: {response_time:.3f}s"
+        assert response_time < 3.0, f"Compatibility check too slow: {
+            response_time:.3f}s"
 
     def test_api_documentation_availability(self, client):
         """Test API documentation is available."""
