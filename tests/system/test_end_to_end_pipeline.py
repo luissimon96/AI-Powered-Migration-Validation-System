@@ -590,8 +590,7 @@ public class UserManager {
 
         assert response.status_code == 200
         response_time = end_time - start_time
-        assert response_time < 3.0, f"Compatibility check too slow: {
-            response_time:.3f}s"
+        assert response_time < 3.0, f"Compatibility check too slow: {response_time:.3f}s"
 
     def test_api_documentation_availability(self, client):
         """Test API documentation is available."""

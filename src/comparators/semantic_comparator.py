@@ -151,9 +151,7 @@ class SemanticComparator:
                     discrepancy = ValidationDiscrepancy(
                         type="ui_element_renamed",
                         severity=SeverityLevel.WARNING,
-                        description=f"UI element '{
-                            self._describe_ui_element(source_elem)}' appears to be renamed to '{
-                            self._describe_ui_element(fuzzy_match)}'",
+                        description=f"UI element '{self._describe_ui_element(source_elem)}' appears to be renamed to '{self._describe_ui_element(fuzzy_match)}'",
                         source_element=self._describe_ui_element(source_elem),
                         target_element=self._describe_ui_element(fuzzy_match),
                         recommendation="Verify that the renamed element maintains the same functionality",
@@ -163,8 +161,7 @@ class SemanticComparator:
                     discrepancy = ValidationDiscrepancy(
                         type="missing_ui_element",
                         severity=SeverityLevel.CRITICAL,
-                        description=f"UI element '{
-                            self._describe_ui_element(source_elem)}' is missing in target",
+                        description=f"UI element '{self._describe_ui_element(source_elem)}' is missing in target",
                         source_element=self._describe_ui_element(source_elem),
                         recommendation="Add the missing UI element to maintain feature parity",
                     )

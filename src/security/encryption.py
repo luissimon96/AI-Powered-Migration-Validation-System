@@ -46,8 +46,7 @@ class KeyManager:
                 self._master_key = secrets.token_bytes(32)
                 if self.settings.environment == "development":
                     print(
-                        f"Generated master key (save this!): {base64.b64encode(
-                                self._master_key).decode()}", )
+                        f"Generated master key (save this!): {base64.b64encode(self._master_key).decode()}", )
 
         return self._master_key
 

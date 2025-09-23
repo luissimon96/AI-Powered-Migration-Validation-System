@@ -459,9 +459,7 @@ def db_cleanup(days_old: int, dry_run: bool, verbose: bool):
                     stats = await get_database_statistics(session)
                     click.echo("Current database statistics:")
                     click.echo(
-                        f"  Total sessions: {stats.get(
-                                'validation_sessions_count',
-                                0)}")
+                        f"  Total sessions: {stats.get('validation_sessions_count', 0)}")
                     click.echo(
                         f"  Total results: {stats.get(
                                 'validation_results_count',

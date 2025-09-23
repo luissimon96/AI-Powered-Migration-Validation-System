@@ -299,8 +299,7 @@ class ValidationReporter:
         # Determine overall status description
         status_descriptions = {
             "approved": "✅ Migration validation PASSED. The target system successfully preserves all critical functionality from the source system.",
-            "approved_with_warnings": f"⚠️ Migration validation PASSED WITH WARNINGS. The target system preserves core functionality but has {
-                discrepancy_counts['warning']} items requiring attention.",
+            "approved_with_warnings": f"⚠️ Migration validation PASSED WITH WARNINGS. The target system preserves core functionality but has {discrepancy_counts['warning']} items requiring attention.",
             "rejected": "❌ Migration validation FAILED. Critical issues were found that prevent approval of the migration.",
         }
 
@@ -685,9 +684,7 @@ class ValidationReporter:
 
         status_descriptions = {
             "approved": f"✅ Migration validation PASSED. The target system successfully preserves all critical functionality based on {validation_type_text}.",
-            "approved_with_warnings": f"⚠️ Migration validation PASSED WITH WARNINGS. The target system preserves core functionality but has {
-        discrepancy_counts['critical']
-        + discrepancy_counts['warning']} items requiring attention identified through {validation_type_text}.",
+            "approved_with_warnings": f"⚠️ Migration validation PASSED WITH WARNINGS. The target system preserves core functionality but has {discrepancy_counts['critical'] + discrepancy_counts['warning']} items requiring attention identified through {validation_type_text}.",
             "rejected": f"❌ Migration validation FAILED. Critical issues were found through {validation_type_text} that prevent approval of the migration.",
             }
 

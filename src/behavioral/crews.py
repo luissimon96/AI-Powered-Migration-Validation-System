@@ -237,8 +237,7 @@ class BrowserTool(BaseModel):
                         actions = create_login_scenario(username, password, login_url)
                         results = await self.automation_engine.execute_scenario("login", actions)
                         success_count = sum(1 for r in results if r.success)
-                        return f"Login scenario executed: {success_count}/{
-                            len(results)} actions successful"
+                        return f"Login scenario executed: {success_count}/{len(results)} actions successful"
                     return "Login scenario requires username:password:login_url"
 
                 if scenario_type == "form" and action_data:

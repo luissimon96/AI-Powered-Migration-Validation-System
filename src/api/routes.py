@@ -620,8 +620,7 @@ def create_app() -> FastAPI:
                 "request_id": request_id,
                 "status": "accepted",
                 "message": "Behavioral validation request accepted and processing started",
-                "estimated_time": f"{
-                    request.timeout}s maximum",
+                "estimated_time": f"{request.timeout}s maximum",
             }
 
         except Exception as e:
@@ -719,11 +718,7 @@ def create_app() -> FastAPI:
             hybrid_request = HybridValidationRequest(**json.loads(request_data))
 
             # Generate unique request ID for hybrid validation
-            request_id = f"hybrid_{
-                datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(
-                    str(
-                        hybrid_request.dict())) %
-                10000:04d}"
+            request_id = f"hybrid_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(str(hybrid_request.dict())) % 10000:04d}"
 
             # Determine validation types to perform
             perform_static = bool(

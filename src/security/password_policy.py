@@ -36,8 +36,7 @@ class PasswordValidator:
         # Length check
         if len(password) < self.policy.min_length:
             errors.append(
-                f"Password must be at least {
-                    self.policy.min_length} characters")
+                f"Password must be at least {self.policy.min_length} characters")
 
         # Character requirements
         if self.policy.require_uppercase and not re.search(r"[A-Z]", password):

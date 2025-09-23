@@ -714,8 +714,7 @@ class BrowserAutomationEngine:
                     ValidationDiscrepancy(
                         type="form_count_mismatch",
                         severity=SeverityLevel.WARNING,
-                        description=f"Different number of forms: {
-                            len(forms1)} vs {len(forms2)}",
+                        description=f"Different number of forms: {len(forms1)} vs {len(forms2)}",
                         recommendation="Verify all forms were migrated correctly",
                     ),
                 )

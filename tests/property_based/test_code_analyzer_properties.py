@@ -120,10 +120,7 @@ def python_class(draw):
         methods = ["    pass"]
     else:
         methods = [
-            f"    {method.replace(
-                    chr(10),
-                    chr(10)
-                    + '    ')}" for method in methods]
+            f"    {method.replace(chr(10), chr(10) + '    ')}" for method in methods]
 
     methods_str = "\n\n".join(methods)
 

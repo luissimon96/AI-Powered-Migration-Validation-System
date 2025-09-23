@@ -254,8 +254,7 @@ def create_secure_app() -> FastAPI:
             for file, validation_result in validated_files:
                 if not validation_result.is_valid:
                     raise HTTPException(
-                        status_code=400, detail=f"File {
-                            file.filename} failed security validation: {validation_result.security_issues}", )
+                        status_code=400, detail=f"File {file.filename} failed security validation: {validation_result.security_issues}", )
 
             # Process uploads
             uploaded_files = []
@@ -300,8 +299,7 @@ def create_secure_app() -> FastAPI:
             for file, validation_result in validated_files:
                 if not validation_result.is_valid:
                     raise HTTPException(
-                        status_code=400, detail=f"File {
-                            file.filename} failed security validation: {validation_result.security_issues}", )
+                        status_code=400, detail=f"File {file.filename} failed security validation: {validation_result.security_issues}", )
 
             uploaded_files = []
             for file, _ in validated_files:

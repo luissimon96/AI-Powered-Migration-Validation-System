@@ -434,8 +434,7 @@ def task_postrun_handler(
     """Handle task completion."""
     if state == "SUCCESS":
         progress_manager.update_progress(
-            task_id, 100, "completed", f"Task {
-                task.name} completed")
+            task_id, 100, "completed", f"Task {task.name} completed")
 
 
 @task_failure.connect

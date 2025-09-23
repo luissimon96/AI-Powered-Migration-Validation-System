@@ -159,8 +159,7 @@ class MigrationValidator(LoggerMixin):
                 request.validation_scope,
             )
             session.add_log(
-                f"Comparison complete: {
-                    len(discrepancies)} discrepancies found")
+                f"Comparison complete: {len(discrepancies)} discrepancies found")
 
             # Stage 3: Result Analysis and Report Generation
             session.add_log(
@@ -445,8 +444,7 @@ class MigrationValidator(LoggerMixin):
             )
             if not source_analyzer.supports_scope(request.validation_scope):
                 issues.append(
-                    f"Source technology {
-                        request.source_technology.type.value} " f"doesn't support validation scope {request.validation_scope.value}", )
+                    f"Source technology {request.source_technology.type.value} doesn't support validation scope {request.validation_scope.value}", )
         except AnalyzerError as e:
             issues.append(f"Source technology not supported: {e!s}")
 
@@ -456,8 +454,7 @@ class MigrationValidator(LoggerMixin):
             )
             if not target_analyzer.supports_scope(request.validation_scope):
                 issues.append(
-                    f"Target technology {
-                        request.target_technology.type.value} " f"doesn't support validation scope {request.validation_scope.value}", )
+                    f"Target technology {request.target_technology.type.value} doesn't support validation scope {request.validation_scope.value}", )
         except AnalyzerError as e:
             issues.append(f"Target technology not supported: {e!s}")
 

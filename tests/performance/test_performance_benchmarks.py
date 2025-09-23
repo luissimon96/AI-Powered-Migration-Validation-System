@@ -349,8 +349,7 @@ class TestMigrationValidatorPerformance:
         execution_time = time.perf_counter() - start_time
 
         # Performance assertions for large inputs
-        assert execution_time < 30.0, f"Large validation took too long: {
-            execution_time:.2f}s"
+        assert execution_time < 30.0, f"Large validation took too long: {execution_time:.2f}s"
         assert result is not None, "Large validation should return a result"
 
     def test_concurrent_validation_performance(self):
@@ -427,9 +426,7 @@ class TestMigrationValidatorPerformance:
 
                 # Memory growth should be reasonable
                 assert (
-                    memory_growth < 200), f"Excessive memory growth: {
-                    memory_growth:.2f}MB after {
-                    i + 1} validations"
+                    memory_growth < 200), f"Excessive memory growth: {memory_growth:.2f}MB after {i + 1} validations"
 
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
         total_growth = final_memory - initial_memory
@@ -498,8 +495,7 @@ if __name__ == '__main__':
         execution_time = time.perf_counter() - start_time
 
         # Performance assertions
-        assert execution_time < 2.0, f"Code analysis took too long: {
-            execution_time:.2f}s"
+        assert execution_time < 2.0, f"Code analysis took too long: {execution_time:.2f}s"
         assert result is not None, "Analysis should return a result"
         assert "functions" in result, "Analysis should include functions"
         assert "classes" in result, "Analysis should include classes"
@@ -547,16 +543,13 @@ def function_{i}():
         execution_time = time.perf_counter() - start_time
 
         # Performance assertions
-        assert execution_time < 20.0, f"Large file analysis took too long: {
-            execution_time:.2f}s"
+        assert execution_time < 20.0, f"Large file analysis took too long: {execution_time:.2f}s"
         assert result is not None, "Large file analysis should return a result"
         assert len(result["classes"]) == 200, "Should detect all classes"
         assert len(result["functions"]) == 200, "Should detect all functions"
 
         print(
-            f"Large file analysis ({
-                len(large_code)} chars) completed in {
-                execution_time:.3f}s")
+            f"Large file analysis ({len(large_code)} chars) completed in {execution_time:.3f}s")
 
     def test_concurrent_analysis_performance(self):
         """Test performance under concurrent analysis requests."""
@@ -594,9 +587,7 @@ def function_{i}():
         ), f"High average analysis time: {statistics.mean(execution_times):.2f}s"
 
         print(
-            f"Concurrent analysis completed: avg={
-                statistics.mean(execution_times):.3f}s, max={
-                max(execution_times):.3f}s", )
+            f"Concurrent analysis completed: avg={statistics.mean(execution_times):.3f}s, max={max(execution_times):.3f}s", )
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -745,20 +736,13 @@ class TestPerformanceRegression:
 
             print("Performance comparison:")
             print(
-                f"  Average time: {
-                    current_avg_time:.3f}s (baseline: {
-                    baseline_avg:.3f}s, change: {
-                    avg_regression:+.1f}%)", )
+                f"  Average time: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {avg_regression:+.1f}%)", )
             print(
-                f"  P95 time: {
-                    current_p95_time:.3f}s (baseline: {
-                    baseline_p95:.3f}s, change: {
-                    p95_regression:+.1f}%)", )
+                f"  P95 time: {current_p95_time:.3f}s (baseline: {baseline_p95:.3f}s, change: {p95_regression:+.1f}%)", )
 
             # Assert no significant regression
             assert (
-                avg_regression < 20), f"Performance regression detected: {
-                avg_regression:.1f}% slower average time"
+                avg_regression < 20), f"Performance regression detected: {avg_regression:.1f}% slower average time"
             assert (
                 p95_regression < 25
             ), f"Performance regression detected: {p95_regression:.1f}% slower P95 time"
@@ -772,9 +756,7 @@ class TestPerformanceRegression:
             }
             self.save_baselines(baselines)
             print(
-                f"New performance baseline set: avg={
-                    current_avg_time:.3f}s, p95={
-                    current_p95_time:.3f}s", )
+                f"New performance baseline set: avg={current_avg_time:.3f}s, p95={current_p95_time:.3f}s", )
 
     def test_code_analysis_performance_regression(self):
         """Test for performance regression in code analysis."""
@@ -821,14 +803,10 @@ class DataProcessor:
             regression = (current_avg_time - baseline_avg) / baseline_avg * 100
 
             print(
-                f"Code analysis performance: {
-                    current_avg_time:.3f}s (baseline: {
-                    baseline_avg:.3f}s, change: {
-                    regression:+.1f}%)", )
+                f"Code analysis performance: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {regression:+.1f}%)", )
 
             # Assert no significant regression
-            assert regression < 30, f"Code analysis regression detected: {
-                regression:.1f}% slower"
+            assert regression < 30, f"Code analysis regression detected: {regression:.1f}% slower"
 
         else:
             # Set new baseline
@@ -889,11 +867,9 @@ class TestStressAndBreakingPoints:
 
         print("Stress test results:")
         print(
-            f"  Max stable load: {
-                stress_results['max_stable_load']} concurrent users")
+            f"  Max stable load: {stress_results['max_stable_load']} concurrent users")
         print(
-            f"  Breakdown point: {
-                stress_results['breakdown_point']} concurrent users")
+            f"  Breakdown point: {stress_results['breakdown_point']} concurrent users")
 
         # Assert reasonable performance under stress
         assert (
@@ -925,9 +901,7 @@ class TestStressAndBreakingPoints:
                 memory_used = memory_after - memory_before
 
                 print(
-                    f"Input size: {size_mb}MB, Execution time: {
-                        execution_time:.2f}s, Memory used: {
-                        memory_used:.2f}MB", )
+                    f"Input size: {size_mb}MB, Execution time: {execution_time:.2f}s, Memory used: {memory_used:.2f}MB", )
 
                 # Assert reasonable performance
                 assert (

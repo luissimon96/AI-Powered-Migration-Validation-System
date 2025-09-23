@@ -225,8 +225,7 @@ class DatabaseManager:
                     await asyncio.sleep(wait_time)
                 else:
                     logger.error(
-                        f"Database operation failed after {
-                            max_retries + 1} attempts")
+                        f"Database operation failed after {max_retries + 1} attempts")
 
         raise last_exception
 
