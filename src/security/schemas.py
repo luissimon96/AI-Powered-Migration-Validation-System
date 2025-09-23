@@ -371,7 +371,7 @@ class ValidationListQuery(BaseModel):
             return security_validator.validate_string_input(v, "user_id")
         return v
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def validate_date_range(cls, values):
         """Validate date range."""
         start_date = values.get("start_date")

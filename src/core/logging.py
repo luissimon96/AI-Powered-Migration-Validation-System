@@ -426,3 +426,6 @@ def initialize_logging():
 # Auto-initialize if not in test environment
 if "pytest" not in sys.modules and not os.getenv("TESTING"):
     initialize_logging()
+
+# Export a default logger instance for easy importing
+logger = structlog.get_logger(__name__)

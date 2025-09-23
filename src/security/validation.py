@@ -10,7 +10,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
-import magic
+try:
+    import magic
+except ImportError:
+    magic = None
 from fastapi import UploadFile
 from pydantic import BaseModel, EmailStr
 

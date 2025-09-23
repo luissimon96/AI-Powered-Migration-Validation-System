@@ -38,9 +38,9 @@ class APIKeyMetadata(BaseModel):
 class APIKeyManager:
     """Comprehensive API key management with database persistence."""
 
-    def __init__(self):
+    def __init__(self, session=None):
         self.settings = get_settings()
-        self.db = get_database_service()
+        self.db = get_database_service(session) if session else None
         self.logger = logger.bind(component="APIKeyManager")
 
     def _hash_api_key(self, api_key: str) -> str:
@@ -218,7 +218,15 @@ class APIKeyManager:
 
 
 # Global API key manager instance
-api_key_manager = APIKeyManager()
+# Global instance - will be initialized with session when needed
+api_key_manager = None
+
+def get_api_key_manager(session=None):
+    """Get API key manager instance with optional session."""
+    global api_key_manager
+    if api_key_manager is None or session:
+        api_key_manager = APIKeyManager(session)
+    return api_key_manager
 
 # FastAPI security dependency
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)

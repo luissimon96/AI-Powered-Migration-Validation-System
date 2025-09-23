@@ -3,6 +3,7 @@
 Handles environment variables, LLM provider settings, and system configuration.
 """
 
+import logging
 import os
 import tempfile
 from dataclasses import dataclass, field
@@ -120,6 +121,7 @@ class SystemSettings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = "allow"
 
 
 class ValidationConfig:
@@ -258,7 +260,9 @@ def get_settings() -> SystemSettings:
                         else structlog.processors.JSONRenderer()
                     ),
                 ],
-                wrapper_class=structlog.make_filtering_bound_logger(_settings.log_level),
+                wrapper_class=structlog.make_filtering_bound_logger(
+                    getattr(logging, _settings.log_level.upper(), logging.INFO)
+                ),
                 context_class=dict,
                 logger_factory=structlog.PrintLoggerFactory(),
                 cache_logger_on_first_use=True,

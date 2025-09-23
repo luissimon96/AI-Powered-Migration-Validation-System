@@ -89,9 +89,9 @@ class AuditEvent(BaseModel):
 class SecurityAuditLogger:
     """Comprehensive security audit logging system."""
 
-    def __init__(self):
+    def __init__(self, session=None):
         self.settings = get_settings()
-        self.db = get_database_service()
+        self.db = get_database_service(session) if session else None
         self.logger = logger.bind(component="SecurityAudit")
 
     async def log_event(
@@ -554,4 +554,15 @@ class SecurityAuditLogger:
 
 
 # Global audit logger instance
-security_audit = SecurityAuditLogger()
+# Global instance - will be initialized when needed
+security_audit = None
+
+def get_security_audit(session=None):
+    """Get security audit logger instance with optional session."""
+    global security_audit
+    if security_audit is None or session:
+        security_audit = SecurityAuditLogger(session)
+    return security_audit
+
+# For backward compatibility
+security_audit = get_security_audit()

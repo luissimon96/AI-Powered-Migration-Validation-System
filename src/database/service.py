@@ -486,3 +486,15 @@ async def get_validation_service(session: AsyncSession) -> ValidationDatabaseSer
 
     """
     return ValidationDatabaseService(session)
+
+
+def get_database_service(session: AsyncSession) -> ValidationDatabaseService:
+    """Factory function to create ValidationDatabaseService instance.
+
+    Args:
+        session: AsyncSession for database operations
+
+    Returns:
+        ValidationDatabaseService: Configured service instance
+    """
+    return ValidationDatabaseService(session)
