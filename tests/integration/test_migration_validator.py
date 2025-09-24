@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import pytest
+from src.core.config import ValidationConfig
 from src.core.migration_validator import MigrationValidator
 from src.core.models import ValidationScope
 

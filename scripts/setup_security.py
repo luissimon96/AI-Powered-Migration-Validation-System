@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
     from src.security.auth import AuthManager
-    from src.security.config import SecurityLevel, get_security_config
+    from src.security.config import get_security_config
     from src.security.encryption import EncryptionManager
 except ImportError as e:
     print(f"Error importing security modules: {e}")
