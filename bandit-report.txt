@@ -1,0 +1,183 @@
+Run started:2025-09-24 12:43:31.343141
+
+Test results:
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b608_hardcoded_sql_expressions.html
+   Location: src/database/migrations.py:344:32
+343	                        text(
+344	                            f"""
+345	                        UPDATE validation_discrepancies
+346	                        SET component_type = '{component_type}'
+347	                        WHERE component_type IS NULL AND ({type_conditions})
+348	                        """,
+349	                        ),
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b608_hardcoded_sql_expressions.html
+   Location: src/database/migrations.py:460:32
+459	                        text(
+460	                            f"""
+461	                        CREATE TABLE {backup_table_name} AS
+462	                        SELECT * FROM {table_name}
+463	                        """,
+464	                        ),
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b608_hardcoded_sql_expressions.html
+   Location: src/database/utils.py:283:20
+282	            text(
+283	                f"""
+284	            DELETE FROM validation_sessions
+285	            WHERE created_at < :cutoff_date
+286	            AND status IN ({status_placeholders})
+287	            """,
+288	            ),
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b608_hardcoded_sql_expressions.html
+   Location: src/database/utils.py:360:50
+359	        for table in tables:
+360	            result = await session.execute(text(f"SELECT COUNT(*) FROM {table}"))
+361	            stats[f"{table}_count"] = result.scalar()
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'change-me-in-production'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: src/monitoring/health.py:420:54
+419	                not self.config.settings.secret_key
+420	                or self.config.settings.secret_key == "change-me-in-production"
+421	            ):
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'token_refresh'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: src/security/audit.py:27:20
+26	    LOGOUT = "logout"
+27	    TOKEN_REFRESH = "token_refresh"
+28	    TOKEN_EXPIRED = "token_expired"
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'token_expired'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: src/security/audit.py:28:20
+27	    TOKEN_REFRESH = "token_refresh"
+28	    TOKEN_EXPIRED = "token_expired"
+29	
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'access'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: src/security/config.py:287:19
+286	    # Token types
+287	    ACCESS_TOKEN = "access"
+288	    REFRESH_TOKEN = "refresh"
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'refresh'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: src/security/config.py:288:20
+287	    ACCESS_TOKEN = "access"
+288	    REFRESH_TOKEN = "refresh"
+289	    API_TOKEN = "api"
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'api'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: src/security/config.py:289:16
+288	    REFRESH_TOKEN = "refresh"
+289	    API_TOKEN = "api"
+290	
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'token_expired'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: src/security/config.py:301:20
+300	    LOGOUT = "logout"
+301	    TOKEN_EXPIRED = "token_expired"
+302	    UNAUTHORIZED_ACCESS = "unauthorized_access"
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'AUTH_004'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: src/security/config.py:312:20
+311	    ACCOUNT_LOCKED = "AUTH_003"
+312	    TOKEN_INVALID = "AUTH_004"
+313	    INSUFFICIENT_PERMISSIONS = "AUTH_005"
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'token_bucket'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b105_hardcoded_password_string.html
+   Location: src/security/rate_limiter.py:27:19
+26	    SLIDING_WINDOW = "sliding_window"
+27	    TOKEN_BUCKET = "token_bucket"
+28	    FIXED_WINDOW = "fixed_window"
+
+--------------------------------------------------
+>> Issue: [B324:hashlib] Use of weak MD5 hash for security. Consider usedforsecurity=False
+   Severity: High   Confidence: High
+   CWE: CWE-327 (https://cwe.mitre.org/data/definitions/327.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b324_hashlib.html
+   Location: src/services/task_queue.py:128:35
+127	        request_str = json.dumps(request.dict(), sort_keys=True)
+128	        return f"validation_cache:{hashlib.md5(request_str.encode()).hexdigest()}"
+129	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/services/task_queue.py:405:8
+404	
+405	        except Exception:
+406	            pass  # Return default stats if inspection fails
+407	
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 20044
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 10
+		Medium: 4
+		High: 1
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 4
+		Medium: 9
+		High: 2
+Files skipped (0):

@@ -125,7 +125,7 @@ class TaskResultCache:
 
         # Create deterministic hash from request data
         request_str = json.dumps(request.dict(), sort_keys=True)
-        return f"validation_cache:{hashlib.md5(request_str.encode()).hexdigest()}"
+        return f"validation_cache:{hashlib.sha256(request_str.encode()).hexdigest()}"
 
     def get_cached_result(
             self,

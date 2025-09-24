@@ -275,18 +275,14 @@ async def cleanup_database(
         if include_failed:
             status_filter.append("error")
 
-        status_placeholders = ",".join([f"'{s}'" for s in status_filter])
-
         # Delete old validation sessions (cascading deletes will handle related records)
         result = await session.execute(
-            text(
-                f"""
+            text("""
             DELETE FROM validation_sessions
             WHERE created_at < :cutoff_date
-            AND status IN ({status_placeholders})
-            """,
-            ),
-            {"cutoff_date": cutoff_date},
+            AND status = ANY(:status_filter)
+            """),
+            {"cutoff_date": cutoff_date, "status_filter": status_filter},
         )
         cleanup_counts["sessions"] = result.rowcount
 
@@ -357,6 +353,10 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
         ]
 
         for table in tables:
+            # Validate table name for security
+            if not table.replace('_', '').isalnum():
+                raise ValueError(f"Invalid table name: {table}")
+
             result = await session.execute(text(f"SELECT COUNT(*) FROM {table}"))
             stats[f"{table}_count"] = result.scalar()
 

@@ -596,7 +596,7 @@ class TestAuthentication:
     async def test_token_expiry(self):
         """Test expired token handling."""
         # This would require creating an expired token
-        expired_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        expired_token = "jwt_token_placeholder_for_testing"
         headers = {"Authorization": f"Bearer {expired_token}"}
 
         async with AsyncClient(app=app, base_url="http://test") as client:

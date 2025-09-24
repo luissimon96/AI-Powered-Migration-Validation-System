@@ -178,6 +178,16 @@ credentials/
 auth/
 api_keys/
 
+# API Keys & Tokens (additional patterns)
+*api_key*
+*secret*
+*token*
+*password*
+*.private
+.secrets
+config/secrets.json
+config/keys.json
+
 # ───────────────────────────────────────────────────────────────
 # Performance & Profiling
 # ───────────────────────────────────────────────────────────────
