@@ -5,24 +5,17 @@ Redis-based Celery task queue with progress tracking.
 import asyncio
 import json
 from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Optional
 from uuid import uuid4
 
 import redis
 from celery import Celery
 from celery.result import AsyncResult
-from celery.signals import task_failure
-from celery.signals import task_postrun
-from celery.signals import task_prerun
+from celery.signals import task_failure, task_postrun, task_prerun
 from kombu import Queue
-
 from src.core.config import get_validation_config
 from src.core.migration_validator import MigrationValidator
-from src.core.models import ValidationRequest
-from src.core.models import ValidationSession
+from src.core.models import ValidationRequest, ValidationSession
 from src.services.llm_service import LLMService
 
 # Celery app configuration
@@ -79,7 +72,7 @@ class TaskProgressManager:
         progress: int,
         stage: str,
         message: str = "",
-        metadata: Dict[str, Any] = None,
+        metadata: dict[str, Any] = None,
     ) -> None:
         """Update task progress."""
         progress_data = {
@@ -98,7 +91,7 @@ class TaskProgressManager:
             json.dumps(progress_data),
         )
 
-    def get_progress(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def get_progress(self, task_id: str) -> Optional[dict[str, Any]]:
         """Get current task progress."""
         data = self.redis.get(f"task_progress:{task_id}")
         return json.loads(data) if data else None
@@ -128,8 +121,8 @@ class TaskResultCache:
         return f"validation_cache:{hashlib.sha256(request_str.encode()).hexdigest()}"
 
     def get_cached_result(
-            self,
-            request: ValidationRequest) -> Optional[ValidationSession]:
+        self, request: ValidationRequest
+    ) -> Optional[ValidationSession]:
         """Get cached validation result."""
         cache_key = self.get_cache_key(request)
         cached_data = self.redis.get(cache_key)
@@ -173,7 +166,7 @@ result_cache = TaskResultCache()
 
 
 @celery_app.task(bind=True, name="validate_migration_async")
-def validate_migration_async(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+def validate_migration_async(self, request_data: dict[str, Any]) -> dict[str, Any]:
     """Async validation task with progress tracking."""
     task_id = self.request.id
 
@@ -186,46 +179,52 @@ def validate_migration_async(self, request_data: Dict[str, Any]) -> Dict[str, An
         cached_result = result_cache.get_cached_result(request)
         if cached_result:
             progress_manager.update_progress(
-                task_id, 100, "completed", "Retrieved from cache")
+                task_id, 100, "completed", "Retrieved from cache"
+            )
             return cached_result.to_dict()
 
         # Initialize validator
         progress_manager.update_progress(
-            task_id, 10, "initialization", "Initializing validator")
+            task_id, 10, "initialization", "Initializing validator"
+        )
         llm_service = LLMService()
         validator = MigrationValidator(llm_client=llm_service)
 
         # Execute validation with progress updates
         progress_manager.update_progress(
-            task_id, 20, "code_analysis", "Analyzing source code")
+            task_id, 20, "code_analysis", "Analyzing source code"
+        )
 
         # Run validation (this will be broken down into sub-tasks)
         session = asyncio.run(validator.validate_migration(request))
 
         progress_manager.update_progress(
-            task_id, 90, "finalizing", "Finalizing results")
+            task_id, 90, "finalizing", "Finalizing results"
+        )
 
         # Cache result
         result_cache.cache_result(request, session)
 
         progress_manager.update_progress(
-            task_id, 100, "completed", "Validation completed")
+            task_id, 100, "completed", "Validation completed"
+        )
 
         return session.to_dict()
 
     except Exception as exc:
         progress_manager.update_progress(
-            task_id, 0, "error", f"Validation failed: {exc!s}",
+            task_id,
+            0,
+            "error",
+            f"Validation failed: {exc!s}",
         )
         raise
 
 
 @celery_app.task(bind=True, name="analyze_code_async")
-def analyze_code_async(self,
-                       files: List[Dict],
-                       technology: str,
-                       task_id: str = None) -> Dict[str,
-                                                    Any]:
+def analyze_code_async(
+    self, files: list[dict], technology: str, task_id: str = None
+) -> dict[str, Any]:
     """Async code analysis sub-task."""
     parent_task_id = task_id or self.request.id
 
@@ -233,7 +232,10 @@ def analyze_code_async(self,
         from src.analyzers.code_analyzer import CodeAnalyzer
 
         progress_manager.update_progress(
-            parent_task_id, 30, "code_analysis", f"Analyzing {technology} code",
+            parent_task_id,
+            30,
+            "code_analysis",
+            f"Analyzing {technology} code",
         )
 
         analyzer = CodeAnalyzer()
@@ -242,8 +244,10 @@ def analyze_code_async(self,
         for i, file_data in enumerate(files):
             file_progress = 30 + (30 * (i + 1) / len(files))  # 30-60%
             progress_manager.update_progress(
-                parent_task_id, int(file_progress), "code_analysis",
-                f'Analyzing {file_data.get("name", "file")}',
+                parent_task_id,
+                int(file_progress),
+                "code_analysis",
+                f"Analyzing {file_data.get('name', 'file')}",
             )
 
             # Analyze individual file
@@ -254,7 +258,10 @@ def analyze_code_async(self,
 
     except Exception as exc:
         progress_manager.update_progress(
-            parent_task_id, 0, "error", f"Code analysis failed: {exc!s}",
+            parent_task_id,
+            0,
+            "error",
+            f"Code analysis failed: {exc!s}",
         )
         raise
 
@@ -262,10 +269,10 @@ def analyze_code_async(self,
 @celery_app.task(bind=True, name="compare_semantics_async")
 def compare_semantics_async(
     self,
-    source_analysis: Dict,
-    target_analysis: Dict,
+    source_analysis: dict,
+    target_analysis: dict,
     task_id: str = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Async semantic comparison sub-task."""
     parent_task_id = task_id or self.request.id
 
@@ -273,25 +280,37 @@ def compare_semantics_async(
         from src.comparators.semantic_comparator import SemanticComparator
 
         progress_manager.update_progress(
-            parent_task_id, 60, "semantic_comparison", "Comparing semantic structures",
+            parent_task_id,
+            60,
+            "semantic_comparison",
+            "Comparing semantic structures",
         )
 
         comparator = SemanticComparator()
 
         # Perform semantic comparison
-        comparison_result = asyncio.run(comparator.compare_representations(
-            source_analysis, target_analysis,
-        ))
+        comparison_result = asyncio.run(
+            comparator.compare_representations(
+                source_analysis,
+                target_analysis,
+            )
+        )
 
         progress_manager.update_progress(
-            parent_task_id, 80, "semantic_comparison", "Semantic comparison completed",
+            parent_task_id,
+            80,
+            "semantic_comparison",
+            "Semantic comparison completed",
         )
 
         return comparison_result
 
     except Exception as exc:
         progress_manager.update_progress(
-            parent_task_id, 0, "error", f"Semantic comparison failed: {exc!s}",
+            parent_task_id,
+            0,
+            "error",
+            f"Semantic comparison failed: {exc!s}",
         )
         raise
 
@@ -311,7 +330,10 @@ class AsyncValidationService:
             # Return special task ID for cached results
             cache_task_id = f"cached_{uuid4().hex[:8]}"
             self.progress_manager.update_progress(
-                cache_task_id, 100, "completed", "Retrieved from cache",
+                cache_task_id,
+                100,
+                "completed",
+                "Retrieved from cache",
                 metadata={"cached": True, "result": cached_result.to_dict()},
             )
             return cache_task_id
@@ -320,7 +342,7 @@ class AsyncValidationService:
         task = validate_migration_async.delay(request.dict())
         return task.id
 
-    def get_task_status(self, task_id: str) -> Dict[str, Any]:
+    def get_task_status(self, task_id: str) -> dict[str, Any]:
         """Get task status and progress."""
         # Check if it's a cached result
         if task_id.startswith("cached_"):
@@ -350,12 +372,14 @@ class AsyncValidationService:
         }
 
         if progress_data:
-            status_info.update({
-                "progress": progress_data["progress"],
-                "stage": progress_data["stage"],
-                "message": progress_data["message"],
-                "updated_at": progress_data["updated_at"],
-            })
+            status_info.update(
+                {
+                    "progress": progress_data["progress"],
+                    "stage": progress_data["stage"],
+                    "message": progress_data["message"],
+                    "updated_at": progress_data["updated_at"],
+                }
+            )
 
         if result.ready():
             if result.successful():
@@ -374,7 +398,7 @@ class AsyncValidationService:
         self.progress_manager.clear_progress(task_id)
         return True
 
-    def get_queue_stats(self) -> Dict[str, Any]:
+    def get_queue_stats(self) -> dict[str, Any]:
         """Get queue statistics."""
         inspect = celery_app.control.inspect()
 
@@ -394,8 +418,9 @@ class AsyncValidationService:
                 stats["active_tasks"] = sum(len(tasks) for tasks in active.values())
 
             if scheduled:
-                stats["scheduled_tasks"] = sum(len(tasks)
-                                               for tasks in scheduled.values())
+                stats["scheduled_tasks"] = sum(
+                    len(tasks) for tasks in scheduled.values()
+                )
 
             if reserved:
                 stats["reserved_tasks"] = sum(len(tasks) for tasks in reserved.values())
@@ -411,37 +436,38 @@ class AsyncValidationService:
 # Task signal handlers for monitoring
 @task_prerun.connect
 def task_prerun_handler(
-        sender=None,
-        task_id=None,
-        task=None,
-        args=None,
-        kwargs=None,
-        **kwds):
+    sender=None, task_id=None, task=None, args=None, kwargs=None, **kwds
+):
     """Handle task start."""
     progress_manager.update_progress(task_id, 0, "started", f"Task {task.name} started")
 
 
 @task_postrun.connect
 def task_postrun_handler(
-        sender=None,
-        task_id=None,
-        task=None,
-        args=None,
-        kwargs=None,
-        retval=None,
-        state=None,
-        **kwds):
+    sender=None,
+    task_id=None,
+    task=None,
+    args=None,
+    kwargs=None,
+    retval=None,
+    state=None,
+    **kwds,
+):
     """Handle task completion."""
     if state == "SUCCESS":
         progress_manager.update_progress(
-            task_id, 100, "completed", f"Task {task.name} completed")
+            task_id, 100, "completed", f"Task {task.name} completed"
+        )
 
 
 @task_failure.connect
 def task_failure_handler(sender=None, task_id=None, exception=None, einfo=None, **kwds):
     """Handle task failure."""
     progress_manager.update_progress(
-        task_id, 0, "failed", f"Task failed: {exception!s}",
+        task_id,
+        0,
+        "failed",
+        f"Task failed: {exception!s}",
     )
 
 

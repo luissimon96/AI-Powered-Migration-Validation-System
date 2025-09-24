@@ -4,14 +4,10 @@ Defines the fundamental data structures for representing migration contexts,
 validation results, and system operations.
 """
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Optional
 
 
 class TechnologyType(Enum):
@@ -64,7 +60,7 @@ class TechnologyContext:
 
     type: TechnologyType
     version: Optional[str] = None
-    framework_details: Dict[str, Any] = field(default_factory=dict)
+    framework_details: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -72,14 +68,14 @@ class InputData:
     """Represents input data for validation."""
 
     type: InputType
-    files: List[str] = field(default_factory=list)
-    screenshots: List[str] = field(default_factory=list)
-    urls: List[str] = field(default_factory=list)  # For behavioral validation
-    credentials: Optional[Dict[str, str]] = None  # For authenticated systems
-    validation_scenarios: List[str] = field(
+    files: list[str] = field(default_factory=list)
+    screenshots: list[str] = field(default_factory=list)
+    urls: list[str] = field(default_factory=list)  # For behavioral validation
+    credentials: Optional[dict[str, str]] = None  # For authenticated systems
+    validation_scenarios: list[str] = field(
         default_factory=list
     )  # Behavioral test scenarios
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -89,8 +85,8 @@ class UIElement:
     type: str  # label, input, button, table, etc.
     id: Optional[str] = None
     text: Optional[str] = None
-    position: Optional[Dict[str, int]] = None
-    attributes: Dict[str, Any] = field(default_factory=dict)
+    position: Optional[dict[str, int]] = None
+    attributes: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -98,10 +94,10 @@ class BackendFunction:
     """Represents a backend function or method."""
 
     name: str
-    parameters: List[str] = field(default_factory=list)
+    parameters: list[str] = field(default_factory=list)
     return_type: Optional[str] = None
     logic_summary: Optional[str] = None
-    validation_rules: List[str] = field(default_factory=list)
+    validation_rules: list[str] = field(default_factory=list)
     endpoint: Optional[str] = None
     http_method: Optional[str] = None
 
@@ -113,7 +109,7 @@ class DataField:
     name: str
     type: str
     required: bool = False
-    constraints: List[str] = field(default_factory=list)
+    constraints: list[str] = field(default_factory=list)
     default_value: Optional[Any] = None
 
 
@@ -122,11 +118,11 @@ class AbstractRepresentation:
     """Abstract representation of a system component."""
 
     screen_name: Optional[str] = None
-    ui_elements: List[UIElement] = field(default_factory=list)
-    backend_functions: List[BackendFunction] = field(default_factory=list)
-    data_fields: List[DataField] = field(default_factory=list)
-    api_endpoints: List[Dict[str, Any]] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    ui_elements: list[UIElement] = field(default_factory=list)
+    backend_functions: list[BackendFunction] = field(default_factory=list)
+    data_fields: list[DataField] = field(default_factory=list)
+    api_endpoints: list[dict[str, Any]] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -149,7 +145,7 @@ class ValidationResult:
     overall_status: str  # approved, approved_with_warnings, rejected
     fidelity_score: float  # 0.0 to 1.0
     summary: str
-    discrepancies: List[ValidationDiscrepancy] = field(default_factory=list)
+    discrepancies: list[ValidationDiscrepancy] = field(default_factory=list)
     execution_time: Optional[float] = None
     timestamp: datetime = field(default_factory=datetime.now)
 
@@ -163,13 +159,13 @@ class ValidationRequest:
     validation_scope: str = "full_system"
     source_technology_version: Optional[str] = None
     target_technology_version: Optional[str] = None
-    source_framework_details: Dict[str, Any] = field(default_factory=dict)
-    target_framework_details: Dict[str, Any] = field(default_factory=dict)
-    source_urls: List[str] = field(default_factory=list)
-    target_urls: List[str] = field(default_factory=list)
-    validation_scenarios: List[str] = field(default_factory=list)
+    source_framework_details: dict[str, Any] = field(default_factory=dict)
+    target_framework_details: dict[str, Any] = field(default_factory=dict)
+    source_urls: list[str] = field(default_factory=list)
+    target_urls: list[str] = field(default_factory=list)
+    validation_scenarios: list[str] = field(default_factory=list)
     behavioral_timeout: int = 300
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -193,7 +189,7 @@ class ValidationSession:
     source_representation: Optional[AbstractRepresentation] = None
     target_representation: Optional[AbstractRepresentation] = None
     result: Optional[ValidationResult] = None
-    processing_log: List[str] = field(default_factory=list)
+    processing_log: list[str] = field(default_factory=list)
 
     def add_log(self, message: str):
         """Add a log entry with timestamp."""

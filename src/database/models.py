@@ -6,28 +6,26 @@ with proper relationships, constraints, and indexes.
 
 from datetime import datetime
 from typing import Any
-from typing import Dict
 
-from sqlalchemy import JSON
-from sqlalchemy import Boolean
-from sqlalchemy import Column
-from sqlalchemy import DateTime
-from sqlalchemy import Enum
-from sqlalchemy import Float
-from sqlalchemy import ForeignKey
-from sqlalchemy import Index
-from sqlalchemy import Integer
-from sqlalchemy import String
-from sqlalchemy import Text
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from ..core.models import InputType
-from ..core.models import SeverityLevel
-from ..core.models import TechnologyType
-from ..core.models import ValidationScope
+from ..core.models import InputType, SeverityLevel, TechnologyType, ValidationScope
 from .config import metadata
 
 # Base class for all models
@@ -172,7 +170,7 @@ class ValidationSessionModel(Base, TimestampMixin, SoftDeleteMixin):
         timestamp = datetime.now().isoformat()
         self.processing_log.append(f"[{timestamp}] {message}")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert model to dictionary."""
         return {
             "id": self.id,
@@ -242,7 +240,7 @@ class ValidationResultModel(Base, TimestampMixin, SoftDeleteMixin):
         Index("ix_validation_results_type_created", "result_type", "created_at"),
     )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert model to dictionary."""
         return {
             "id": self.id,
@@ -324,7 +322,7 @@ class DiscrepancyModel(Base, TimestampMixin, SoftDeleteMixin):
         Index("ix_discrepancies_confidence", "confidence"),
     )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert model to dictionary."""
         return {
             "id": self.id,
@@ -401,7 +399,7 @@ class ValidationMetricsModel(Base, TimestampMixin):
         UniqueConstraint("metric_date", "metric_period", name="uq_metrics_date_period"),
     )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert model to dictionary."""
         return {
             "id": self.id,
@@ -476,7 +474,7 @@ class BehavioralTestResultModel(Base, TimestampMixin):
         Index("ix_behavioral_tests_session_created", "session_id", "created_at"),
     )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert model to dictionary."""
         return {
             "id": self.id,

@@ -8,15 +8,11 @@ import base64
 import hashlib
 import os
 import secrets
-from typing import Dict
 from typing import Optional
-from typing import Tuple
 
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 from ..core.config import get_settings
@@ -32,7 +28,7 @@ class KeyManager:
     def __init__(self):
         self.settings = get_settings()
         self._master_key = None
-        self._encryption_keys: Dict[str, bytes] = {}
+        self._encryption_keys: dict[str, bytes] = {}
 
     def get_master_key(self) -> bytes:
         """Get or generate master encryption key."""
@@ -46,7 +42,8 @@ class KeyManager:
                 self._master_key = secrets.token_bytes(32)
                 if self.settings.environment == "development":
                     print(
-                        f"Generated master key (save this!): {base64.b64encode(self._master_key).decode()}", )
+                        f"Generated master key (save this!): {base64.b64encode(self._master_key).decode()}",
+                    )
 
         return self._master_key
 
@@ -148,7 +145,7 @@ class AsymmetricEncryption:
         self._private_key = None
         self._public_key = None
 
-    def generate_key_pair(self) -> Tuple[bytes, bytes]:
+    def generate_key_pair(self) -> tuple[bytes, bytes]:
         """Generate RSA key pair."""
         private_key = rsa.generate_private_key(
             public_exponent=65537,
@@ -191,13 +188,13 @@ class AsymmetricEncryption:
             raise EncryptionError(f"Public key encryption failed: {e!s}")
 
     def decrypt_with_private_key(
-            self,
-            encrypted_data: str,
-            private_key_pem: bytes) -> str:
+        self, encrypted_data: str, private_key_pem: bytes
+    ) -> str:
         """Decrypt data with private key."""
         try:
             private_key = serialization.load_pem_private_key(
-                private_key_pem, password=None)
+                private_key_pem, password=None
+            )
 
             encrypted_bytes = base64.b64decode(encrypted_data.encode("utf-8"))
 
@@ -221,7 +218,7 @@ class SecureStorage:
     def __init__(self, key_manager: KeyManager):
         self.key_manager = key_manager
         self.symmetric_crypto = SymmetricEncryption(key_manager)
-        self._secure_store: Dict[str, str] = {}
+        self._secure_store: dict[str, str] = {}
 
     def store_secret(self, key: str, value: str, context: str = "secrets"):
         """Store encrypted secret."""
@@ -247,8 +244,11 @@ class SecureStorage:
         """List stored keys (without values)."""
         if context:
             prefix = f"{context}:"
-            return [key[len(prefix) :]
-                    for key in self._secure_store.keys() if key.startswith(prefix)]
+            return [
+                key[len(prefix) :]
+                for key in self._secure_store.keys()
+                if key.startswith(prefix)
+            ]
         return list(self._secure_store.keys())
 
     def delete_secret(self, key: str, context: str = "secrets"):
@@ -275,7 +275,10 @@ class EncryptionManager:
         settings = get_settings()
 
         # Migrate API keys to secure storage
-        if settings.openai_api_key and settings.openai_api_key != "your-openai-api-key-here":
+        if (
+            settings.openai_api_key
+            and settings.openai_api_key != "your-openai-api-key-here"
+        ):
             self.secure_storage.store_api_key("openai", settings.openai_api_key)
 
         if (
@@ -284,7 +287,10 @@ class EncryptionManager:
         ):
             self.secure_storage.store_api_key("anthropic", settings.anthropic_api_key)
 
-        if settings.google_api_key and settings.google_api_key != "your-google-api-key-here":
+        if (
+            settings.google_api_key
+            and settings.google_api_key != "your-google-api-key-here"
+        ):
             self.secure_storage.store_api_key("google", settings.google_api_key)
 
     def encrypt_sensitive_data(self, data: str, data_type: str = "general") -> str:
@@ -292,9 +298,8 @@ class EncryptionManager:
         return self.symmetric_crypto.encrypt_data(data, data_type)
 
     def decrypt_sensitive_data(
-            self,
-            encrypted_data: str,
-            data_type: str = "general") -> str:
+        self, encrypted_data: str, data_type: str = "general"
+    ) -> str:
         """Decrypt sensitive data with appropriate context."""
         return self.symmetric_crypto.decrypt_data(encrypted_data, data_type)
 
@@ -315,7 +320,8 @@ class EncryptionManager:
         return api_key
 
     def hash_password_secure(
-            self, password: str, salt: Optional[bytes] = None) -> Tuple[str, str]:
+        self, password: str, salt: Optional[bytes] = None
+    ) -> tuple[str, str]:
         """Securely hash password with salt."""
         if salt is None:
             salt = secrets.token_bytes(32)
@@ -330,8 +336,10 @@ class EncryptionManager:
 
         key = kdf.derive(password.encode("utf-8"))
 
-        return (base64.b64encode(key).decode("utf-8"),
-                base64.b64encode(salt).decode("utf-8"))
+        return (
+            base64.b64encode(key).decode("utf-8"),
+            base64.b64encode(salt).decode("utf-8"),
+        )
 
     def verify_password_secure(self, password: str, hashed: str, salt: str) -> bool:
         """Verify password against secure hash."""

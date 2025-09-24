@@ -5,11 +5,9 @@ Tests system dependencies, configuration, and overall health of the pipeline.
 
 import asyncio
 from datetime import datetime
-from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from src.behavioral.crews import create_behavioral_validation_crew
 from src.core.migration_validator import MigrationValidator
 from src.reporters.validation_reporter import ValidationReporter
@@ -58,8 +56,7 @@ class TestSystemHealthCheck:
 
     def test_llm_service_configuration(self):
         """Test LLM service configuration and initialization."""
-        from src.services.llm_service import LLMConfig
-        from src.services.llm_service import LLMProvider
+        from src.services.llm_service import LLMConfig, LLMProvider
 
         # Test basic configuration
         config = LLMConfig()
@@ -150,9 +147,9 @@ class TestSystemHealthCheck:
         ]
 
         for endpoint in expected_endpoints:
-            assert any(
-                endpoint in route for route in routes
-            ), f"Missing endpoint: {endpoint}"
+            assert any(endpoint in route for route in routes), (
+                f"Missing endpoint: {endpoint}"
+            )
 
 
 @pytest.mark.system
@@ -162,12 +159,14 @@ class TestSystemIntegrationHealth:
 
     async def test_static_validation_pipeline_health(self):
         """Test static validation pipeline health."""
-        from src.core.models import InputData
-        from src.core.models import InputType
-        from src.core.models import MigrationValidationRequest
-        from src.core.models import TechnologyContext
-        from src.core.models import TechnologyType
-        from src.core.models import ValidationScope
+        from src.core.models import (
+            InputData,
+            InputType,
+            MigrationValidationRequest,
+            TechnologyContext,
+            TechnologyType,
+            ValidationScope,
+        )
 
         mock_llm_service = AsyncMock()
         mock_llm_service.analyze_code_semantic_similarity.return_value = {
@@ -222,9 +221,11 @@ class TestSystemIntegrationHealth:
     def test_unified_reporting_pipeline_health(self):
         """Test unified reporting pipeline health."""
         from src.behavioral.crews import BehavioralValidationResult
-        from src.core.models import SeverityLevel
-        from src.core.models import ValidationDiscrepancy
-        from src.core.models import ValidationResult
+        from src.core.models import (
+            SeverityLevel,
+            ValidationDiscrepancy,
+            ValidationResult,
+        )
 
         reporter = ValidationReporter()
 
@@ -357,9 +358,9 @@ class TestSystemPerformanceHealth:
 
         # Memory increase should be reasonable (less than 100MB for test objects)
         max_acceptable_increase = 100 * 1024 * 1024  # 100MB
-        assert (
-            memory_increase < max_acceptable_increase
-        ), f"Memory increase too high: {memory_increase / 1024 / 1024:.2f}MB"
+        assert memory_increase < max_acceptable_increase, (
+            f"Memory increase too high: {memory_increase / 1024 / 1024:.2f}MB"
+        )
 
         # Clean up references
         del validators, crews, reporters
@@ -411,8 +412,7 @@ class TestSystemConfigurationHealth:
                 if key in os.environ:
                     del os.environ[key]
 
-            from src.services.llm_service import LLMConfig
-            from src.services.llm_service import LLMService
+            from src.services.llm_service import LLMConfig, LLMService
 
             # Should still initialize with default configuration
             config = LLMConfig()
@@ -465,8 +465,7 @@ class TestSystemConfigurationHealth:
         """Test that system objects can be JSON serialized."""
         import json
 
-        from src.core.models import SeverityLevel
-        from src.core.models import ValidationDiscrepancy
+        from src.core.models import SeverityLevel, ValidationDiscrepancy
 
         # Test ValidationDiscrepancy serialization
         discrepancy = ValidationDiscrepancy(
@@ -503,8 +502,7 @@ class TestExternalDependencyHealth:
     @pytest.mark.skip(reason="Requires actual LLM API access")
     async def test_llm_service_connectivity(self):
         """Test LLM service connectivity (skip unless testing with real API)."""
-        from src.services.llm_service import LLMConfig
-        from src.services.llm_service import LLMService
+        from src.services.llm_service import LLMConfig, LLMService
 
         config = LLMConfig()
         service = LLMService(config)
@@ -531,7 +529,7 @@ class TestExternalDependencyHealth:
                 pytest.skip("Browser automation not available")
 
             # Test basic navigation to a real site
-            session_id = await engine.start_session("https://httpbin.org/")
+            await engine.start_session("https://httpbin.org/")
 
             from src.behavioral.browser_automation import BrowserAction
 

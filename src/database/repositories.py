@@ -4,31 +4,26 @@ Provides high-level data access methods with business logic
 encapsulation, query optimization, and transaction management.
 """
 
-from datetime import datetime
-from datetime import timedelta
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from datetime import datetime, timedelta
+from typing import Any, Optional
 
-from sqlalchemy import and_
-from sqlalchemy import desc
-from sqlalchemy import func
-from sqlalchemy import select
-from sqlalchemy import update
+from sqlalchemy import and_, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..core.models import SeverityLevel
-from ..core.models import TechnologyType
-from ..core.models import ValidationDiscrepancy
-from ..core.models import ValidationScope
-from .models import BehavioralTestResultModel
-from .models import DiscrepancyModel
-from .models import ValidationMetricsModel
-from .models import ValidationResultModel
-from .models import ValidationSessionModel
+from ..core.models import (
+    SeverityLevel,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationScope,
+)
+from .models import (
+    BehavioralTestResultModel,
+    DiscrepancyModel,
+    ValidationMetricsModel,
+    ValidationResultModel,
+    ValidationSessionModel,
+)
 
 
 class BaseRepository:
@@ -176,10 +171,10 @@ class ValidationSessionRepository(BaseRepository):
         limit: int = 50,
         offset: int = 0,
         status: Optional[str] = None,
-        technology_pair: Optional[Tuple[TechnologyType, TechnologyType]] = None,
+        technology_pair: Optional[tuple[TechnologyType, TechnologyType]] = None,
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
-    ) -> Tuple[List[ValidationSessionModel], int]:
+    ) -> tuple[list[ValidationSessionModel], int]:
         """List validation sessions with filtering and pagination.
 
         Args:
@@ -253,7 +248,7 @@ class ValidationSessionRepository(BaseRepository):
             return True
         return False
 
-    async def get_active_sessions(self) -> List[ValidationSessionModel]:
+    async def get_active_sessions(self) -> list[ValidationSessionModel]:
         """Get all active (processing) sessions.
 
         Returns:
@@ -336,7 +331,7 @@ class ValidationResultRepository(BaseRepository):
         await self.session.flush()
         return result_model
 
-    async def get_by_session_id(self, session_id: int) -> List[ValidationResultModel]:
+    async def get_by_session_id(self, session_id: int) -> list[ValidationResultModel]:
         """Get all results for a session.
 
         Args:
@@ -377,7 +372,7 @@ class ValidationResultRepository(BaseRepository):
         self,
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get validation result statistics.
 
         Args:
@@ -473,9 +468,9 @@ class DiscrepancyRepository(BaseRepository):
     async def bulk_create_discrepancies(
         self,
         session_id: int,
-        discrepancies: List[ValidationDiscrepancy],
+        discrepancies: list[ValidationDiscrepancy],
         result_id: Optional[int] = None,
-    ) -> List[DiscrepancyModel]:
+    ) -> list[DiscrepancyModel]:
         """Create multiple discrepancies in bulk.
 
         Args:
@@ -513,7 +508,7 @@ class DiscrepancyRepository(BaseRepository):
         self,
         session_id: int,
         severity: Optional[SeverityLevel] = None,
-    ) -> List[DiscrepancyModel]:
+    ) -> list[DiscrepancyModel]:
         """Get discrepancies for a session.
 
         Args:
@@ -572,7 +567,7 @@ class DiscrepancyRepository(BaseRepository):
     async def get_discrepancy_trends(
         self,
         days: int = 30,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get discrepancy trends over time.
 
         Args:
@@ -658,7 +653,7 @@ class BehavioralTestRepository(BaseRepository):
 
     async def get_by_session_id(
         self, session_id: int
-    ) -> List[BehavioralTestResultModel]:
+    ) -> list[BehavioralTestResultModel]:
         """Get behavioral test results for a session.
 
         Args:
@@ -683,7 +678,7 @@ class MetricsRepository(BaseRepository):
         self,
         metric_date: datetime,
         metric_period: str,
-        metrics_data: Dict[str, Any],
+        metrics_data: dict[str, Any],
     ) -> ValidationMetricsModel:
         """Create or update validation metrics for a specific period.
 
@@ -731,7 +726,7 @@ class MetricsRepository(BaseRepository):
         period: str,
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
-    ) -> List[ValidationMetricsModel]:
+    ) -> list[ValidationMetricsModel]:
         """Get metrics for a specific period.
 
         Args:
@@ -757,7 +752,7 @@ class MetricsRepository(BaseRepository):
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
-    async def compute_daily_metrics(self, target_date: datetime) -> Dict[str, Any]:
+    async def compute_daily_metrics(self, target_date: datetime) -> dict[str, Any]:
         """Compute metrics for a specific date.
 
         Args:

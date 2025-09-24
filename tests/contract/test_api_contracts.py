@@ -5,20 +5,20 @@ and validate request/response schemas against OpenAPI specifications.
 """
 
 from typing import Any
-from typing import Dict
 from unittest.mock import patch
 
 import jsonschema
 import pytest
 from fastapi.testclient import TestClient
 from jsonschema import Draft7Validator
-
 from src.api.routes import app
-from src.core.models import InputType
-from src.core.models import TechnologyType
-from src.core.models import ValidationResult
-from src.core.models import ValidationScope
-from src.core.models import ValidationStatus
+from src.core.models import (
+    InputType,
+    TechnologyType,
+    ValidationResult,
+    ValidationScope,
+    ValidationStatus,
+)
 
 # ═══════════════════════════════════════════════════════════════
 # Contract Testing Framework
@@ -33,8 +33,8 @@ class APIContractTester:
 
     def validate_response_schema(
         self,
-        response: Dict[str, Any],
-        expected_schema: Dict[str, Any],
+        response: dict[str, Any],
+        expected_schema: dict[str, Any],
     ) -> None:
         """Validate response against expected JSON schema."""
         try:
@@ -44,8 +44,8 @@ class APIContractTester:
 
     def validate_request_schema(
         self,
-        request_data: Dict[str, Any],
-        expected_schema: Dict[str, Any],
+        request_data: dict[str, Any],
+        expected_schema: dict[str, Any],
     ) -> None:
         """Validate request against expected JSON schema."""
         try:
@@ -57,11 +57,11 @@ class APIContractTester:
         self,
         method: str,
         endpoint: str,
-        request_data: Dict[str, Any],
+        request_data: dict[str, Any],
         expected_status: int,
-        response_schema: Dict[str, Any],
-        headers: Dict[str, str] = None,
-    ) -> Dict[str, Any]:
+        response_schema: dict[str, Any],
+        headers: dict[str, str] = None,
+    ) -> dict[str, Any]:
         """Test an endpoint against its contract."""
         headers = headers or {"Content-Type": "application/json"}
 
@@ -530,9 +530,9 @@ class TestAPIBackwardCompatibility:
             # Core fields should always be present
             required_fields = ["validation_id", "status", "timestamp"]
             for field in required_fields:
-                assert (
-                    field in response_json
-                ), f"Required field '{field}' missing from response"
+                assert field in response_json, (
+                    f"Required field '{field}' missing from response"
+                )
 
             # Field types should remain consistent
             assert isinstance(response_json["validation_id"], str)
@@ -624,7 +624,7 @@ class ContractTestHelper:
         source_tech: TechnologyType = TechnologyType.PYTHON_FLASK,
         target_tech: TechnologyType = TechnologyType.JAVA_SPRING,
         scope: ValidationScope = ValidationScope.BUSINESS_LOGIC,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate a valid migration validation request."""
         return {
             "source_technology": {"type": source_tech.value, "version": "2.0"},
@@ -638,7 +638,7 @@ class ContractTestHelper:
         }
 
     @staticmethod
-    def validate_pagination_contract(response: Dict[str, Any]) -> None:
+    def validate_pagination_contract(response: dict[str, Any]) -> None:
         """Validate pagination contract in list responses."""
         if "pagination" in response:
             pagination = response["pagination"]
@@ -656,7 +656,7 @@ class ContractTestHelper:
             assert pagination["pages"] >= 0, "Pages must be >= 0"
 
     @staticmethod
-    def validate_error_contract(response: Dict[str, Any]) -> None:
+    def validate_error_contract(response: dict[str, Any]) -> None:
         """Validate error response contract."""
         required_fields = ["error", "message"]
         for field in required_fields:
@@ -667,9 +667,9 @@ class ContractTestHelper:
             ), f"Error response field '{field}' must be string"
 
         if "details" in response:
-            assert isinstance(
-                response["details"], dict
-            ), "Error details must be an object"
+            assert isinstance(response["details"], dict), (
+                "Error details must be an object"
+            )
 
 
 @pytest.mark.contract

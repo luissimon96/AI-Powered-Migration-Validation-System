@@ -8,13 +8,9 @@ import os
 import secrets
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict
-from typing import List
 from typing import Optional
 
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import validator
+from pydantic import BaseModel, Field, validator
 
 from ..core.config import get_settings
 
@@ -98,7 +94,7 @@ class SecurityConfig(BaseModel):
     environment: str = Field(default_factory=lambda: get_settings().environment)
 
     # Authentication configuration
-    auth_methods: List[AuthenticationMethod] = [AuthenticationMethod.JWT]
+    auth_methods: list[AuthenticationMethod] = [AuthenticationMethod.JWT]
     jwt_secret_key: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 30
@@ -113,7 +109,7 @@ class SecurityConfig(BaseModel):
     # Rate limiting configuration
     rate_limit_storage: str = "memory"  # "memory", "redis"
     rate_limit_algorithm: str = "sliding_window"
-    rate_limits: Dict[str, Dict[str, int]] = {
+    rate_limits: dict[str, dict[str, int]] = {
         "auth": {"requests": 5, "window": 60},
         "upload": {"requests": 10, "window": 300},
         "validation": {"requests": 20, "window": 3600},
@@ -128,7 +124,7 @@ class SecurityConfig(BaseModel):
     strict_validation: bool = True
 
     # File security configuration
-    allowed_mime_types: List[str] = [
+    allowed_mime_types: list[str] = [
         "text/plain",
         "application/json",
         "image/png",
@@ -138,7 +134,7 @@ class SecurityConfig(BaseModel):
         "application/javascript",
         "text/csv",
     ]
-    blocked_mime_types: List[str] = [
+    blocked_mime_types: list[str] = [
         "application/x-executable",
         "application/x-msdos-program",
         "application/vnd.microsoft.portable-executable",
@@ -147,7 +143,7 @@ class SecurityConfig(BaseModel):
     quarantine_malicious_files: bool = True
 
     # Security headers configuration
-    security_headers: Dict[str, str] = {
+    security_headers: dict[str, str] = {
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",
         "X-XSS-Protection": "1; mode=block",
@@ -156,10 +152,10 @@ class SecurityConfig(BaseModel):
     }
 
     # CORS configuration
-    cors_allow_origins: List[str] = ["https://localhost:3000"]
+    cors_allow_origins: list[str] = ["https://localhost:3000"]
     cors_allow_credentials: bool = True
-    cors_allow_methods: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    cors_allow_headers: List[str] = ["Accept", "Authorization", "Content-Type"]
+    cors_allow_methods: list[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_allow_headers: list[str] = ["Accept", "Authorization", "Content-Type"]
 
     # Monitoring configuration
     enable_security_monitoring: bool = True
@@ -243,7 +239,7 @@ class SecurityConfig(BaseModel):
         """Check if running in production environment."""
         return self.environment.lower() == "production"
 
-    def get_rate_limit_config(self, limit_type: str) -> Dict[str, int]:
+    def get_rate_limit_config(self, limit_type: str) -> dict[str, int]:
         """Get rate limit configuration for specific type."""
         return self.rate_limits.get(limit_type, self.rate_limits["api_general"])
 

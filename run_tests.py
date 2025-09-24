@@ -322,7 +322,9 @@ if __name__ == "__main__":
 
     # Validate environment
     if not validate_test_setup():
-        print("\n❌ Environment validation failed. Please install missing dependencies.")
+        print(
+            "\n❌ Environment validation failed. Please install missing dependencies."
+        )
         sys.exit(1)
 
     # Run tests

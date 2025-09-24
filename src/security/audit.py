@@ -6,9 +6,7 @@ authentication, authorization, data access, and security violations.
 
 from datetime import datetime
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -83,7 +81,7 @@ class AuditEvent(BaseModel):
     resource: Optional[str]
     action: str
     result: str  # success, failure, blocked, etc.
-    details: Dict[str, Any]
+    details: dict[str, Any]
     request_id: Optional[str]
     session_id: Optional[str]
 
@@ -107,7 +105,7 @@ class SecurityAuditLogger:
         source_ip: Optional[str] = None,
         user_agent: Optional[str] = None,
         resource: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
         request_id: Optional[str] = None,
         session_id: Optional[str] = None,
     ):

@@ -6,17 +6,13 @@ Tests the entire workflow from API request to final unified report generation.
 import json
 import tempfile
 from datetime import datetime
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-
 from src.api.routes import app
 from src.behavioral.crews import BehavioralValidationResult
-from src.core.models import SeverityLevel
-from src.core.models import ValidationDiscrepancy
-from src.core.models import ValidationResult
+from src.core.models import SeverityLevel, ValidationDiscrepancy, ValidationResult
 
 
 @pytest.mark.system
@@ -168,7 +164,8 @@ public class UserManager {
 
     @patch("src.core.migration_validator.MigrationValidator.validate_migration")
     def test_static_validation_pipeline_e2e(
-            self, mock_validate, client, sample_code_files):
+        self, mock_validate, client, sample_code_files
+    ):
         """Test complete static validation pipeline end-to-end."""
         # Mock static validation result
         mock_result = ValidationResult(
@@ -198,9 +195,13 @@ public class UserManager {
         mock_validate.return_value = mock_session
 
         # Prepare file upload
-        with open(sample_code_files["source_file"], "rb") as source_f, open(
-            sample_code_files["target_file"], "rb",
-        ) as target_f:
+        with (
+            open(sample_code_files["source_file"], "rb") as source_f,
+            open(
+                sample_code_files["target_file"],
+                "rb",
+            ) as target_f,
+        ):
             files = [
                 ("source_files", ("source.py", source_f, "text/plain")),
                 ("target_files", ("target.java", target_f, "text/plain")),
@@ -241,7 +242,8 @@ public class UserManager {
 
             # Get detailed report
             report_response = client.get(
-                f"/api/validate/{request_id}/report?format=json")
+                f"/api/validate/{request_id}/report?format=json"
+            )
             assert report_response.status_code == 200
 
             # Clean up
@@ -338,7 +340,10 @@ public class UserManager {
 
             # Verify discrepancy details
             performance_discrepancy = next(
-                d for d in result_data["discrepancies"] if d["type"] == "response_time_degradation")
+                d
+                for d in result_data["discrepancies"]
+                if d["type"] == "response_time_degradation"
+            )
             assert performance_discrepancy["severity"] == "warning"
             assert "400ms slower" in performance_discrepancy["description"]
 
@@ -353,12 +358,17 @@ public class UserManager {
 
     @patch("src.api.routes.run_hybrid_validation_background")
     def test_hybrid_validation_pipeline_e2e(
-            self, mock_background_task, client, sample_code_files):
+        self, mock_background_task, client, sample_code_files
+    ):
         """Test complete hybrid validation pipeline end-to-end."""
         # Prepare hybrid validation request
-        with open(sample_code_files["source_file"], "rb") as source_f, open(
-            sample_code_files["target_file"], "rb",
-        ) as target_f:
+        with (
+            open(sample_code_files["source_file"], "rb") as source_f,
+            open(
+                sample_code_files["target_file"],
+                "rb",
+            ) as target_f,
+        ):
             files = [
                 ("source_files", ("source.py", source_f, "text/plain")),
                 ("target_files", ("target.java", target_f, "text/plain")),
@@ -472,11 +482,13 @@ public class UserManager {
 
                 # Get detailed report in different formats
                 json_report_response = client.get(
-                    f"/api/validate/{request_id}/report?format=json")
+                    f"/api/validate/{request_id}/report?format=json"
+                )
                 assert json_report_response.status_code == 200
 
                 html_report_response = client.get(
-                    f"/api/validate/{request_id}/report?format=html")
+                    f"/api/validate/{request_id}/report?format=html"
+                )
                 assert html_report_response.status_code == 200
                 assert "text/html" in html_report_response.headers["content-type"]
 
@@ -491,7 +503,8 @@ public class UserManager {
                 logs_data = logs_response.json()
                 assert len(logs_data["logs"]) == 5
                 assert any(
-                    "Hybrid validation started" in log for log in logs_data["logs"])
+                    "Hybrid validation started" in log for log in logs_data["logs"]
+                )
 
     def test_validation_session_lifecycle_management(self, client):
         """Test validation session lifecycle management."""
@@ -530,22 +543,22 @@ public class UserManager {
         """Test system error handling and recovery."""
         # Test invalid JSON in validation request
         response = client.post(
-            "/api/validate",
-            data={
-                "request_data": "invalid json"},
-            files=[])
+            "/api/validate", data={"request_data": "invalid json"}, files=[]
+        )
         assert response.status_code == 400
         assert "Invalid JSON" in response.json()["detail"]
 
         # Test invalid JSON in behavioral validation
         response = client.post(
-            "/api/behavioral/validate",
-            json="invalid json structure")
+            "/api/behavioral/validate", json="invalid json structure"
+        )
         assert response.status_code == 422  # Validation error
 
         # Test invalid JSON in hybrid validation
         response = client.post(
-            "/api/validate/hybrid", data={"request_data": "invalid json"}, files=[],
+            "/api/validate/hybrid",
+            data={"request_data": "invalid json"},
+            files=[],
         )
         assert response.status_code == 400
 
@@ -590,7 +603,9 @@ public class UserManager {
 
         assert response.status_code == 200
         response_time = end_time - start_time
-        assert response_time < 3.0, f"Compatibility check too slow: {response_time:.3f}s"
+        assert response_time < 3.0, (
+            f"Compatibility check too slow: {response_time:.3f}s"
+        )
 
     def test_api_documentation_availability(self, client):
         """Test API documentation is available."""
@@ -622,9 +637,9 @@ public class UserManager {
         ]
 
         for path in expected_paths:
-            assert any(
-                path in documented_path for documented_path in paths.keys()
-            ), f"Missing documentation for {path}"
+            assert any(path in documented_path for documented_path in paths.keys()), (
+                f"Missing documentation for {path}"
+            )
 
     def test_cors_headers(self, client):
         """Test CORS headers are properly configured."""

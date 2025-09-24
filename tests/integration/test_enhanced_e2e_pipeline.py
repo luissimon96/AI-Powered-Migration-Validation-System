@@ -4,16 +4,11 @@ Comprehensive validation pipeline testing with error scenarios.
 
 import asyncio
 from datetime import datetime
-from unittest.mock import AsyncMock
-from unittest.mock import Mock
-from unittest.mock import patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-
 from src.core.migration_validator import MigrationValidator
-from src.core.models import ValidationRequest
-from src.core.models import ValidationScope
-from src.core.models import ValidationStatus
+from src.core.models import ValidationRequest, ValidationScope, ValidationStatus
 
 
 @pytest.mark.integration

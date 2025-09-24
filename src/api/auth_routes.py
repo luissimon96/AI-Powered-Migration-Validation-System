@@ -3,27 +3,21 @@
 Provides endpoints for user authentication, token management, and user administration.
 """
 
-from typing import Dict
-from typing import List
 from typing import Optional
 
-from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import HTTPException
-from fastapi import Request
-from fastapi import status
-from fastapi.security import HTTPAuthorizationCredentials
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel
-from pydantic import EmailStr
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, EmailStr
 
-from ..security.auth import AuthenticationError
-from ..security.auth import User
-from ..security.auth import UserRole
-from ..security.auth import auth_manager
-from ..security.auth import get_current_user
-from ..security.auth import require_admin
-from ..security.auth import require_viewer
+from ..security.auth import (
+    AuthenticationError,
+    User,
+    UserRole,
+    auth_manager,
+    get_current_user,
+    require_admin,
+    require_viewer,
+)
 from ..security.rate_limiter import rate_limit
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -45,7 +39,7 @@ class LoginResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
-    user: Dict
+    user: dict
 
 
 class RefreshTokenRequest(BaseModel):
@@ -60,13 +54,13 @@ class CreateUserRequest(BaseModel):
     username: str
     email: EmailStr
     password: str
-    roles: List[UserRole]
+    roles: list[UserRole]
 
 
 class UpdateUserRequest(BaseModel):
     """Update user request model."""
 
-    roles: Optional[List[UserRole]] = None
+    roles: Optional[list[UserRole]] = None
     is_active: Optional[bool] = None
 
 
@@ -238,7 +232,7 @@ async def change_password(
 
 
 # User management endpoints (admin only)
-@router.post("/users", response_model=Dict)
+@router.post("/users", response_model=dict)
 async def create_user(
     request: Request,
     user_data: CreateUserRequest,

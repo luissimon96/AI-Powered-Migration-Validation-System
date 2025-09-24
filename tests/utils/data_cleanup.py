@@ -1,15 +1,11 @@
-"""Test data cleanup utilities for automated test data management.
-"""
+"""Test data cleanup utilities for automated test data management."""
 
 import asyncio
 import shutil
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List
 
-from src.database.models import User
-from src.database.models import ValidationSession
+from src.database.models import User, ValidationSession
 
 
 class TestDataCleaner:
@@ -69,7 +65,7 @@ class DatabaseTestCleaner:
 class StressTestCleaner:
     """Cleanup utility for stress testing scenarios."""
 
-    async def async_cleanup_directories(self, directories: List[Path]) -> int:
+    async def async_cleanup_directories(self, directories: list[Path]) -> int:
         """Asynchronously clean up multiple directories."""
         tasks = []
         for directory in directories:

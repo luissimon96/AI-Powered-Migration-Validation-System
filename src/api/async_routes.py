@@ -4,23 +4,14 @@ Real-time validation with progress tracking and WebSocket support.
 
 import asyncio
 from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import Optional
+from typing import Any, Optional
 
-from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import HTTPException
-from fastapi import WebSocket
-from fastapi import WebSocketDisconnect
-from pydantic import BaseModel
-from pydantic import Field
-
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel, Field
 from src.api.middleware import validate_request
 from src.core.logging import logger
 from src.core.models import ValidationRequest
-from src.services.task_queue import AsyncValidationService
-from src.services.task_queue import async_validation_service
+from src.services.task_queue import AsyncValidationService, async_validation_service
 
 
 # Request/Response models
@@ -46,7 +37,7 @@ class TaskStatusResponse(BaseModel):
     stage: str
     message: str
     updated_at: Optional[str] = None
-    result: Optional[Dict[str, Any]] = None
+    result: Optional[dict[str, Any]] = None
     error: Optional[str] = None
     cached: bool = False
     estimated_remaining: Optional[int] = Field(
@@ -62,7 +53,7 @@ class QueueStatsResponse(BaseModel):
     reserved_tasks: int
     workers: list
     queue_health: str
-    cache_stats: Dict[str, Any]
+    cache_stats: dict[str, Any]
 
 
 # Create router
@@ -352,7 +343,7 @@ def _estimate_remaining_time(progress: int) -> int:
     return 180
 
 
-def _get_cache_statistics() -> Dict[str, Any]:
+def _get_cache_statistics() -> dict[str, Any]:
     """Get cache statistics."""
     try:
         from src.services.task_queue import result_cache

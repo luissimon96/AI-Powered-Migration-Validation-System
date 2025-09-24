@@ -7,42 +7,44 @@ API compatibility with existing clients.
 import json
 import os
 from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Optional
 
-from fastapi import BackgroundTasks
-from fastapi import Depends
-from fastapi import FastAPI
-from fastapi import File
-from fastapi import HTTPException
-from fastapi import Query
-from fastapi import UploadFile
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.responses import PlainTextResponse
-from pydantic import BaseModel
-from pydantic import Field
+from fastapi.responses import JSONResponse, PlainTextResponse
+from pydantic import BaseModel, Field
 
-from ..behavioral.crews import BehavioralValidationRequest
-from ..behavioral.crews import create_behavioral_validation_crew
+from ..behavioral.crews import (
+    BehavioralValidationRequest,
+    create_behavioral_validation_crew,
+)
 from ..core.config import get_settings
-from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
-from ..core.models import InputData
-from ..core.models import InputType
-from ..core.models import MigrationValidationRequest
-from ..core.models import TechnologyContext
-from ..core.models import TechnologyType
-from ..core.models import ValidationScope
-from ..core.models import ValidationSession
-from ..database.integration import DatabaseIntegration
-from ..database.integration import HybridSessionManager
-from ..database.integration import database_lifespan
-from ..database.integration import get_database_integration
-from ..database.integration import get_db_service
-from ..database.integration import get_hybrid_session_manager
+from ..core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+    ValidationSession,
+)
+from ..database.integration import (
+    DatabaseIntegration,
+    HybridSessionManager,
+    database_lifespan,
+    get_database_integration,
+    get_db_service,
+    get_hybrid_session_manager,
+)
 from ..database.service import ValidationDatabaseService
 from ..reporters.validation_reporter import ValidationReporter
 
@@ -54,22 +56,22 @@ class ValidationRequest(BaseModel):
     source_technology_version: Optional[str] = None
     target_technology_version: Optional[str] = None
     validation_scope: str = "full_system"
-    source_framework_details: Dict[str, Any] = Field(default_factory=dict)
-    target_framework_details: Dict[str, Any] = Field(default_factory=dict)
-    source_urls: List[str] = Field(default_factory=list)
-    target_urls: List[str] = Field(default_factory=list)
-    validation_scenarios: List[str] = Field(default_factory=list)
+    source_framework_details: dict[str, Any] = Field(default_factory=dict)
+    target_framework_details: dict[str, Any] = Field(default_factory=dict)
+    source_urls: list[str] = Field(default_factory=list)
+    target_urls: list[str] = Field(default_factory=list)
+    validation_scenarios: list[str] = Field(default_factory=list)
     behavioral_timeout: int = 300
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class BehavioralValidationRequestAPI(BaseModel):
     source_url: str
     target_url: str
-    validation_scenarios: List[str] = Field(default_factory=list)
+    validation_scenarios: list[str] = Field(default_factory=list)
     timeout: int = 300
-    credentials: Optional[Dict[str, str]] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    credentials: Optional[dict[str, str]] = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class SessionStatusUpdate(BaseModel):
@@ -90,7 +92,7 @@ class ValidationResponse(BaseModel):
 
 
 class SessionListResponse(BaseModel):
-    sessions: List[Dict[str, Any]]
+    sessions: list[dict[str, Any]]
     total_count: int
     has_more: bool
     offset: int
@@ -174,7 +176,7 @@ def create_database_app() -> FastAPI:
                 },
             }
 
-    @app.get("/api/technologies", response_model=List[TechnologyOption])
+    @app.get("/api/technologies", response_model=list[TechnologyOption])
     async def get_technology_options():
         """Get available technology options."""
         technologies = []
@@ -183,7 +185,7 @@ def create_database_app() -> FastAPI:
             technologies.append(TechnologyOption(value=tech.value, label=label))
         return technologies
 
-    @app.get("/api/validation-scopes", response_model=List[TechnologyOption])
+    @app.get("/api/validation-scopes", response_model=list[TechnologyOption])
     async def get_validation_scope_options():
         """Get available validation scope options."""
         scopes = []
@@ -195,10 +197,10 @@ def create_database_app() -> FastAPI:
     @app.post("/api/validate-migration", response_model=ValidationResponse)
     async def validate_migration(
         request: ValidationRequest,
-        source_files: List[UploadFile] = File(default=[]),
-        target_files: List[UploadFile] = File(default=[]),
-        source_screenshots: List[UploadFile] = File(default=[]),
-        target_screenshots: List[UploadFile] = File(default=[]),
+        source_files: list[UploadFile] = File(default=[]),
+        target_files: list[UploadFile] = File(default=[]),
+        source_screenshots: list[UploadFile] = File(default=[]),
+        target_screenshots: list[UploadFile] = File(default=[]),
         background_tasks: BackgroundTasks = BackgroundTasks(),
         hybrid_manager: HybridSessionManager = Depends(get_hybrid_session_manager),
     ):

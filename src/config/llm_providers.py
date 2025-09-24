@@ -1,7 +1,6 @@
 from typing import Optional
 
-from pydantic_settings import BaseSettings
-from pydantic_settings import SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class LLMProviderSettings(BaseSettings):

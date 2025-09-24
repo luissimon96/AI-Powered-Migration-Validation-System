@@ -6,18 +6,18 @@ authorization, rate limiting, and audit logging.
 
 from datetime import datetime
 from typing import Any
-from typing import Dict
-from typing import List
 
-from fastapi import APIRouter
-from fastapi import BackgroundTasks
-from fastapi import Depends
-from fastapi import File
-from fastapi import Form
-from fastapi import HTTPException
-from fastapi import Request
-from fastapi import UploadFile
-from fastapi import status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import JSONResponse
 
 from ..behavioral.crews import BehavioralValidationRequest as CrewBehavioralRequest
@@ -26,30 +26,33 @@ from ..core.config import get_settings
 from ..core.input_processor import InputProcessor
 from ..core.migration_validator import MigrationValidator
 from ..core.models import ValidationSession
-from ..security.api_keys import APIKeyMetadata
-from ..security.api_keys import api_key_manager
-from ..security.api_keys import api_key_rate_limiter
-from ..security.api_keys import require_admin_scope
-from ..security.api_keys import require_read_scope
-from ..security.api_keys import require_validation_scope
+from ..security.api_keys import (
+    APIKeyMetadata,
+    api_key_manager,
+    api_key_rate_limiter,
+    require_admin_scope,
+    require_read_scope,
+    require_validation_scope,
+)
 from ..security.audit import security_audit
 from ..security.headers import create_security_headers
-from ..security.schemas import APIKeyCreateRequest
-from ..security.schemas import APIKeyListResponse
-from ..security.schemas import APIKeyResponse
-from ..security.schemas import BehavioralValidationRequest
-from ..security.schemas import BehavioralValidationResultResponse
-from ..security.schemas import FileUploadBatchResponse
-from ..security.schemas import FileUploadMetadata
-from ..security.schemas import FileUploadResponse
-from ..security.schemas import HealthCheckResponse
-from ..security.schemas import MigrationValidationRequest
-from ..security.schemas import SystemStatsResponse
-from ..security.schemas import ValidationResultResponse
-from ..security.schemas import ValidationStatusResponse
-from ..security.schemas import sanitize_response_data
-from ..security.validation import SecurityValidationError
-from ..security.validation import input_validator
+from ..security.schemas import (
+    APIKeyCreateRequest,
+    APIKeyListResponse,
+    APIKeyResponse,
+    BehavioralValidationRequest,
+    BehavioralValidationResultResponse,
+    FileUploadBatchResponse,
+    FileUploadMetadata,
+    FileUploadResponse,
+    HealthCheckResponse,
+    MigrationValidationRequest,
+    SystemStatsResponse,
+    ValidationResultResponse,
+    ValidationStatusResponse,
+    sanitize_response_data,
+)
+from ..security.validation import SecurityValidationError, input_validator
 
 # Initialize components
 settings = get_settings()
@@ -58,12 +61,12 @@ validator = MigrationValidator()
 input_processor = InputProcessor()
 
 # Global storage with enhanced security
-validation_sessions: Dict[str, ValidationSession] = {}
-behavioral_validation_sessions: Dict[str, Dict[str, Any]] = {}
+validation_sessions: dict[str, ValidationSession] = {}
+behavioral_validation_sessions: dict[str, dict[str, Any]] = {}
 
 
 # Helper functions
-def get_request_context(request: Request) -> Dict[str, Any]:
+def get_request_context(request: Request) -> dict[str, Any]:
     """Extract request context for logging."""
     return {
         "client_ip": getattr(request.state, "client_ip", "unknown"),
@@ -190,7 +193,7 @@ async def revoke_api_key(
 ):
     """Revoke an API key."""
     try:
-        context = get_request_context(req)
+        get_request_context(req)
 
         success = await api_key_manager.revoke_api_key(
             api_key_id=api_key_id,
@@ -220,7 +223,7 @@ async def revoke_api_key(
 @router.post("/files/upload", response_model=FileUploadBatchResponse)
 async def upload_files(
     req: Request,
-    files: List[UploadFile] = File(...),
+    files: list[UploadFile] = File(...),
     metadata: str = Form(...),
     api_key_metadata: APIKeyMetadata = Depends(require_validation_scope),
     rate_limit_check: APIKeyMetadata = Depends(
@@ -469,7 +472,7 @@ async def get_validation_status(
 ):
     """Get validation status."""
     try:
-        context = get_request_context(req)
+        get_request_context(req)
 
         # Check migration validation sessions
         if request_id in validation_sessions:
@@ -718,11 +721,13 @@ async def _process_migration_validation(
         session.updated_at = datetime.utcnow()
 
         # Initialize real validation pipeline
-        from ..core.models import InputData
-        from ..core.models import InputType
-        from ..core.models import MigrationValidationRequest
-        from ..core.models import TechnologyContext
-        from ..core.models import TechnologyType
+        from ..core.models import (
+            InputData,
+            InputType,
+            MigrationValidationRequest,
+            TechnologyContext,
+            TechnologyType,
+        )
 
         # Create technology contexts
         source_tech = TechnologyContext(

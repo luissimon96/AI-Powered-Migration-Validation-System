@@ -9,24 +9,16 @@ import asyncio
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Optional
 
 import structlog
-from crewai import Agent
-from crewai import Crew
-from crewai import Process
-from crewai import Task
+from crewai import Agent, Crew, Process, Task
 
 # BaseTool not available in this version, will create custom tool base
 # from crewai_tools import BaseTool
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 
-from ..core.models import SeverityLevel
-from ..core.models import ValidationDiscrepancy
+from ..core.models import SeverityLevel, ValidationDiscrepancy
 from ..services.llm_service import LLMService
 
 logger = structlog.get_logger(__name__)
@@ -38,10 +30,10 @@ class BehavioralValidationRequest:
 
     source_url: str
     target_url: str
-    validation_scenarios: List[str]
-    credentials: Optional[Dict[str, str]] = None
+    validation_scenarios: list[str]
+    credentials: Optional[dict[str, str]] = None
     timeout: int = 300
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
 
 
 @dataclass
@@ -50,8 +42,8 @@ class BehavioralValidationResult:
 
     overall_status: str
     fidelity_score: float
-    discrepancies: List[ValidationDiscrepancy]
-    execution_log: List[str]
+    discrepancies: list[ValidationDiscrepancy]
+    execution_log: list[str]
     execution_time: float
     timestamp: datetime
 
@@ -121,9 +113,8 @@ class BrowserTool(BaseModel):
         except Exception as e:
             error_msg = f"Browser action failed: {e!s}"
             self.logger.error(
-                "Browser tool execution failed",
-                action=action,
-                error=str(e))
+                "Browser tool execution failed", action=action, error=str(e)
+            )
             return error_msg
 
     async def _run_async(self, action: str, target: str = "", data: str = "") -> str:
@@ -140,9 +131,11 @@ class BrowserTool(BaseModel):
         action_data = action_parts[2] if len(action_parts) > 2 else data
 
         try:
-            from .browser_automation import BrowserAction
-            from .browser_automation import create_form_submission_scenario
-            from .browser_automation import create_login_scenario
+            from .browser_automation import (
+                BrowserAction,
+                create_form_submission_scenario,
+                create_login_scenario,
+            )
 
             if action_type == "navigate":
                 browser_action = BrowserAction(
@@ -216,7 +209,9 @@ class BrowserTool(BaseModel):
                 if len(parts) >= 3:
                     username, password, login_url = parts[0], parts[1], parts[2]
                     success = await self.automation_engine.authenticate(
-                        username=username, password=password, login_url=login_url,
+                        username=username,
+                        password=password,
+                        login_url=login_url,
                     )
                     return f"Authentication {'successful' if success else 'failed'}"
                 return "Authentication requires username:password:login_url format"
@@ -235,7 +230,9 @@ class BrowserTool(BaseModel):
                     if len(parts) >= 3:
                         username, password, login_url = parts[0], parts[1], parts[2]
                         actions = create_login_scenario(username, password, login_url)
-                        results = await self.automation_engine.execute_scenario("login", actions)
+                        results = await self.automation_engine.execute_scenario(
+                            "login", actions
+                        )
                         success_count = sum(1 for r in results if r.success)
                         return f"Login scenario executed: {success_count}/{len(results)} actions successful"
                     return "Login scenario requires username:password:login_url"
@@ -254,13 +251,16 @@ class BrowserTool(BaseModel):
                                 form_data[key.strip()] = value.strip()
 
                         actions = create_form_submission_scenario(
-                            form_selector, form_data)
+                            form_selector, form_data
+                        )
                         results = await self.automation_engine.execute_scenario(
-                            "form_submission", actions,
+                            "form_submission",
+                            actions,
                         )
                         success_count = sum(1 for r in results if r.success)
                         return f"Form scenario executed: {success_count}/{
-                            len(results)} actions successful"
+                            len(results)
+                        } actions successful"
                     return "Form scenario requires form_selector:field1=value1,field2=value2"
                 return f"Unknown scenario type: {scenario_type}"
 
@@ -274,8 +274,7 @@ class BrowserTool(BaseModel):
                 if action_target == "end":
                     session = await self.automation_engine.end_session()
                     if session:
-                        return f"Ended session {
-                            session.session_id}, duration: {
+                        return f"Ended session {session.session_id}, duration: {
                             session.duration:.1f}s"
                     return "No active session to end"
                 return "Session action requires 'start' or 'end'"
@@ -302,8 +301,11 @@ class BrowserTool(BaseModel):
 
         except Exception as e:
             error_msg = f"Action execution failed: {e!s}"
-            self.logger.error("Browser action execution failed",
-                              action_type=action_type, error=str(e), )
+            self.logger.error(
+                "Browser action execution failed",
+                action_type=action_type,
+                error=str(e),
+            )
             return error_msg
 
     async def cleanup(self):
@@ -338,7 +340,7 @@ class ValidationScenarioResult(BaseModel):
     match_status: str = Field(
         description="Whether behaviors match: identical, similar, different, error",
     )
-    discrepancies: List[str] = Field(description="List of identified discrepancies")
+    discrepancies: list[str] = Field(description="List of identified discrepancies")
     confidence: float = Field(description="Confidence score for the comparison")
 
 
@@ -368,7 +370,7 @@ class SourceExplorerAgent:
             return f"{provider_info['provider']}/{provider_info['model']}"
         return "openai/gpt-4-turbo-preview"  # fallback
 
-    def create_exploration_task(self, source_url: str, scenarios: List[str]) -> Task:
+    def create_exploration_task(self, source_url: str, scenarios: list[str]) -> Task:
         """Create task for exploring source system."""
         scenario_list = "\n".join([f"- {scenario}" for scenario in scenarios])
 
@@ -478,14 +480,17 @@ class TargetExecutorAgent:
 
             Document all browser_tool responses and create a behavioral log that exactly
             mirrors the source system structure for precise comparison.
-            """, expected_output="""A parallel behavioral log in JSON format that exactly matches
+            """,
+            expected_output="""A parallel behavioral log in JSON format that exactly matches
             the source system log structure, containing:
             - Identical session timing and interaction patterns
             - Same screenshot capture points for visual comparison
             - Parallel page state documentation for structural analysis
             - Identical error case testing results
             - Performance metrics for timing comparison
-            - Direct mapping to source system behaviors for validation""", agent=self.agent, )
+            - Direct mapping to source system behaviors for validation""",
+            agent=self.agent,
+        )
 
 
 class ComparisonJudgeAgent:
@@ -640,8 +645,9 @@ class ReportManagerAgent:
             return f"{provider_info['provider']}/{provider_info['model']}"
         return "openai/gpt-4-turbo-preview"
 
-    def create_report_task(self, comparison_results: str,
-                           metadata: Dict[str, Any]) -> Task:
+    def create_report_task(
+        self, comparison_results: str, metadata: dict[str, Any]
+    ) -> Task:
         """Create task for generating final validation report."""
         return Task(
             description=f"""
@@ -689,7 +695,8 @@ class BehavioralValidationCrew:
         self.logger.info("Behavioral validation crew initialized")
 
     async def validate_migration(
-        self, request: BehavioralValidationRequest,
+        self,
+        request: BehavioralValidationRequest,
     ) -> BehavioralValidationResult:
         """Execute complete behavioral validation workflow.
 
@@ -712,7 +719,8 @@ class BehavioralValidationCrew:
 
             # Create tasks
             source_task = self.source_explorer.create_exploration_task(
-                request.source_url, request.validation_scenarios,
+                request.source_url,
+                request.validation_scenarios,
             )
 
             # Create crew for source exploration
@@ -729,7 +737,8 @@ class BehavioralValidationCrew:
 
             # Create target execution task
             target_task = self.target_executor.create_execution_task(
-                request.target_url, str(source_result),
+                request.target_url,
+                str(source_result),
             )
 
             # Create crew for target execution
@@ -746,7 +755,8 @@ class BehavioralValidationCrew:
 
             # Create comparison task
             comparison_task = self.comparison_judge.create_comparison_task(
-                str(source_result), str(target_result),
+                str(source_result),
+                str(target_result),
             )
 
             # Create crew for comparison
@@ -763,7 +773,8 @@ class BehavioralValidationCrew:
 
             # Create final report task
             report_task = self.report_manager.create_report_task(
-                str(comparison_result), request.metadata or {},
+                str(comparison_result),
+                request.metadata or {},
             )
 
             # Create crew for final report
@@ -816,7 +827,8 @@ class BehavioralValidationCrew:
                 execution_log.append("Browser resources cleaned up after error")
             except Exception as cleanup_error:
                 self.logger.warning(
-                    "Browser cleanup failed after error", error=str(cleanup_error),
+                    "Browser cleanup failed after error",
+                    error=str(cleanup_error),
                 )
                 execution_log.append(f"Browser cleanup error: {cleanup_error!s}")
 
@@ -836,7 +848,7 @@ class BehavioralValidationCrew:
                 timestamp=datetime.now(),
             )
 
-    def _parse_validation_results(self, report_content: str) -> Dict[str, Any]:
+    def _parse_validation_results(self, report_content: str) -> dict[str, Any]:
         """Parse final validation report content."""
         try:
             # Try to parse as JSON
@@ -845,7 +857,8 @@ class BehavioralValidationCrew:
 
                 # Convert discrepancy dictionaries to ValidationDiscrepancy objects
                 if "discrepancies" in parsed_results and isinstance(
-                    parsed_results["discrepancies"], list,
+                    parsed_results["discrepancies"],
+                    list,
                 ):
                     validated_discrepancies = []
                     for disc_data in parsed_results["discrepancies"]:
@@ -861,7 +874,9 @@ class BehavioralValidationCrew:
                                 discrepancy = ValidationDiscrepancy(
                                     type=disc_data.get("type", "unknown"),
                                     severity=severity,
-                                    description=disc_data.get("description", "No description"),
+                                    description=disc_data.get(
+                                        "description", "No description"
+                                    ),
                                     source_element=disc_data.get("source_element"),
                                     target_element=disc_data.get("target_element"),
                                     recommendation=disc_data.get("recommendation"),
@@ -918,8 +933,8 @@ class BehavioralValidationCrew:
 
         except Exception as e:
             self.logger.error(
-                "Unexpected error parsing validation results",
-                error=str(e))
+                "Unexpected error parsing validation results", error=str(e)
+            )
             return {
                 "overall_status": "error",
                 "fidelity_score": 0.0,
@@ -941,11 +956,9 @@ class BehavioralValidationCrew:
             agents_with_browsers = [self.source_explorer, self.target_executor]
 
             for agent in agents_with_browsers:
-                if hasattr(
-                        agent,
-                        "browser_tool") and hasattr(
-                        agent.browser_tool,
-                        "cleanup"):
+                if hasattr(agent, "browser_tool") and hasattr(
+                    agent.browser_tool, "cleanup"
+                ):
                     await agent.browser_tool.cleanup()
                     self.logger.info(
                         "Cleaned up browser resources for agent",

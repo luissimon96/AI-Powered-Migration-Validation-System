@@ -6,11 +6,8 @@ Handles environment variables, LLM provider settings, and system configuration.
 import logging
 import os
 import tempfile
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict
-from typing import List
 from typing import Optional
 
 try:
@@ -160,7 +157,7 @@ class ValidationConfig:
         """Celery result backend URL."""
         return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
-    def _initialize_llm_providers(self) -> Dict[str, LLMProviderConfig]:
+    def _initialize_llm_providers(self) -> dict[str, LLMProviderConfig]:
         """Initialize LLM provider configurations."""
         providers = {}
 
@@ -229,7 +226,7 @@ class ValidationConfig:
         """Get specific LLM provider configuration."""
         return self.llm_providers.get(provider)
 
-    def list_available_providers(self) -> List[str]:
+    def list_available_providers(self) -> list[str]:
         """List available LLM providers."""
         return [
             name

@@ -1,8 +1,8 @@
 """Performance tests for API endpoints."""
 
-import pytest
 import time
-from unittest.mock import patch, MagicMock
+
+import pytest
 
 
 @pytest.mark.performance
@@ -25,8 +25,9 @@ def test_validation_endpoint_response_time(benchmark):
 @pytest.mark.performance
 def test_memory_usage_during_validation(benchmark):
     """Test memory usage during validation process."""
-    import psutil
     import os
+
+    import psutil
 
     def memory_intensive_validation():
         # Simulate memory usage
@@ -49,7 +50,6 @@ def test_memory_usage_during_validation(benchmark):
 def test_concurrent_validation_requests():
     """Test system performance under concurrent requests."""
     import asyncio
-    from concurrent.futures import ThreadPoolExecutor
 
     async def simulate_validation_request():
         # Simulate async validation
@@ -100,11 +100,13 @@ def test_database_query_performance(benchmark):
             for i in range(1000):
                 cursor.execute(
                     "INSERT INTO test_results (status) VALUES (?)",
-                    (f"test_status_{i % 3}",)
+                    (f"test_status_{i % 3}",),
                 )
 
             # Query data
-            cursor.execute("SELECT COUNT(*) FROM test_results WHERE status = ?", ("test_status_0",))
+            cursor.execute(
+                "SELECT COUNT(*) FROM test_results WHERE status = ?", ("test_status_0",)
+            )
             count = cursor.fetchone()[0]
 
             conn.commit()

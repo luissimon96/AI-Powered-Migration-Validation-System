@@ -4,24 +4,26 @@ Tests the complete workflow combining static analysis and behavioral testing.
 """
 
 from datetime import datetime
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-
-from src.behavioral.crews import BehavioralValidationCrew
-from src.behavioral.crews import BehavioralValidationRequest
-from src.behavioral.crews import BehavioralValidationResult
+from src.behavioral.crews import (
+    BehavioralValidationCrew,
+    BehavioralValidationRequest,
+    BehavioralValidationResult,
+)
 from src.core.migration_validator import MigrationValidator
-from src.core.models import InputData
-from src.core.models import InputType
-from src.core.models import MigrationValidationRequest
-from src.core.models import SeverityLevel
-from src.core.models import TechnologyContext
-from src.core.models import TechnologyType
-from src.core.models import ValidationDiscrepancy
-from src.core.models import ValidationResult
-from src.core.models import ValidationScope
+from src.core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    SeverityLevel,
+    TechnologyContext,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationScope,
+)
 from src.reporters.validation_reporter import ValidationReporter
 
 
@@ -520,7 +522,7 @@ class TestHybridValidationPipeline:
                 )
 
                 end_time = datetime.now()
-                total_pipeline_time = (end_time - start_time).total_seconds()
+                (end_time - start_time).total_seconds()
 
                 # Verify performance metrics in validation breakdown
                 validation_breakdown = unified_report["validation_breakdown"]

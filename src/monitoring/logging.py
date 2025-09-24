@@ -6,11 +6,9 @@ import logging
 import sys
 import uuid
 from contextlib import contextmanager
-from typing import Dict
 from typing import Optional
 
 import structlog
-
 from src.core.config import get_validation_config
 
 
@@ -305,7 +303,7 @@ class AlertManager:
         self.logger = logger
         self.alert_thresholds = self._load_alert_thresholds()
 
-    def _load_alert_thresholds(self) -> Dict[str, Dict[str, float]]:
+    def _load_alert_thresholds(self) -> dict[str, dict[str, float]]:
         """Load alert thresholds configuration."""
         return {
             "response_time": {

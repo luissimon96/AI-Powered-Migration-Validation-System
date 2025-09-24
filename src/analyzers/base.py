@@ -4,14 +4,14 @@ Defines the common interface for all analyzer implementations in the
 migration validation system.
 """
 
-from abc import ABC
-from abc import abstractmethod
-from typing import List
+from abc import ABC, abstractmethod
 
-from ..core.models import AbstractRepresentation
-from ..core.models import InputData
-from ..core.models import TechnologyContext
-from ..core.models import ValidationScope
+from ..core.models import (
+    AbstractRepresentation,
+    InputData,
+    TechnologyContext,
+    ValidationScope,
+)
 
 
 class BaseAnalyzer(ABC):
@@ -20,7 +20,7 @@ class BaseAnalyzer(ABC):
     def __init__(self, technology_context: TechnologyContext):
         """Initialize analyzer with technology context."""
         self.technology_context = technology_context
-        self.supported_scopes: List[ValidationScope] = []
+        self.supported_scopes: list[ValidationScope] = []
 
     @abstractmethod
     async def analyze(
@@ -43,7 +43,7 @@ class BaseAnalyzer(ABC):
     def supports_scope(self, scope: ValidationScope) -> bool:
         """Check if analyzer supports the given validation scope."""
 
-    def get_supported_scopes(self) -> List[ValidationScope]:
+    def get_supported_scopes(self) -> list[ValidationScope]:
         """Get list of supported validation scopes."""
         return self.supported_scopes.copy()
 

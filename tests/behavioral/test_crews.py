@@ -1,18 +1,17 @@
-"""Tests for CrewAI behavioral validation system.
-"""
+"""Tests for CrewAI behavioral validation system."""
 
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-
-from src.behavioral.crews import BehavioralValidationCrew
-from src.behavioral.crews import BehavioralValidationRequest
-from src.behavioral.crews import ComparisonJudgeAgent
-from src.behavioral.crews import ReportManagerAgent
-from src.behavioral.crews import SourceExplorerAgent
-from src.behavioral.crews import TargetExecutorAgent
-from src.behavioral.crews import create_behavioral_validation_crew
+from src.behavioral.crews import (
+    BehavioralValidationCrew,
+    BehavioralValidationRequest,
+    ComparisonJudgeAgent,
+    ReportManagerAgent,
+    SourceExplorerAgent,
+    TargetExecutorAgent,
+    create_behavioral_validation_crew,
+)
 
 
 @pytest.mark.behavioral

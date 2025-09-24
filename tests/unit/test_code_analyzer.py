@@ -1,9 +1,6 @@
-"""Unit tests for code analyzer.
-"""
-
+"""Unit tests for code analyzer."""
 
 import pytest
-
 from src.analyzers.code_analyzer import CodeAnalyzer
 from src.core.models import TechnologyType
 

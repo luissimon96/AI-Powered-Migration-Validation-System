@@ -11,12 +11,13 @@ import sys
 from pathlib import Path
 
 import pytest
-
-from src.behavioral.browser_automation import BrowserAction
-from src.behavioral.browser_automation import BrowserAutomationEngine
-from src.behavioral.browser_automation import create_comprehensive_validation_scenario
-from src.behavioral.browser_automation import create_form_submission_scenario
-from src.behavioral.browser_automation import create_login_scenario
+from src.behavioral.browser_automation import (
+    BrowserAction,
+    BrowserAutomationEngine,
+    create_comprehensive_validation_scenario,
+    create_form_submission_scenario,
+    create_login_scenario,
+)
 
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 

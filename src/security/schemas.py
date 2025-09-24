@@ -7,21 +7,13 @@ including file uploads, request payloads, and query parameters.
 import re
 from datetime import datetime
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Optional
 
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import root_validator
-from pydantic import validator
+from pydantic import BaseModel, Field, root_validator, validator
 from pydantic.networks import HttpUrl
 
-from ..core.models import TechnologyType
-from ..core.models import ValidationScope
-from .validation import SecurityValidationError
-from .validation import SecurityValidator
+from ..core.models import TechnologyType, ValidationScope
+from .validation import SecurityValidationError, SecurityValidator
 
 
 class APIKeyScope(str, Enum):
@@ -59,7 +51,7 @@ class APIKeyCreateRequest(BaseModel):
     description: Optional[str] = Field(
         None, max_length=500, description="API key description"
     )
-    scopes: List[APIKeyScope] = Field(
+    scopes: list[APIKeyScope] = Field(
         ..., min_items=1, description="API key access scopes"
     )
     expires_at: Optional[datetime] = Field(None, description="API key expiration date")
@@ -91,7 +83,7 @@ class APIKeyResponse(BaseModel):
     id: str
     name: str
     description: Optional[str]
-    scopes: List[APIKeyScope]
+    scopes: list[APIKeyScope]
     created_at: datetime
     expires_at: Optional[datetime]
     last_used_at: Optional[datetime]
@@ -102,7 +94,7 @@ class APIKeyResponse(BaseModel):
 class APIKeyListResponse(BaseModel):
     """Response containing list of API keys."""
 
-    api_keys: List[APIKeyResponse]
+    api_keys: list[APIKeyResponse]
     total: int
 
 
@@ -137,14 +129,14 @@ class FileUploadResponse(BaseModel):
     content_type: str
     upload_type: FileUploadType
     uploaded_at: datetime
-    validation_result: Dict[str, Any]
+    validation_result: dict[str, Any]
 
 
 class FileUploadBatchResponse(BaseModel):
     """Response for batch file upload operations."""
 
-    uploaded_files: List[FileUploadResponse]
-    failed_uploads: List[Dict[str, str]]
+    uploaded_files: list[FileUploadResponse]
+    failed_uploads: list[dict[str, str]]
     total_files: int
     successful_uploads: int
     total_size: int
@@ -175,7 +167,7 @@ class MigrationValidationRequest(BaseModel):
     timeout_seconds: int = Field(
         300, ge=30, le=3600, description="Request timeout in seconds"
     )
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+    metadata: Optional[dict[str, Any]] = Field(None, description="Additional metadata")
 
     @validator("source_technology", "target_technology")
     def validate_technology(cls, v):
@@ -234,20 +226,20 @@ class BehavioralValidationRequest(BaseModel):
 
     source_url: HttpUrl = Field(..., description="Source application URL")
     target_url: HttpUrl = Field(..., description="Target application URL")
-    validation_scenarios: List[str] = Field(
+    validation_scenarios: list[str] = Field(
         ..., min_items=1, max_items=10, description="Validation scenarios"
     )
-    credentials: Optional[Dict[str, str]] = Field(
+    credentials: Optional[dict[str, str]] = Field(
         None, description="Authentication credentials"
     )
     timeout_seconds: int = Field(300, ge=30, le=1800, description="Timeout in seconds")
-    browser_options: Optional[Dict[str, Any]] = Field(
+    browser_options: Optional[dict[str, Any]] = Field(
         None, description="Browser configuration options"
     )
     priority: RequestPriority = Field(
         RequestPriority.NORMAL, description="Request priority"
     )
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+    metadata: Optional[dict[str, Any]] = Field(None, description="Additional metadata")
 
     @validator("validation_scenarios")
     def validate_scenarios(cls, v):
@@ -326,12 +318,12 @@ class ValidationResultResponse(BaseModel):
     fidelity_score: float
     fidelity_percentage: str
     summary: str
-    discrepancy_counts: Dict[str, int]
-    discrepancies: List[Dict[str, Any]]
+    discrepancy_counts: dict[str, int]
+    discrepancies: list[dict[str, Any]]
     execution_time: Optional[float]
     timestamp: datetime
     user_id: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[dict[str, Any]] = None
 
 
 class BehavioralValidationResultResponse(BaseModel):
@@ -339,12 +331,12 @@ class BehavioralValidationResultResponse(BaseModel):
 
     request_id: str
     status: str
-    scenarios_tested: List[str]
-    scenarios_passed: List[str]
-    scenarios_failed: List[str]
+    scenarios_tested: list[str]
+    scenarios_passed: list[str]
+    scenarios_failed: list[str]
     execution_time: float
-    screenshot_urls: List[str]
-    detailed_results: List[Dict[str, Any]]
+    screenshot_urls: list[str]
+    detailed_results: list[dict[str, Any]]
     timestamp: datetime
     user_id: str
 
@@ -413,7 +405,7 @@ class HealthCheckResponse(BaseModel):
     status: str
     timestamp: datetime
     version: str
-    services: Dict[str, str]
+    services: dict[str, str]
     uptime_seconds: float
 
 
@@ -435,7 +427,7 @@ class ErrorResponse(BaseModel):
 
     error: str
     message: str
-    details: Optional[Dict[str, Any]] = None
+    details: Optional[dict[str, Any]] = None
     timestamp: datetime
     request_id: Optional[str] = None
 
@@ -445,13 +437,13 @@ class ValidationErrorResponse(BaseModel):
 
     error: str = "validation_error"
     message: str
-    field_errors: Dict[str, List[str]]
+    field_errors: dict[str, list[str]]
     timestamp: datetime
     request_id: Optional[str] = None
 
 
 # Utility functions for schema validation
-def validate_request_schema(data: Dict[str, Any], schema_class: BaseModel) -> BaseModel:
+def validate_request_schema(data: dict[str, Any], schema_class: BaseModel) -> BaseModel:
     """Validate request data against schema."""
     try:
         return schema_class(**data)
@@ -459,7 +451,7 @@ def validate_request_schema(data: Dict[str, Any], schema_class: BaseModel) -> Ba
         raise SecurityValidationError(f"Schema validation failed: {e!s}")
 
 
-def sanitize_response_data(data: Dict[str, Any]) -> Dict[str, Any]:
+def sanitize_response_data(data: dict[str, Any]) -> dict[str, Any]:
     """Sanitize response data to prevent information leakage."""
     # Remove sensitive fields from response
     sensitive_fields = ["password", "secret", "token", "key", "credentials"]

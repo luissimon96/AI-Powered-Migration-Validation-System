@@ -4,26 +4,22 @@ Provides high-level methods for API keys, audit logs, and security configuration
 """
 
 import logging
-from datetime import datetime
-from datetime import timedelta
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from datetime import datetime, timedelta
+from typing import Any, Optional
 
-from sqlalchemy import and_
-from sqlalchemy import desc
-from sqlalchemy import func
+from sqlalchemy import and_, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from .security_models import APIKeyModel
-from .security_models import AuditLogModel
-from .security_models import ComplianceLogModel
-from .security_models import FileUploadModel
-from .security_models import RateLimitModel
-from .security_models import SecurityIncidentModel
-from .security_models import SecurityMetricsModel
+from .security_models import (
+    APIKeyModel,
+    AuditLogModel,
+    ComplianceLogModel,
+    FileUploadModel,
+    RateLimitModel,
+    SecurityIncidentModel,
+    SecurityMetricsModel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +41,7 @@ class SecurityDatabaseService:
         self,
         api_key_id: str,
         hashed_key: str,
-        metadata: Dict[str, Any],
+        metadata: dict[str, Any],
     ) -> bool:
         """Store API key with metadata."""
         try:
@@ -70,7 +66,7 @@ class SecurityDatabaseService:
             logger.error(f"Failed to store API key: {e}")
             return False
 
-    async def get_api_key_by_hash(self, hashed_key: str) -> Optional[Dict[str, Any]]:
+    async def get_api_key_by_hash(self, hashed_key: str) -> Optional[dict[str, Any]]:
         """Retrieve API key by hash."""
         try:
             result = await self.session.execute(
@@ -145,7 +141,7 @@ class SecurityDatabaseService:
 
     async def list_api_keys(
         self, created_by: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """List API keys with optional filtering."""
         try:
             query = select(APIKeyModel).order_by(desc(APIKeyModel.created_at))
@@ -180,7 +176,7 @@ class SecurityDatabaseService:
             return []
 
     # Audit Logging
-    async def store_audit_event(self, event_data: Dict[str, Any]) -> bool:
+    async def store_audit_event(self, event_data: dict[str, Any]) -> bool:
         """Store audit event."""
         try:
             audit_log = AuditLogModel(
@@ -212,12 +208,12 @@ class SecurityDatabaseService:
         self,
         start_date: datetime,
         end_date: datetime,
-        event_types: Optional[List[str]] = None,
+        event_types: Optional[list[str]] = None,
         user_id: Optional[str] = None,
         api_key_id: Optional[str] = None,
         severity: Optional[str] = None,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Query audit events with filters."""
         try:
             query = (
@@ -285,7 +281,7 @@ class SecurityDatabaseService:
         uploaded_by_user: Optional[str],
         uploaded_by_api_key: Optional[str],
         source_ip: Optional[str],
-        validation_result: Dict[str, Any],
+        validation_result: dict[str, Any],
         storage_path: Optional[str] = None,
     ) -> bool:
         """Store file upload record."""
@@ -346,7 +342,7 @@ class SecurityDatabaseService:
         source_ip: Optional[str] = None,
         user_id: Optional[str] = None,
         api_key_id: Optional[str] = None,
-        attack_vectors: Optional[Dict[str, Any]] = None,
+        attack_vectors: Optional[dict[str, Any]] = None,
     ) -> bool:
         """Create security incident record."""
         try:
@@ -413,7 +409,7 @@ class SecurityDatabaseService:
         identifier_type: str,
         endpoint: Optional[str] = None,
         window_minutes: int = 1,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Track rate limiting for identifier."""
         try:
             current_time = datetime.utcnow()
@@ -465,7 +461,7 @@ class SecurityDatabaseService:
         self,
         metric_date: datetime,
         metric_type: str,
-        metric_value: Dict[str, Any],
+        metric_value: dict[str, Any],
         aggregation_period: str = "day",
     ) -> bool:
         """Store security metrics."""
@@ -491,7 +487,7 @@ class SecurityDatabaseService:
         start_date: datetime,
         end_date: datetime,
         metric_type: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get security metrics for date range."""
         try:
             query = (
@@ -533,10 +529,10 @@ class SecurityDatabaseService:
         event_type: str,
         user_id: Optional[str] = None,
         data_subject_id: Optional[str] = None,
-        data_categories: Optional[List[str]] = None,
+        data_categories: Optional[list[str]] = None,
         processing_purpose: Optional[str] = None,
         legal_basis: Optional[str] = None,
-        additional_metadata: Optional[Dict[str, Any]] = None,
+        additional_metadata: Optional[dict[str, Any]] = None,
     ) -> bool:
         """Log compliance event."""
         try:
@@ -602,7 +598,7 @@ class SecurityDatabaseService:
                     ),
                 ),
             )
-            count_before = result.scalar()
+            result.scalar()
 
             # Deactivate expired keys instead of deleting them
             result = await self.session.execute(

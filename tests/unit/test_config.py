@@ -1,18 +1,17 @@
-"""Unit tests for configuration management.
-"""
+"""Unit tests for configuration management."""
 
 import os
-from unittest.mock import mock_open
-from unittest.mock import patch
+from unittest.mock import mock_open, patch
 
 import pytest
-
-from src.core.config import BrowserAutomationConfig
-from src.core.config import LLMProviderConfig
-from src.core.config import ValidationConfig
-from src.core.config import get_validation_config
-from src.core.config import load_config_from_file
-from src.core.config import validate_config
+from src.core.config import (
+    BrowserAutomationConfig,
+    LLMProviderConfig,
+    ValidationConfig,
+    get_validation_config,
+    load_config_from_file,
+    validate_config,
+)
 
 
 @pytest.mark.unit
@@ -79,7 +78,7 @@ class TestValidationConfig:
 
         # Test with invalid config
         invalid_config = ValidationConfig(default_llm_provider="invalid")
-        assert validate_config(invalid_config) == False
+        assert not validate_config(invalid_config)
 
 
 @pytest.mark.unit
@@ -127,7 +126,7 @@ class TestLLMProviderConfig:
 
         # Invalid configuration (missing API key)
         invalid_config = LLMProviderConfig(provider="openai", model="gpt-4", api_key="")
-        assert invalid_config.is_valid() == False
+        assert not invalid_config.is_valid()
 
     def test_get_provider_info(self):
         """Test getting provider information."""
@@ -180,7 +179,7 @@ class TestBrowserAutomationConfig:
 
         # Invalid configuration
         invalid_config = BrowserAutomationConfig(browser="invalid_browser")
-        assert invalid_config.is_valid() == False
+        assert not invalid_config.is_valid()
 
 
 @pytest.mark.unit
@@ -287,11 +286,11 @@ class TestConfigValidation:
         """Test validating incomplete configuration."""
         config = ValidationConfig(default_llm_provider="missing_provider")
 
-        assert validate_config(config) == False
+        assert not validate_config(config)
 
     def test_validate_none_config(self):
         """Test validating None configuration."""
-        assert validate_config(None) == False
+        assert not validate_config(None)
 
     def test_config_serialization(self):
         """Test configuration serialization."""
@@ -351,7 +350,7 @@ class TestConfigEnvironmentOverrides:
             config = get_validation_config()
 
             if config.browser_config:
-                assert config.browser_config.headless == False
+                assert not config.browser_config.headless
 
         with patch.dict(os.environ, {"BROWSER_HEADLESS": "true"}):
             config = get_validation_config()
@@ -362,7 +361,7 @@ class TestConfigEnvironmentOverrides:
     def test_numeric_environment_parsing(self):
         """Test parsing numeric values from environment."""
         with patch.dict(os.environ, {"VALIDATION_TIMEOUT": "90"}):
-            config = get_validation_config()
+            get_validation_config()
 
             # Should parse as integer
             # Specific assertion depends on implementation

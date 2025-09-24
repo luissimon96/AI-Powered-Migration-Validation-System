@@ -7,11 +7,7 @@ to prevent injection attacks, malicious file uploads, and other security threats
 import mimetypes
 import re
 from pathlib import Path
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Any, Optional
 from urllib.parse import urlparse
 
 try:
@@ -19,8 +15,7 @@ try:
 except ImportError:
     magic = None
 from fastapi import UploadFile
-from pydantic import BaseModel
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
 
 
 class SecurityValidationError(Exception):
@@ -33,8 +28,8 @@ class FileValidationResult(BaseModel):
     is_valid: bool
     detected_type: str
     file_size: int
-    security_issues: List[str] = []
-    warnings: List[str] = []
+    security_issues: list[str] = []
+    warnings: list[str] = []
 
 
 class InputValidationRules(BaseModel):
@@ -43,7 +38,7 @@ class InputValidationRules(BaseModel):
     max_string_length: int = 10000
     max_file_size: int = 10 * 1024 * 1024  # 10MB
     max_files_per_request: int = 20
-    allowed_file_types: List[str] = [
+    allowed_file_types: list[str] = [
         "text/plain",
         "application/json",
         "image/png",
@@ -52,7 +47,7 @@ class InputValidationRules(BaseModel):
         "text/css",
         "application/javascript",
     ]
-    allowed_file_extensions: List[str] = [
+    allowed_file_extensions: list[str] = [
         ".txt",
         ".json",
         ".png",
@@ -71,14 +66,14 @@ class InputValidationRules(BaseModel):
         ".php",
         ".rb",
     ]
-    blocked_file_types: List[str] = [
+    blocked_file_types: list[str] = [
         "application/x-executable",
         "application/x-msdos-program",
         "application/vnd.microsoft.portable-executable",
         "application/x-msdownload",
         "application/x-sh",
     ]
-    url_schemes: List[str] = ["http", "https"]
+    url_schemes: list[str] = ["http", "https"]
     max_url_length: int = 2048
 
 
@@ -295,7 +290,7 @@ class SecurityValidator:
             warnings=warnings,
         )
 
-    def validate_json_input(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_json_input(self, data: dict[str, Any]) -> dict[str, Any]:
         """Validate JSON input recursively."""
         if not isinstance(data, dict):
             raise SecurityValidationError("Input must be a dictionary")
@@ -353,42 +348,42 @@ class InputValidator:
         self.security_validator = SecurityValidator()
 
     async def validate_migration_request(
-        self, request_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, request_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """Validate migration validation request."""
         # Validate JSON structure
         validated_data = self.security_validator.validate_json_input(request_data)
 
         # Validate specific fields
         if "source_technology" in validated_data:
-            validated_data[
-                "source_technology"
-            ] = self.security_validator.validate_string_input(
-                validated_data["source_technology"],
-                "source_technology",
+            validated_data["source_technology"] = (
+                self.security_validator.validate_string_input(
+                    validated_data["source_technology"],
+                    "source_technology",
+                )
             )
 
         if "target_technology" in validated_data:
-            validated_data[
-                "target_technology"
-            ] = self.security_validator.validate_string_input(
-                validated_data["target_technology"],
-                "target_technology",
+            validated_data["target_technology"] = (
+                self.security_validator.validate_string_input(
+                    validated_data["target_technology"],
+                    "target_technology",
+                )
             )
 
         if "validation_scope" in validated_data:
-            validated_data[
-                "validation_scope"
-            ] = self.security_validator.validate_string_input(
-                validated_data["validation_scope"],
-                "validation_scope",
+            validated_data["validation_scope"] = (
+                self.security_validator.validate_string_input(
+                    validated_data["validation_scope"],
+                    "validation_scope",
+                )
             )
 
         return validated_data
 
     async def validate_behavioral_request(
-        self, request_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, request_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """Validate behavioral validation request."""
         # Validate JSON structure
         validated_data = self.security_validator.validate_json_input(request_data)
@@ -423,9 +418,9 @@ class InputValidator:
 
     async def validate_file_uploads(
         self,
-        files: List[UploadFile],
+        files: list[UploadFile],
         max_files: Optional[int] = None,
-    ) -> List[Tuple[UploadFile, FileValidationResult]]:
+    ) -> list[tuple[UploadFile, FileValidationResult]]:
         """Validate multiple file uploads."""
         max_files = max_files or self.security_validator.rules.max_files_per_request
 

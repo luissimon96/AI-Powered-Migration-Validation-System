@@ -7,10 +7,8 @@ import time
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from typing import Dict
 
 import redis
-
 from src.core.config import get_validation_config
 from src.monitoring.logging import structured_logger
 from src.services.llm_service import LLMService
@@ -38,7 +36,7 @@ class HealthCheck:
         self.last_result = None
         self.last_check_time = None
 
-    async def execute(self) -> Dict[str, Any]:
+    async def execute(self) -> dict[str, Any]:
         """Execute health check with timeout."""
         start_time = time.time()
 
@@ -91,7 +89,7 @@ class SystemHealthMonitor:
 
     def __init__(self):
         self.config = get_validation_config()
-        self.health_checks: Dict[str, HealthCheck] = {}
+        self.health_checks: dict[str, HealthCheck] = {}
         self._register_default_checks()
 
     def _register_default_checks(self):
@@ -163,7 +161,7 @@ class SystemHealthMonitor:
             critical=critical,
         )
 
-    async def check_health(self, include_details: bool = True) -> Dict[str, Any]:
+    async def check_health(self, include_details: bool = True) -> dict[str, Any]:
         """Execute all health checks and return system status."""
         start_time = time.time()
 
@@ -224,7 +222,7 @@ class SystemHealthMonitor:
 
         return health_report
 
-    async def _check_redis_connectivity(self) -> Dict[str, Any]:
+    async def _check_redis_connectivity(self) -> dict[str, Any]:
         """Check Redis connectivity."""
         try:
             redis_client = redis.Redis(
@@ -259,7 +257,7 @@ class SystemHealthMonitor:
         except Exception as e:
             raise Exception(f"Redis connectivity failed: {e!s}")
 
-    async def _check_database_connectivity(self) -> Dict[str, Any]:
+    async def _check_database_connectivity(self) -> dict[str, Any]:
         """Check database connectivity."""
         try:
             from src.database.integration import get_database_session
@@ -283,7 +281,7 @@ class SystemHealthMonitor:
         except Exception as e:
             raise Exception(f"Database connectivity failed: {e!s}")
 
-    async def _check_llm_service_availability(self) -> Dict[str, Any]:
+    async def _check_llm_service_availability(self) -> dict[str, Any]:
         """Check LLM service availability."""
         try:
             llm_service = LLMService()
@@ -306,7 +304,7 @@ class SystemHealthMonitor:
         except Exception as e:
             raise Exception(f"LLM service check failed: {e!s}")
 
-    async def _check_celery_workers(self) -> Dict[str, Any]:
+    async def _check_celery_workers(self) -> dict[str, Any]:
         """Check Celery workers status."""
         try:
             from src.services.task_queue import celery_app
@@ -335,7 +333,7 @@ class SystemHealthMonitor:
         except Exception as e:
             raise Exception(f"Celery workers check failed: {e!s}")
 
-    async def _check_file_system(self) -> Dict[str, Any]:
+    async def _check_file_system(self) -> dict[str, Any]:
         """Check file system health."""
         try:
             import os
@@ -365,7 +363,7 @@ class SystemHealthMonitor:
         except Exception as e:
             raise Exception(f"File system check failed: {e!s}")
 
-    async def _check_system_resources(self) -> Dict[str, Any]:
+    async def _check_system_resources(self) -> dict[str, Any]:
         """Check system resource usage."""
         try:
             import psutil
@@ -406,7 +404,7 @@ class SystemHealthMonitor:
         except Exception as e:
             raise Exception(f"System resources check failed: {e!s}")
 
-    async def _check_configuration(self) -> Dict[str, Any]:
+    async def _check_configuration(self) -> dict[str, Any]:
         """Check application configuration."""
         try:
             config_status = []

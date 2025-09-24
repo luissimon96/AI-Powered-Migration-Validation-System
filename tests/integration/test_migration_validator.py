@@ -1,10 +1,8 @@
-"""Integration tests for migration validator.
-"""
+"""Integration tests for migration validator."""
 
 from unittest.mock import patch
 
 import pytest
-
 from src.core.migration_validator import MigrationValidator
 from src.core.models import ValidationScope
 
@@ -83,8 +81,7 @@ class TestMigrationValidatorConfiguration:
         self, mock_get_config, mock_llm_service
     ):
         """Test validator initialization with configuration."""
-        from src.core.config import LLMProviderConfig
-        from src.core.config import ValidationConfig
+        from src.core.config import LLMProviderConfig, ValidationConfig
 
         # Mock configuration
         mock_config = ValidationConfig.__new__(ValidationConfig)

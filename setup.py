@@ -4,15 +4,13 @@
 Supports optional dependencies via extras_require.
 """
 
-
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 # Read README for long description
 def read_readme():
     try:
-        with open("README.md", "r", encoding="utf-8") as f:
+        with open("README.md", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
         return "AI-Powered Migration Validation System"

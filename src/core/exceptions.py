@@ -9,11 +9,7 @@ import sys
 import traceback
 from datetime import datetime
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Type
+from typing import Any, Optional
 
 import structlog
 
@@ -56,7 +52,7 @@ class BaseValidationError(Exception):
         error_code: Optional[str] = None,
         severity: ErrorSeverity = ErrorSeverity.MEDIUM,
         category: ErrorCategory = ErrorCategory.PROCESSING,
-        context: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
         cause: Optional[Exception] = None,
         recoverable: bool = True,
         user_message: Optional[str] = None,
@@ -103,7 +99,7 @@ class BaseValidationError(Exception):
         """Generate user-friendly error message."""
         return "An error occurred during migration validation. Please check your inputs and try again."
 
-    def _capture_traceback(self) -> Dict[str, Any]:
+    def _capture_traceback(self) -> dict[str, Any]:
         """Capture structured traceback information."""
         exc_type, exc_value, exc_traceback = sys.exc_info()
 
@@ -147,7 +143,7 @@ class BaseValidationError(Exception):
         else:
             logger.warning("Validation warning", **log_data)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert error to dictionary for API responses."""
         return {
             "error_code": self.error_code,
@@ -488,8 +484,8 @@ class ErrorRecoveryManager:
         self,
         operation,
         operation_name: str,
-        recoverable_exceptions: List[Type[Exception]] = None,
-        context: Optional[Dict[str, Any]] = None,
+        recoverable_exceptions: list[type[Exception]] = None,
+        context: Optional[dict[str, Any]] = None,
     ):
         """Execute operation with retry logic for recoverable errors.
 

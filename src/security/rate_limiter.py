@@ -6,17 +6,11 @@ Supports per-user, per-IP, and global rate limiting with Redis backing.
 
 import asyncio
 import time
-from collections import defaultdict
-from collections import deque
+from collections import defaultdict, deque
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import Optional
-from typing import Tuple
+from typing import Any, Optional
 
-from fastapi import HTTPException
-from fastapi import Request
-from fastapi import status
+from fastapi import HTTPException, Request, status
 from pydantic import BaseModel
 
 
@@ -52,12 +46,12 @@ class SlidingWindowCounter:
     """Sliding window rate limiter implementation."""
 
     def __init__(self):
-        self.requests: Dict[str, deque] = defaultdict(deque)
+        self.requests: dict[str, deque] = defaultdict(deque)
         self.lock = asyncio.Lock()
 
     async def is_allowed(
         self, key: str, limit: int, window: int
-    ) -> Tuple[bool, Dict[str, Any]]:
+    ) -> tuple[bool, dict[str, Any]]:
         """Check if request is allowed under sliding window."""
         async with self.lock:
             now = time.time()
@@ -94,7 +88,7 @@ class TokenBucket:
     """Token bucket rate limiter implementation."""
 
     def __init__(self):
-        self.buckets: Dict[str, Dict[str, float]] = defaultdict(
+        self.buckets: dict[str, dict[str, float]] = defaultdict(
             lambda: {"tokens": 0, "last_refill": time.time()},
         )
         self.lock = asyncio.Lock()
@@ -105,7 +99,7 @@ class TokenBucket:
         limit: int,
         window: int,
         burst_multiplier: float = 1.5,
-    ) -> Tuple[bool, Dict[str, Any]]:
+    ) -> tuple[bool, dict[str, Any]]:
         """Check if request is allowed under token bucket."""
         async with self.lock:
             now = time.time()
@@ -145,12 +139,12 @@ class FixedWindowCounter:
     """Fixed window rate limiter implementation."""
 
     def __init__(self):
-        self.windows: Dict[str, Dict[int, int]] = defaultdict(lambda: defaultdict(int))
+        self.windows: dict[str, dict[int, int]] = defaultdict(lambda: defaultdict(int))
         self.lock = asyncio.Lock()
 
     async def is_allowed(
         self, key: str, limit: int, window: int
-    ) -> Tuple[bool, Dict[str, Any]]:
+    ) -> tuple[bool, dict[str, Any]]:
         """Check if request is allowed under fixed window."""
         async with self.lock:
             now = time.time()
@@ -238,7 +232,7 @@ class RateLimiter:
         limit_type: str,
         user_id: Optional[str] = None,
         custom_config: Optional[RateLimitConfig] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Check if request passes rate limit."""
         config = custom_config or self.default_limits.get(
             limit_type,

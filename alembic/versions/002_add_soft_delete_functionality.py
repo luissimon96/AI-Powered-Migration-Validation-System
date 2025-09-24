@@ -5,8 +5,8 @@ Revises: 001_initial_migration
 Create Date: 2024-09-23 10:00:00.000000
 
 """
-import sqlalchemy as sa
 
+import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.

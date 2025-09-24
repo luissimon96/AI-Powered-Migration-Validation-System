@@ -11,18 +11,20 @@ from pathlib import Path
 import click
 import uvicorn
 
-from .behavioral.crews import BehavioralValidationRequest
-from .behavioral.crews import create_behavioral_validation_crew
-from .core.config import get_settings
-from .core.config import get_validation_config
-from .core.config import is_development
+from .behavioral.crews import (
+    BehavioralValidationRequest,
+    create_behavioral_validation_crew,
+)
+from .core.config import get_settings, get_validation_config, is_development
 from .core.migration_validator import MigrationValidator
-from .core.models import InputData
-from .core.models import InputType
-from .core.models import MigrationValidationRequest
-from .core.models import TechnologyContext
-from .core.models import TechnologyType
-from .core.models import ValidationScope
+from .core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+)
 
 
 @click.group()
@@ -62,10 +64,12 @@ def serve(host, port, reload, workers):
 
 
 @cli.command()
-@click.option("--source-tech", required=True,
-              help="Source technology (e.g., python-flask)")
-@click.option("--target-tech", required=True,
-              help="Target technology (e.g., java-spring)")
+@click.option(
+    "--source-tech", required=True, help="Source technology (e.g., python-flask)"
+)
+@click.option(
+    "--target-tech", required=True, help="Target technology (e.g., java-spring)"
+)
 @click.option("--source-files", required=True, help="Source files directory or file")
 @click.option("--target-files", required=True, help="Target files directory or file")
 @click.option("--scope", default="full_system", help="Validation scope")
@@ -436,8 +440,9 @@ def db_init(target: str, verbose: bool):
 
 @cli.command()
 @click.option("--days-old", default=30, help="Delete sessions older than N days")
-@click.option("--dry-run", is_flag=True,
-              help="Show what would be deleted without deleting")
+@click.option(
+    "--dry-run", is_flag=True, help="Show what would be deleted without deleting"
+)
 @click.option("--verbose", is_flag=True, help="Enable verbose output")
 def db_cleanup(days_old: int, dry_run: bool, verbose: bool):
     """Clean up old database records."""
@@ -446,8 +451,7 @@ def db_cleanup(days_old: int, dry_run: bool, verbose: bool):
     try:
         from .database.config import get_database_config
         from .database.session import DatabaseManager
-        from .database.utils import cleanup_database
-        from .database.utils import get_database_statistics
+        from .database.utils import cleanup_database, get_database_statistics
 
         async def cleanup_db():
             db_config = get_database_config()
@@ -459,11 +463,11 @@ def db_cleanup(days_old: int, dry_run: bool, verbose: bool):
                     stats = await get_database_statistics(session)
                     click.echo("Current database statistics:")
                     click.echo(
-                        f"  Total sessions: {stats.get('validation_sessions_count', 0)}")
+                        f"  Total sessions: {stats.get('validation_sessions_count', 0)}"
+                    )
                     click.echo(
-                        f"  Total results: {stats.get(
-                                'validation_results_count',
-                                0)}")
+                        f"  Total results: {stats.get('validation_results_count', 0)}"
+                    )
                     click.echo("Use without --dry-run to perform actual cleanup")
                     return True
 
@@ -474,10 +478,10 @@ def db_cleanup(days_old: int, dry_run: bool, verbose: bool):
                     return False
 
                 total_cleaned = sum(
-                    v for k,
-                    v in cleanup_results.items() if k != "error" and isinstance(
-                        v,
-                        int))
+                    v
+                    for k, v in cleanup_results.items()
+                    if k != "error" and isinstance(v, int)
+                )
                 click.echo(f"✅ Cleanup completed: {total_cleaned} records removed")
 
                 if verbose:

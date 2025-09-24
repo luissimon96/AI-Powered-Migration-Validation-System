@@ -1,19 +1,18 @@
-"""Unit tests for BrowserAutomationEngine core functionality.
-"""
+"""Unit tests for BrowserAutomationEngine core functionality."""
 
 from datetime import datetime
-from unittest.mock import AsyncMock
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
-
-from src.behavioral.browser_automation import BrowserAction
-from src.behavioral.browser_automation import BrowserActionResult
-from src.behavioral.browser_automation import BrowserAutomationEngine
-from src.behavioral.browser_automation import BrowserSession
-from src.behavioral.browser_automation import create_comprehensive_validation_scenario
-from src.behavioral.browser_automation import create_form_submission_scenario
-from src.behavioral.browser_automation import create_login_scenario
+from src.behavioral.browser_automation import (
+    BrowserAction,
+    BrowserActionResult,
+    BrowserAutomationEngine,
+    BrowserSession,
+    create_comprehensive_validation_scenario,
+    create_form_submission_scenario,
+    create_login_scenario,
+)
 from src.core.models import SeverityLevel
 
 

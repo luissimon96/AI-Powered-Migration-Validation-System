@@ -10,15 +10,11 @@ import json
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Optional
 
 import structlog
 
-from .prompt_templates import AnalysisType
-from .prompt_templates import prompt_manager
+from .prompt_templates import AnalysisType, prompt_manager
 
 try:
     import openai
@@ -67,8 +63,8 @@ class LLMResponse:
     content: str
     model: str
     provider: str
-    usage: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    usage: Optional[dict[str, Any]] = None
+    metadata: Optional[dict[str, Any]] = None
 
 
 @dataclass
@@ -76,11 +72,11 @@ class AnalysisResult:
     """Structured analysis result with confidence scoring."""
 
     analysis_type: AnalysisType
-    result: Dict[str, Any]
+    result: dict[str, Any]
     confidence: float
     provider_used: str
     model_used: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 class LLMServiceError(Exception):
@@ -98,7 +94,7 @@ class LLMService:
     and natural language processing tasks in the migration validation pipeline.
     """
 
-    def __init__(self, configs: List[LLMConfig]):
+    def __init__(self, configs: list[LLMConfig]):
         """Initialize LLM service with a list of configurations for failover."""
         if not configs:
             raise LLMServiceError("At least one LLM configuration is required.")
@@ -109,7 +105,7 @@ class LLMService:
         )
 
         # Initialize provider-specific clients
-        self._clients: Dict[LLMProvider, Any] = {}
+        self._clients: dict[LLMProvider, Any] = {}
         self._initialize_clients()
 
     def _initialize_clients(self):
@@ -167,7 +163,7 @@ class LLMService:
 
     async def generate_response(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         system_prompt: Optional[str] = None,
         **kwargs,
     ) -> LLMResponse:
@@ -238,7 +234,7 @@ class LLMService:
     async def structured_analysis(
         self,
         analysis_type: AnalysisType,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         retry_on_parse_error: bool = True,
     ) -> AnalysisResult:
         """Perform structured analysis using prompt templates.
@@ -355,7 +351,7 @@ Do not include any text before or after the JSON response."""
         self,
         analysis_type: AnalysisType,
         response_content: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Parse and validate analysis response."""
         try:
             # Clean response content (remove potential markdown formatting)
@@ -387,7 +383,7 @@ Do not include any text before or after the JSON response."""
     def _calculate_confidence(
         self,
         analysis_type: AnalysisType,
-        result: Dict[str, Any],
+        result: dict[str, Any],
         response: LLMResponse,
     ) -> float:
         """Calculate confidence score based on response quality."""
@@ -428,7 +424,7 @@ Do not include any text before or after the JSON response."""
     async def _openai_generate(
         self,
         config: LLMConfig,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         system_prompt: Optional[str],
         **kwargs,
     ) -> LLMResponse:
@@ -462,7 +458,7 @@ Do not include any text before or after the JSON response."""
     async def _anthropic_generate(
         self,
         config: LLMConfig,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         system_prompt: Optional[str],
         **kwargs,
     ) -> LLMResponse:
@@ -491,7 +487,7 @@ Do not include any text before or after the JSON response."""
     async def _google_generate(
         self,
         config: LLMConfig,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         system_prompt: Optional[str],
         **kwargs,
     ) -> LLMResponse:
@@ -558,9 +554,9 @@ Do not include any text before or after the JSON response."""
 
     async def compare_ui_elements(
         self,
-        source_elements: List[Dict[str, Any]],
-        target_elements: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        source_elements: list[dict[str, Any]],
+        target_elements: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """Compare UI elements between source and target systems.
 
         Args:
@@ -611,8 +607,8 @@ Provide comprehensive UI comparison analysis.""",
 
     async def validate_business_logic(
         self,
-        source_functions: List[Dict[str, Any]],
-        target_functions: List[Dict[str, Any]],
+        source_functions: list[dict[str, Any]],
+        target_functions: list[dict[str, Any]],
         domain_context: str = "",
     ) -> AnalysisResult:
         """Validate preservation of business logic between source and target using structured analysis.
@@ -778,7 +774,7 @@ Provide comprehensive UI comparison analysis.""",
 
     async def analyze_ui_element_relationships(
         self,
-        elements: List[Dict[str, Any]],
+        elements: list[dict[str, Any]],
         screen_context: str = "",
     ) -> AnalysisResult:
         """Analyze relationships between UI elements using structured analysis.
@@ -803,9 +799,9 @@ Provide comprehensive UI comparison analysis.""",
 
     async def assess_migration_fidelity(
         self,
-        source_analysis: Dict[str, Any],
-        target_analysis: Dict[str, Any],
-        discrepancies: List[Dict[str, Any]],
+        source_analysis: dict[str, Any],
+        target_analysis: dict[str, Any],
+        discrepancies: list[dict[str, Any]],
         validation_scope: str,
     ) -> AnalysisResult:
         """Assess overall migration fidelity using comprehensive analysis.
@@ -832,7 +828,7 @@ Provide comprehensive UI comparison analysis.""",
             analysis_context,
         )
 
-    def get_provider_info(self) -> List[Dict[str, Any]]:
+    def get_provider_info(self) -> list[dict[str, Any]]:
         """Get information about the current LLM provider configurations."""
         return [
             {
@@ -870,7 +866,7 @@ def create_llm_service(
             "The number of models must match the number of providers."
         )
 
-    configs: List[LLMConfig] = []
+    configs: list[LLMConfig] = []
     for i, provider_name in enumerate(provider_names):
         provider_enum = LLMProvider(provider_name.lower())
         model = model_names[i] if i < len(model_names) else None

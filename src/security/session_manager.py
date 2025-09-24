@@ -4,9 +4,7 @@ Ultra-compressed implementation for S002 completion.
 
 import time
 from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import Request
 from pydantic import BaseModel
@@ -22,14 +20,14 @@ class SessionData(BaseModel):
     ip_address: str
     user_agent: str
     scopes: list[str]
-    metadata: Dict[str, Any] = {}
+    metadata: dict[str, Any] = {}
 
 
 class SessionManager:
     """Memory-based session manager with Redis fallback."""
 
     def __init__(self):
-        self.sessions: Dict[str, SessionData] = {}
+        self.sessions: dict[str, SessionData] = {}
         self.session_timeout = 3600  # 1 hour
 
     async def create_session(

@@ -1,7 +1,6 @@
 """Load testing with Locust for API endpoints."""
 
-from locust import HttpUser, task, between
-import json
+from locust import HttpUser, between, task
 
 
 class ValidationAPIUser(HttpUser):
@@ -39,12 +38,7 @@ class ValidationAPIUser(HttpUser):
     def test_validation_complex(self):
         """Test complex validation request."""
         payload = {
-            "source_files": [
-                "models.py",
-                "views.py",
-                "urls.py",
-                "settings.py"
-            ],
+            "source_files": ["models.py", "views.py", "urls.py", "settings.py"],
             "target_framework": "fastapi",
             "validation_type": "comprehensive",
             "options": {
@@ -54,7 +48,9 @@ class ValidationAPIUser(HttpUser):
             },
         }
 
-        with self.client.post("/api/validate", json=payload, catch_response=True) as response:
+        with self.client.post(
+            "/api/validate", json=payload, catch_response=True
+        ) as response:
             if response.status_code in [200, 202]:
                 response.success()
                 result = response.json()
@@ -75,7 +71,7 @@ class ValidationAPIUser(HttpUser):
         if response.status_code in [200, 404]:
             pass
         else:
-            assert False, f"Unexpected status code: {response.status_code}"
+            raise AssertionError(f"Unexpected status code: {response.status_code}")
 
     @task(1)
     def test_list_validations(self):

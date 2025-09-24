@@ -8,8 +8,6 @@ import json
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
-from typing import Dict
-from typing import List
 
 
 class AnalysisType(Enum):
@@ -32,9 +30,9 @@ class PromptTemplate:
     analysis_type: AnalysisType
     system_prompt: str
     user_prompt_template: str
-    expected_response_format: Dict[str, Any]
-    confidence_factors: List[str]
-    fallback_response: Dict[str, Any]
+    expected_response_format: dict[str, Any]
+    confidence_factors: list[str]
+    fallback_response: dict[str, Any]
 
 
 class PromptTemplateManager:
@@ -51,7 +49,7 @@ class PromptTemplateManager:
     def format_prompt(
         self,
         analysis_type: AnalysisType,
-        context: Dict[str, Any],
+        context: dict[str, Any],
     ) -> tuple[str, str]:
         """Format system and user prompts with context data."""
         template = self.get_template(analysis_type)
@@ -61,15 +59,15 @@ class PromptTemplateManager:
 
         return template.system_prompt, user_prompt
 
-    def get_expected_format(self, analysis_type: AnalysisType) -> Dict[str, Any]:
+    def get_expected_format(self, analysis_type: AnalysisType) -> dict[str, Any]:
         """Get expected response format for analysis type."""
         return self.templates[analysis_type].expected_response_format
 
-    def get_fallback_response(self, analysis_type: AnalysisType) -> Dict[str, Any]:
+    def get_fallback_response(self, analysis_type: AnalysisType) -> dict[str, Any]:
         """Get fallback response for when LLM analysis fails."""
         return self.templates[analysis_type].fallback_response
 
-    def _create_default_templates(self) -> Dict[AnalysisType, PromptTemplate]:
+    def _create_default_templates(self) -> dict[AnalysisType, PromptTemplate]:
         """Create default prompt templates."""
         templates = {}
 
@@ -491,7 +489,7 @@ Provide comprehensive fidelity assessment and recommendations.""",
     def validate_response_format(
         self,
         analysis_type: AnalysisType,
-        response: Dict[str, Any],
+        response: dict[str, Any],
     ) -> bool:
         """Validate that a response matches the expected format."""
         expected = self.get_expected_format(analysis_type)
@@ -505,9 +503,9 @@ Provide comprehensive fidelity assessment and recommendations.""",
 
     def enhance_context(
         self,
-        base_context: Dict[str, Any],
+        base_context: dict[str, Any],
         analysis_type: AnalysisType,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Enhance context with analysis-type specific information."""
         template = self.get_template(analysis_type)
 

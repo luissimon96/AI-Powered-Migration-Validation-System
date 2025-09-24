@@ -9,20 +9,18 @@ Implements the input interface described in the proposal:
 
 import os
 import tempfile
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Any, Optional
 
 from .exceptions import resource_error
 from .logging import LoggerMixin
-from .models import InputData
-from .models import InputType
-from .models import MigrationValidationRequest
-from .models import TechnologyContext
-from .models import TechnologyType
-from .models import ValidationScope
+from .models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+)
 
 
 class InputProcessor(LoggerMixin):
@@ -97,13 +95,13 @@ class InputProcessor(LoggerMixin):
         source_technology: str,
         target_technology: str,
         validation_scope: str,
-        source_files: List[str] = None,
-        source_screenshots: List[str] = None,
-        target_files: List[str] = None,
-        target_screenshots: List[str] = None,
+        source_files: list[str] = None,
+        source_screenshots: list[str] = None,
+        target_files: list[str] = None,
+        target_screenshots: list[str] = None,
         source_tech_version: Optional[str] = None,
         target_tech_version: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: Optional[dict[str, Any]] = None,
     ) -> MigrationValidationRequest:
         """Create a structured validation request from user inputs.
 
@@ -195,8 +193,8 @@ class InputProcessor(LoggerMixin):
 
     def _process_input_data(
         self,
-        files: List[str],
-        screenshots: List[str],
+        files: list[str],
+        screenshots: list[str],
         context: str,
     ) -> InputData:
         """Process and validate input data.
@@ -312,9 +310,9 @@ class InputProcessor(LoggerMixin):
 
     def upload_files(
         self,
-        uploaded_files: List[Tuple[str, bytes]],
+        uploaded_files: list[tuple[str, bytes]],
         context: str = "upload",
-    ) -> List[str]:
+    ) -> list[str]:
         """Handle file uploads and save them to upload directory.
 
         Args:
@@ -366,7 +364,7 @@ class InputProcessor(LoggerMixin):
 
         return saved_paths
 
-    def cleanup_uploads(self, file_paths: List[str]):
+    def cleanup_uploads(self, file_paths: list[str]):
         """Clean up uploaded files.
 
         Args:
@@ -380,7 +378,7 @@ class InputProcessor(LoggerMixin):
             except Exception as e:
                 print(f"Warning: Failed to clean up file {file_path}: {e}")
 
-    def get_technology_options(self) -> Dict[str, Any]:
+    def get_technology_options(self) -> dict[str, Any]:
         """Get available technology options for UI."""
         return {
             "source_technologies": [
@@ -434,7 +432,7 @@ class InputProcessor(LoggerMixin):
         source_tech: str,
         target_tech: str,
         scope: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Validate that technology combination is supported for the given scope.
 
         Args:

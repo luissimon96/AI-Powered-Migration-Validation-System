@@ -4,12 +4,9 @@ Provides comprehensive security headers configuration for API protection
 against common web vulnerabilities.
 """
 
-from typing import Dict
-from typing import List
 from typing import Optional
 
-from fastapi import Request
-from fastapi import Response
+from fastapi import Request, Response
 
 
 class SecurityHeaders:
@@ -18,7 +15,7 @@ class SecurityHeaders:
     def __init__(
         self,
         custom_csp: Optional[str] = None,
-        additional_headers: Optional[Dict[str, str]] = None,
+        additional_headers: Optional[dict[str, str]] = None,
         remove_server_header: bool = True,
         strict_mode: bool = False,
     ):
@@ -36,7 +33,7 @@ class SecurityHeaders:
         self.remove_server_header = remove_server_header
         self.strict_mode = strict_mode
 
-    def get_base_security_headers(self) -> Dict[str, str]:
+    def get_base_security_headers(self) -> dict[str, str]:
         """Get base security headers."""
         headers = {
             # Prevent MIME type sniffing
@@ -149,7 +146,7 @@ class SecurityHeaders:
             "usb=()"
         )
 
-    def get_all_security_headers(self, request: Request) -> Dict[str, str]:
+    def get_all_security_headers(self, request: Request) -> dict[str, str]:
         """Get all security headers for response."""
         headers = self.get_base_security_headers()
 
@@ -187,13 +184,13 @@ class SecurityHeaders:
 
     def get_cors_headers(
         self,
-        allow_origins: List[str] = None,
-        allow_methods: List[str] = None,
-        allow_headers: List[str] = None,
-        expose_headers: List[str] = None,
+        allow_origins: list[str] = None,
+        allow_methods: list[str] = None,
+        allow_headers: list[str] = None,
+        expose_headers: list[str] = None,
         max_age: int = 86400,
         allow_credentials: bool = False,
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         """Get CORS headers for cross-origin requests."""
         if allow_origins is None:
             allow_origins = ["https://localhost:3000"]  # Default to secure origins
@@ -241,7 +238,7 @@ class APISecurityHeaders(SecurityHeaders):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def get_api_specific_headers(self) -> Dict[str, str]:
+    def get_api_specific_headers(self) -> dict[str, str]:
         """Get API-specific security headers."""
         return {
             # API versioning
@@ -261,7 +258,7 @@ class APISecurityHeaders(SecurityHeaders):
             "X-Permitted-Cross-Domain-Policies": "none",
         }
 
-    def get_all_security_headers(self, request: Request) -> Dict[str, str]:
+    def get_all_security_headers(self, request: Request) -> dict[str, str]:
         """Get all security headers including API-specific ones."""
         headers = super().get_all_security_headers(request)
         headers.update(self.get_api_specific_headers())
@@ -289,7 +286,7 @@ class DevelopmentSecurityHeaders(SecurityHeaders):
             "base-uri 'self';"
         )
 
-    def get_cors_headers(self, **kwargs) -> Dict[str, str]:
+    def get_cors_headers(self, **kwargs) -> dict[str, str]:
         """Get permissive CORS headers for development."""
         kwargs.setdefault("allow_origins", ["*"])
         kwargs.setdefault("allow_credentials", False)
@@ -323,7 +320,7 @@ class ProductionSecurityHeaders(SecurityHeaders):
             "base-uri 'none';"
         )
 
-    def get_cors_headers(self, **kwargs) -> Dict[str, str]:
+    def get_cors_headers(self, **kwargs) -> dict[str, str]:
         """Get restricted CORS headers for production."""
         # Override with secure defaults for production
         kwargs.setdefault("allow_origins", ["https://migration-validator.com"])

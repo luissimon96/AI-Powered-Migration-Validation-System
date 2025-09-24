@@ -14,9 +14,7 @@ import time
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -40,17 +38,17 @@ from src.analyzers.code_analyzer import CodeAnalyzer
 from src.behavioral.crews import BehavioralValidationCrew
 from src.core.input_processor import InputProcessor
 from src.core.migration_validator import MigrationValidator
-from src.core.models import InputData
-from src.core.models import InputType
-from src.core.models import MigrationValidationRequest
-from src.core.models import TechnologyContext
-from src.core.models import TechnologyType
-from src.core.models import ValidationScope
-from src.security.api_keys import APIKeyManager
-from src.security.api_keys import APIKeyMetadata
+from src.core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+)
+from src.security.api_keys import APIKeyManager, APIKeyMetadata
 from src.security.schemas import APIKeyScope
-from src.services.llm_service import LLMResponse
-from src.services.llm_service import LLMService
+from src.services.llm_service import LLMResponse, LLMService
 
 # ═══════════════════════════════════════════════════════════════
 # Test Configuration and Setup
@@ -1112,7 +1110,7 @@ class DataProcessor:
 
     # Create binary file
     binary_path = temp_directory / "binary.bin"
-    binary_path.write_bytes(b"\x00\x01\x02\x03\xFF\xFE\xFD")
+    binary_path.write_bytes(b"\x00\x01\x02\x03\xff\xfe\xfd")
     files["binary.bin"] = str(binary_path)
 
     # Create JSON data files
@@ -1206,9 +1204,11 @@ def mock_fastapi_client():
     from fastapi.testclient import TestClient
 
     # Mock the dependencies before creating the app
-    with patch("src.api.routes.MigrationValidator"), patch(
-        "src.api.routes.InputProcessor"
-    ), patch("src.api.routes.create_behavioral_validation_crew"):
+    with (
+        patch("src.api.routes.MigrationValidator"),
+        patch("src.api.routes.InputProcessor"),
+        patch("src.api.routes.create_behavioral_validation_crew"),
+    ):
         from src.api.routes import app
 
         return TestClient(app)

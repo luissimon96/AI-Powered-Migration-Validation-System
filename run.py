@@ -5,7 +5,6 @@ This provides a simple way to start the system without using the CLI.
 """
 
 import uvicorn
-
 from src.core.config import get_settings
 
 

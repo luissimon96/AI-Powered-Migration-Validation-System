@@ -16,11 +16,13 @@ from pathlib import Path
 from src.database.config import get_database_config
 from src.database.migrations import MigrationManager
 from src.database.session import get_database_manager
-from src.database.utils import cleanup_database
-from src.database.utils import export_session_data
-from src.database.utils import get_database_statistics
-from src.database.utils import optimize_database_performance
-from src.database.utils import validate_database_integrity
+from src.database.utils import (
+    cleanup_database,
+    export_session_data,
+    get_database_statistics,
+    optimize_database_performance,
+    validate_database_integrity,
+)
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))

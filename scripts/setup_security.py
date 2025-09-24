@@ -15,8 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
     from src.security.auth import AuthManager
-    from src.security.config import SecurityLevel
-    from src.security.config import get_security_config
+    from src.security.config import SecurityLevel, get_security_config
     from src.security.encryption import EncryptionManager
 except ImportError as e:
     print(f"Error importing security modules: {e}")
@@ -147,7 +146,7 @@ def validate_security_setup():
         print("✅ Security configuration validated")
 
         # Test auth manager
-        auth_manager = AuthManager()
+        AuthManager()
         print("✅ Authentication manager initialized")
 
         print("✅ All security components validated successfully!")
@@ -163,7 +162,7 @@ def setup_default_admin():
     print("👤 Setting up default admin user...")
 
     try:
-        auth_manager = AuthManager()
+        AuthManager()
 
         # The AuthManager already creates a default admin
         # We just need to get the password that was printed

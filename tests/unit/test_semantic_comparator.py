@@ -1,10 +1,8 @@
-"""Unit tests for semantic comparator.
-"""
+"""Unit tests for semantic comparator."""
 
 from unittest.mock import AsyncMock
 
 import pytest
-
 from src.comparators.semantic_comparator import SemanticComparator
 from src.core.models import TechnologyType
 

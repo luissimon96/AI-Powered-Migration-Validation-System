@@ -8,28 +8,25 @@ import gc
 import json
 import statistics
 import time
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
+from typing import Any, Callable
 from unittest.mock import Mock
 
 import psutil
 import pytest
 from memory_profiler import profile
-
 from src.analyzers.code_analyzer import CodeAnalyzer
 from src.core.input_processor import InputProcessor
 from src.core.migration_validator import MigrationValidator
-from src.core.models import InputData
-from src.core.models import InputType
-from src.core.models import MigrationValidationRequest
-from src.core.models import TechnologyContext
-from src.core.models import TechnologyType
-from src.core.models import ValidationScope
+from src.core.models import (
+    InputData,
+    InputType,
+    MigrationValidationRequest,
+    TechnologyContext,
+    TechnologyType,
+    ValidationScope,
+)
 
 # ═══════════════════════════════════════════════════════════════
 # Performance Testing Framework
@@ -45,7 +42,7 @@ class PerformanceMetrics:
     cpu_usage_percent: float
     peak_memory_mb: float
     throughput_ops_per_sec: float = 0.0
-    latency_percentiles: Dict[int, float] = None
+    latency_percentiles: dict[int, float] = None
 
     def __post_init__(self):
         if self.latency_percentiles is None:
@@ -89,11 +86,8 @@ class PerformanceTester:
         return result, execution_time, memory_used, peak_memory
 
     def measure_cpu_usage(
-            self,
-            func: Callable,
-            duration: float,
-            *args,
-            **kwargs) -> float:
+        self, func: Callable, duration: float, *args, **kwargs
+    ) -> float:
         """Measure CPU usage during function execution."""
         cpu_percent_start = psutil.cpu_percent()
 
@@ -106,8 +100,13 @@ class PerformanceTester:
         return max(cpu_percent_end - cpu_percent_start, 0)
 
     def load_test(
-        self, func: Callable, num_requests: int, concurrent_users: int, *args, **kwargs,
-    ) -> Dict[str, Any]:
+        self,
+        func: Callable,
+        num_requests: int,
+        concurrent_users: int,
+        *args,
+        **kwargs,
+    ) -> dict[str, Any]:
         """Perform load testing with concurrent users."""
         execution_times = []
         errors = []
@@ -155,8 +154,13 @@ class PerformanceTester:
         }
 
     def stress_test(
-        self, func: Callable, max_load: int, ramp_up_time: int, *args, **kwargs,
-    ) -> Dict[str, Any]:
+        self,
+        func: Callable,
+        max_load: int,
+        ramp_up_time: int,
+        *args,
+        **kwargs,
+    ) -> dict[str, Any]:
         """Perform stress testing with gradually increasing load."""
         results = []
 
@@ -180,7 +184,7 @@ class PerformanceTester:
             "results": results,
         }
 
-    def _percentile(self, data: List[float], percentile: int) -> float:
+    def _percentile(self, data: list[float], percentile: int) -> float:
         """Calculate percentile of a dataset."""
         if not data:
             return 0.0
@@ -192,14 +196,14 @@ class PerformanceTester:
         upper = sorted_data[int(index) + 1]
         return lower + (upper - lower) * (index - int(index))
 
-    def _find_max_stable_load(self, results: List[Dict]) -> int:
+    def _find_max_stable_load(self, results: list[dict]) -> int:
         """Find maximum stable load from stress test results."""
         for result in reversed(results):
             if result["error_rate"] < 0.05:  # Less than 5% error rate
                 return result["concurrent_users"]
         return 1
 
-    def _find_breakdown_point(self, results: List[Dict]) -> int:
+    def _find_breakdown_point(self, results: list[dict]) -> int:
         """Find breakdown point from stress test results."""
         for result in results:
             if result["error_rate"] > 0.5:  # More than 50% error rate
@@ -207,8 +211,10 @@ class PerformanceTester:
         return results[-1]["concurrent_users"] if results else 0
 
     def benchmark_against_baseline(
-        self, current_metrics: PerformanceMetrics, test_name: str,
-    ) -> Dict[str, Any]:
+        self,
+        current_metrics: PerformanceMetrics,
+        test_name: str,
+    ) -> dict[str, Any]:
         """Compare current metrics against baseline."""
         if test_name not in self.baseline_metrics:
             self.baseline_metrics[test_name] = current_metrics
@@ -218,20 +224,24 @@ class PerformanceTester:
 
         performance_change = {
             "execution_time_change": (
-                current_metrics.execution_time
-                - baseline.execution_time)
+                current_metrics.execution_time - baseline.execution_time
+            )
             / baseline.execution_time
             * 100,
             "memory_usage_change": (
-                current_metrics.memory_usage_mb
-                - baseline.memory_usage_mb)
+                current_metrics.memory_usage_mb - baseline.memory_usage_mb
+            )
             / baseline.memory_usage_mb
-            * 100 if baseline.memory_usage_mb > 0 else 0,
+            * 100
+            if baseline.memory_usage_mb > 0
+            else 0,
             "throughput_change": (
-                current_metrics.throughput_ops_per_sec
-                - baseline.throughput_ops_per_sec)
+                current_metrics.throughput_ops_per_sec - baseline.throughput_ops_per_sec
+            )
             / baseline.throughput_ops_per_sec
-            * 100 if baseline.throughput_ops_per_sec > 0 else 0,
+            * 100
+            if baseline.throughput_ops_per_sec > 0
+            else 0,
         }
 
         # Determine if performance has regressed
@@ -243,7 +253,9 @@ class PerformanceTester:
         )
 
         return {
-            "status": "regression_detected" if regression_detected else "performance_stable",
+            "status": "regression_detected"
+            if regression_detected
+            else "performance_stable",
             "baseline": baseline,
             "current": current_metrics,
             "changes": performance_change,
@@ -279,15 +291,15 @@ class TestMigrationValidatorPerformance:
         """Test performance of single validation request."""
         request = MigrationValidationRequest(
             source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK,
-                version="2.0"),
+                type=TechnologyType.PYTHON_FLASK, version="2.0"
+            ),
             target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING,
-                version="3.0"),
+                type=TechnologyType.JAVA_SPRING, version="3.0"
+            ),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
             source_input=InputData(
-                type=InputType.TEXT,
-                text="def hello(): return 'Hello World'"),
+                type=InputType.TEXT, text="def hello(): return 'Hello World'"
+            ),
             target_input=InputData(
                 type=InputType.TEXT,
                 text='public String hello() { return "Hello World"; }',
@@ -295,8 +307,12 @@ class TestMigrationValidatorPerformance:
         )
 
         # Measure performance
-        result, execution_time, memory_used, peak_memory = self.tester.measure_memory_usage(
-            self.validator.validate, request, )
+        result, execution_time, memory_used, peak_memory = (
+            self.tester.measure_memory_usage(
+                self.validator.validate,
+                request,
+            )
+        )
 
         metrics = PerformanceMetrics(
             execution_time=execution_time,
@@ -313,7 +329,8 @@ class TestMigrationValidatorPerformance:
 
         # Benchmark against baseline
         comparison = self.tester.benchmark_against_baseline(
-            metrics, "single_validation")
+            metrics, "single_validation"
+        )
         print(f"Performance comparison: {comparison}")
 
     def test_large_code_validation_performance(self):
@@ -329,18 +346,14 @@ class TestMigrationValidatorPerformance:
 
         request = MigrationValidationRequest(
             source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK,
-                version="2.0"),
+                type=TechnologyType.PYTHON_FLASK, version="2.0"
+            ),
             target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING,
-                version="3.0"),
+                type=TechnologyType.JAVA_SPRING, version="3.0"
+            ),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
-            source_input=InputData(
-                type=InputType.TEXT,
-                text=large_python_code),
-            target_input=InputData(
-                type=InputType.TEXT,
-                text=large_java_code),
+            source_input=InputData(type=InputType.TEXT, text=large_python_code),
+            target_input=InputData(type=InputType.TEXT, text=large_java_code),
         )
 
         # Measure performance
@@ -349,25 +362,23 @@ class TestMigrationValidatorPerformance:
         execution_time = time.perf_counter() - start_time
 
         # Performance assertions for large inputs
-        assert execution_time < 30.0, f"Large validation took too long: {execution_time:.2f}s"
+        assert execution_time < 30.0, (
+            f"Large validation took too long: {execution_time:.2f}s"
+        )
         assert result is not None, "Large validation should return a result"
 
     def test_concurrent_validation_performance(self):
         """Test performance under concurrent validation requests."""
         request = MigrationValidationRequest(
             source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK,
-                version="2.0"),
+                type=TechnologyType.PYTHON_FLASK, version="2.0"
+            ),
             target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING,
-                version="3.0"),
+                type=TechnologyType.JAVA_SPRING, version="3.0"
+            ),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
-            source_input=InputData(
-                type=InputType.TEXT,
-                text="def test(): pass"),
-            target_input=InputData(
-                type=InputType.TEXT,
-                text="public void test() {}"),
+            source_input=InputData(type=InputType.TEXT, text="def test(): pass"),
+            target_input=InputData(type=InputType.TEXT, text="public void test() {}"),
         )
 
         # Load test with concurrent requests
@@ -375,21 +386,19 @@ class TestMigrationValidatorPerformance:
             self.validator.validate,
             num_requests=50,
             concurrent_users=10,
-            func_args=(
-                request,
-            ),
+            func_args=(request,),
         )
 
         # Performance assertions
-        assert (
-            load_results["error_rate"] < 0.1
-        ), f"High error rate: {load_results['error_rate']:.2%}"
-        assert (
-            load_results["avg_response_time"] < 2.0
-        ), f"High average response time: {load_results['avg_response_time']:.2f}s"
-        assert (
-            load_results["p95_response_time"] < 5.0
-        ), f"High P95 response time: {load_results['p95_response_time']:.2f}s"
+        assert load_results["error_rate"] < 0.1, (
+            f"High error rate: {load_results['error_rate']:.2%}"
+        )
+        assert load_results["avg_response_time"] < 2.0, (
+            f"High average response time: {load_results['avg_response_time']:.2f}s"
+        )
+        assert load_results["p95_response_time"] < 5.0, (
+            f"High P95 response time: {load_results['p95_response_time']:.2f}s"
+        )
 
         print(f"Load test results: {json.dumps(load_results, indent=2)}")
 
@@ -397,18 +406,14 @@ class TestMigrationValidatorPerformance:
         """Test memory usage stability over multiple validations."""
         request = MigrationValidationRequest(
             source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK,
-                version="2.0"),
+                type=TechnologyType.PYTHON_FLASK, version="2.0"
+            ),
             target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING,
-                version="3.0"),
+                type=TechnologyType.JAVA_SPRING, version="3.0"
+            ),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
-            source_input=InputData(
-                type=InputType.TEXT,
-                text="def test(): pass"),
-            target_input=InputData(
-                type=InputType.TEXT,
-                text="public void test() {}"),
+            source_input=InputData(type=InputType.TEXT, text="def test(): pass"),
+            target_input=InputData(type=InputType.TEXT, text="public void test() {}"),
         )
 
         process = psutil.Process()
@@ -425,8 +430,9 @@ class TestMigrationValidatorPerformance:
                 memory_growth = current_memory - initial_memory
 
                 # Memory growth should be reasonable
-                assert (
-                    memory_growth < 200), f"Excessive memory growth: {memory_growth:.2f}MB after {i + 1} validations"
+                assert memory_growth < 200, (
+                    f"Excessive memory growth: {memory_growth:.2f}MB after {i + 1} validations"
+                )
 
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
         total_growth = final_memory - initial_memory
@@ -495,7 +501,9 @@ if __name__ == '__main__':
         execution_time = time.perf_counter() - start_time
 
         # Performance assertions
-        assert execution_time < 2.0, f"Code analysis took too long: {execution_time:.2f}s"
+        assert execution_time < 2.0, (
+            f"Code analysis took too long: {execution_time:.2f}s"
+        )
         assert result is not None, "Analysis should return a result"
         assert "functions" in result, "Analysis should include functions"
         assert "classes" in result, "Analysis should include classes"
@@ -543,18 +551,23 @@ def function_{i}():
         execution_time = time.perf_counter() - start_time
 
         # Performance assertions
-        assert execution_time < 20.0, f"Large file analysis took too long: {execution_time:.2f}s"
+        assert execution_time < 20.0, (
+            f"Large file analysis took too long: {execution_time:.2f}s"
+        )
         assert result is not None, "Large file analysis should return a result"
         assert len(result["classes"]) == 200, "Should detect all classes"
         assert len(result["functions"]) == 200, "Should detect all functions"
 
         print(
-            f"Large file analysis ({len(large_code)} chars) completed in {execution_time:.3f}s")
+            f"Large file analysis ({len(large_code)} chars) completed in {execution_time:.3f}s"
+        )
 
     def test_concurrent_analysis_performance(self):
         """Test performance under concurrent analysis requests."""
         test_codes = [
-            f"def function_{i}():\n    return {i}\n\nclass Class_{i}:\n    pass" for i in range(20)]
+            f"def function_{i}():\n    return {i}\n\nclass Class_{i}:\n    pass"
+            for i in range(20)
+        ]
 
         def analyze_code(code):
             return self.analyzer.analyze_code(code, TechnologyType.PYTHON_FLASK)
@@ -577,17 +590,18 @@ def function_{i}():
         # Execute concurrent analyses
         with ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(worker, code) for code in test_codes]
-            results = [future.result() for future in as_completed(futures)]
+            [future.result() for future in as_completed(futures)]
 
         # Performance assertions
         assert len(errors) == 0, f"Errors during concurrent analysis: {errors}"
         assert len(execution_times) == len(test_codes), "All analyses should complete"
-        assert (
-            statistics.mean(execution_times) < 1.0
-        ), f"High average analysis time: {statistics.mean(execution_times):.2f}s"
+        assert statistics.mean(execution_times) < 1.0, (
+            f"High average analysis time: {statistics.mean(execution_times):.2f}s"
+        )
 
         print(
-            f"Concurrent analysis completed: avg={statistics.mean(execution_times):.3f}s, max={max(execution_times):.3f}s", )
+            f"Concurrent analysis completed: avg={statistics.mean(execution_times):.3f}s, max={max(execution_times):.3f}s",
+        )
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -671,7 +685,7 @@ class TestPerformanceRegression:
         self.tester = PerformanceTester()
         self.baseline_file = "performance_baselines.json"
 
-    def load_baselines(self) -> Dict[str, Any]:
+    def load_baselines(self) -> dict[str, Any]:
         """Load performance baselines from file."""
         try:
             with open(self.baseline_file) as f:
@@ -679,7 +693,7 @@ class TestPerformanceRegression:
         except FileNotFoundError:
             return {}
 
-    def save_baselines(self, baselines: Dict[str, Any]):
+    def save_baselines(self, baselines: dict[str, Any]):
         """Save performance baselines to file."""
         with open(self.baseline_file, "w") as f:
             json.dump(baselines, f, indent=2)
@@ -697,18 +711,16 @@ class TestPerformanceRegression:
 
         request = MigrationValidationRequest(
             source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK,
-                version="2.0"),
+                type=TechnologyType.PYTHON_FLASK, version="2.0"
+            ),
             target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING,
-                version="3.0"),
+                type=TechnologyType.JAVA_SPRING, version="3.0"
+            ),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
-            source_input=InputData(
-                type=InputType.TEXT,
-                text="def test(): return 42"),
+            source_input=InputData(type=InputType.TEXT, text="def test(): return 42"),
             target_input=InputData(
-                type=InputType.TEXT,
-                text="public int test() { return 42; }"),
+                type=InputType.TEXT, text="public int test() { return 42; }"
+            ),
         )
 
         # Measure current performance
@@ -736,16 +748,19 @@ class TestPerformanceRegression:
 
             print("Performance comparison:")
             print(
-                f"  Average time: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {avg_regression:+.1f}%)", )
+                f"  Average time: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {avg_regression:+.1f}%)",
+            )
             print(
-                f"  P95 time: {current_p95_time:.3f}s (baseline: {baseline_p95:.3f}s, change: {p95_regression:+.1f}%)", )
+                f"  P95 time: {current_p95_time:.3f}s (baseline: {baseline_p95:.3f}s, change: {p95_regression:+.1f}%)",
+            )
 
             # Assert no significant regression
-            assert (
-                avg_regression < 20), f"Performance regression detected: {avg_regression:.1f}% slower average time"
-            assert (
-                p95_regression < 25
-            ), f"Performance regression detected: {p95_regression:.1f}% slower P95 time"
+            assert avg_regression < 20, (
+                f"Performance regression detected: {avg_regression:.1f}% slower average time"
+            )
+            assert p95_regression < 25, (
+                f"Performance regression detected: {p95_regression:.1f}% slower P95 time"
+            )
 
         else:
             # Set new baseline
@@ -756,7 +771,8 @@ class TestPerformanceRegression:
             }
             self.save_baselines(baselines)
             print(
-                f"New performance baseline set: avg={current_avg_time:.3f}s, p95={current_p95_time:.3f}s", )
+                f"New performance baseline set: avg={current_avg_time:.3f}s, p95={current_p95_time:.3f}s",
+            )
 
     def test_code_analysis_performance_regression(self):
         """Test for performance regression in code analysis."""
@@ -803,16 +819,20 @@ class DataProcessor:
             regression = (current_avg_time - baseline_avg) / baseline_avg * 100
 
             print(
-                f"Code analysis performance: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {regression:+.1f}%)", )
+                f"Code analysis performance: {current_avg_time:.3f}s (baseline: {baseline_avg:.3f}s, change: {regression:+.1f}%)",
+            )
 
             # Assert no significant regression
-            assert regression < 30, f"Code analysis regression detected: {regression:.1f}% slower"
+            assert regression < 30, (
+                f"Code analysis regression detected: {regression:.1f}% slower"
+            )
 
         else:
             # Set new baseline
             baselines[baseline_key] = {
                 "avg_time": current_avg_time,
-                "timestamp": time.time()}
+                "timestamp": time.time(),
+            }
             self.save_baselines(baselines)
             print(f"New code analysis baseline set: avg={current_avg_time:.3f}s")
 
@@ -843,18 +863,14 @@ class TestStressAndBreakingPoints:
 
         request = MigrationValidationRequest(
             source_technology=TechnologyContext(
-                type=TechnologyType.PYTHON_FLASK,
-                version="2.0"),
+                type=TechnologyType.PYTHON_FLASK, version="2.0"
+            ),
             target_technology=TechnologyContext(
-                type=TechnologyType.JAVA_SPRING,
-                version="3.0"),
+                type=TechnologyType.JAVA_SPRING, version="3.0"
+            ),
             validation_scope=ValidationScope.BUSINESS_LOGIC,
-            source_input=InputData(
-                type=InputType.TEXT,
-                text="def test(): pass"),
-            target_input=InputData(
-                type=InputType.TEXT,
-                text="public void test() {}"),
+            source_input=InputData(type=InputType.TEXT, text="def test(): pass"),
+            target_input=InputData(type=InputType.TEXT, text="public void test() {}"),
         )
 
         # Stress test with increasing load
@@ -867,17 +883,19 @@ class TestStressAndBreakingPoints:
 
         print("Stress test results:")
         print(
-            f"  Max stable load: {stress_results['max_stable_load']} concurrent users")
+            f"  Max stable load: {stress_results['max_stable_load']} concurrent users"
+        )
         print(
-            f"  Breakdown point: {stress_results['breakdown_point']} concurrent users")
+            f"  Breakdown point: {stress_results['breakdown_point']} concurrent users"
+        )
 
         # Assert reasonable performance under stress
-        assert (
-            stress_results["max_stable_load"] >= 5
-        ), "System should handle at least 5 concurrent users"
-        assert (
-            stress_results["breakdown_point"] > stress_results["max_stable_load"]
-        ), "Breakdown point should be higher than stable load"
+        assert stress_results["max_stable_load"] >= 5, (
+            "System should handle at least 5 concurrent users"
+        )
+        assert stress_results["breakdown_point"] > stress_results["max_stable_load"], (
+            "Breakdown point should be higher than stable load"
+        )
 
     def test_memory_stress_with_large_inputs(self):
         """Stress test memory usage with increasingly large inputs."""
@@ -894,22 +912,23 @@ class TestStressAndBreakingPoints:
 
             try:
                 start_time = time.perf_counter()
-                result = processor.process_input(input_data)
+                processor.process_input(input_data)
                 execution_time = time.perf_counter() - start_time
 
                 memory_after = process.memory_info().rss / 1024 / 1024  # MB
                 memory_used = memory_after - memory_before
 
                 print(
-                    f"Input size: {size_mb}MB, Execution time: {execution_time:.2f}s, Memory used: {memory_used:.2f}MB", )
+                    f"Input size: {size_mb}MB, Execution time: {execution_time:.2f}s, Memory used: {memory_used:.2f}MB",
+                )
 
                 # Assert reasonable performance
-                assert (
-                    execution_time < 30
-                ), f"Processing {size_mb}MB took too long: {execution_time:.2f}s"
-                assert (
-                    memory_used < size_mb * 5
-                ), f"Memory usage too high for {size_mb}MB input: {memory_used:.2f}MB"
+                assert execution_time < 30, (
+                    f"Processing {size_mb}MB took too long: {execution_time:.2f}s"
+                )
+                assert memory_used < size_mb * 5, (
+                    f"Memory usage too high for {size_mb}MB input: {memory_used:.2f}MB"
+                )
 
                 # Clean up
                 del large_text

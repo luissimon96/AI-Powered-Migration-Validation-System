@@ -5,22 +5,19 @@ and maintenance tasks.
 """
 
 import logging
-from datetime import datetime
-from datetime import timedelta
-from typing import Any
-from typing import Dict
-from typing import Optional
+from datetime import datetime, timedelta
+from typing import Any, Optional
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import MigrationValidationRequest
-from ..core.models import ValidationDiscrepancy
-from ..core.models import ValidationResult
-from ..core.models import ValidationSession
-from .models import DiscrepancyModel
-from .models import ValidationResultModel
-from .models import ValidationSessionModel
+from ..core.models import (
+    MigrationValidationRequest,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationSession,
+)
+from .models import DiscrepancyModel, ValidationResultModel, ValidationSessionModel
 
 logger = logging.getLogger(__name__)
 
@@ -85,8 +82,7 @@ async def convert_db_model_to_pydantic(
         ValidationSession: Pydantic validation session
 
     """
-    from ..core.models import InputData
-    from ..core.models import TechnologyContext
+    from ..core.models import InputData, TechnologyContext
 
     # Reconstruct technology contexts
     source_technology = TechnologyContext(
@@ -167,9 +163,9 @@ async def convert_db_model_to_pydantic(
 
 
 async def migrate_in_memory_sessions_to_db(
-    memory_sessions: Dict[str, ValidationSession],
+    memory_sessions: dict[str, ValidationSession],
     session: AsyncSession,
-) -> Dict[str, bool]:
+) -> dict[str, bool]:
     """Migrate in-memory validation sessions to database.
 
     Args:
@@ -254,7 +250,7 @@ async def cleanup_database(
     session: AsyncSession,
     days_old: int = 30,
     include_failed: bool = True,
-) -> Dict[str, int]:
+) -> dict[str, int]:
     """Clean up old records from the database.
 
     Args:
@@ -330,7 +326,7 @@ async def cleanup_database(
         return {"error": str(e)}
 
 
-async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
+async def get_database_statistics(session: AsyncSession) -> dict[str, Any]:
     """Get comprehensive database statistics.
 
     Args:
@@ -354,7 +350,7 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
 
         for table in tables:
             # Validate table name for security
-            if not table.replace('_', '').isalnum():
+            if not table.replace("_", "").isalnum():
                 raise ValueError(f"Invalid table name: {table}")
 
             result = await session.execute(text(f"SELECT COUNT(*) FROM {table}"))
@@ -461,7 +457,7 @@ async def get_database_statistics(session: AsyncSession) -> Dict[str, Any]:
         return {"error": str(e)}
 
 
-async def optimize_database_performance(session: AsyncSession) -> Dict[str, Any]:
+async def optimize_database_performance(session: AsyncSession) -> dict[str, Any]:
     """Optimize database performance by analyzing and updating statistics.
 
     Args:
@@ -532,7 +528,7 @@ async def optimize_database_performance(session: AsyncSession) -> Dict[str, Any]
         return {"status": "failed", "error": str(e)}
 
 
-async def validate_database_integrity(session: AsyncSession) -> Dict[str, Any]:
+async def validate_database_integrity(session: AsyncSession) -> dict[str, Any]:
     """Validate database integrity and relationships.
 
     Args:
@@ -624,7 +620,7 @@ async def export_session_data(
     session: AsyncSession,
     request_id: str,
     include_representations: bool = False,
-) -> Optional[Dict[str, Any]]:
+) -> Optional[dict[str, Any]]:
     """Export complete session data for backup or analysis.
 
     Args:

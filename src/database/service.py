@@ -6,25 +6,25 @@ pattern with the existing Pydantic models and system architecture.
 
 import logging
 from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Any, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.models import MigrationValidationRequest
-from ..core.models import TechnologyType
-from ..core.models import ValidationDiscrepancy
-from ..core.models import ValidationResult
-from ..core.models import ValidationSession
+from ..core.models import (
+    MigrationValidationRequest,
+    TechnologyType,
+    ValidationDiscrepancy,
+    ValidationResult,
+    ValidationSession,
+)
 from .models import ValidationSessionModel
-from .repositories import BehavioralTestRepository
-from .repositories import DiscrepancyRepository
-from .repositories import MetricsRepository
-from .repositories import ValidationResultRepository
-from .repositories import ValidationSessionRepository
+from .repositories import (
+    BehavioralTestRepository,
+    DiscrepancyRepository,
+    MetricsRepository,
+    ValidationResultRepository,
+    ValidationSessionRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class ValidationDatabaseService:
         """
         try:
             # Create database session model
-            session_model = await self.session_repo.create_session(
+            await self.session_repo.create_session(
                 request_id=validation_request.request_id,
                 source_technology=validation_request.source_technology.type,
                 target_technology=validation_request.target_technology.type,
@@ -179,8 +179,8 @@ class ValidationDatabaseService:
         request_id: str,
         validation_result: ValidationResult,
         result_type: str = "static",
-        source_representation: Optional[Dict[str, Any]] = None,
-        target_representation: Optional[Dict[str, Any]] = None,
+        source_representation: Optional[dict[str, Any]] = None,
+        target_representation: Optional[dict[str, Any]] = None,
     ) -> bool:
         """Save validation result to database.
 
@@ -245,7 +245,7 @@ class ValidationDatabaseService:
         target_technology: Optional[str] = None,
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """List validation sessions with filtering and pagination.
 
         Args:
@@ -308,7 +308,7 @@ class ValidationDatabaseService:
         self,
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get validation session statistics.
 
         Args:
@@ -397,9 +397,11 @@ class ValidationDatabaseService:
 
         """
         # Reconstruct the validation request
-        from ..core.models import InputData
-        from ..core.models import MigrationValidationRequest
-        from ..core.models import TechnologyContext
+        from ..core.models import (
+            InputData,
+            MigrationValidationRequest,
+            TechnologyContext,
+        )
 
         source_technology = TechnologyContext(
             type=session_model.source_technology,

@@ -9,30 +9,30 @@ This is the central coordinator that implements the three-stage pipeline:
 import time
 from datetime import datetime
 from typing import Any
-from typing import Dict
 
-from ..analyzers import BaseAnalyzer
-from ..analyzers import CodeAnalyzer
-from ..analyzers import VisualAnalyzer
+from ..analyzers import BaseAnalyzer, CodeAnalyzer, VisualAnalyzer
 from ..analyzers.base import AnalyzerError
 from ..comparators.semantic_comparator import SemanticComparator
 from ..reporters.validation_reporter import ValidationReporter
 from ..services.llm_service import create_llm_service
 from .config import get_validation_config
-from .exceptions import BaseValidationError
-from .exceptions import ErrorRecoveryManager
-from .exceptions import configuration_error
-from .exceptions import processing_error
-from .exceptions import validation_input_error
-from .logging import LoggerMixin
-from .logging import log_operation
-from .models import InputType
-from .models import MigrationValidationRequest
-from .models import SeverityLevel
-from .models import TechnologyContext
-from .models import ValidationResult
-from .models import ValidationScope
-from .models import ValidationSession
+from .exceptions import (
+    BaseValidationError,
+    ErrorRecoveryManager,
+    configuration_error,
+    processing_error,
+    validation_input_error,
+)
+from .logging import LoggerMixin, log_operation
+from .models import (
+    InputType,
+    MigrationValidationRequest,
+    SeverityLevel,
+    TechnologyContext,
+    ValidationResult,
+    ValidationScope,
+    ValidationSession,
+)
 
 
 class MigrationValidator(LoggerMixin):
@@ -87,7 +87,10 @@ class MigrationValidator(LoggerMixin):
             except Exception as e:
                 self.logger.error("Failed to initialize LLM service", error=str(e))
                 raise configuration_error(
-                    f"Failed to initialize LLM service: {e!s}", config_key="llm_config", cause=e, )
+                    f"Failed to initialize LLM service: {e!s}",
+                    config_key="llm_config",
+                    cause=e,
+                )
         else:
             self.llm_service = llm_client
             self.logger.info("LLM service provided externally")
@@ -95,18 +98,20 @@ class MigrationValidator(LoggerMixin):
         try:
             self.comparator = SemanticComparator(self.llm_service)
             self.reporter = ValidationReporter()
-            self._analyzer_cache: Dict[str, BaseAnalyzer] = {}
+            self._analyzer_cache: dict[str, BaseAnalyzer] = {}
 
             self.logger.info("Migration validator initialized successfully")
         except Exception as e:
             self.logger.error("Failed to initialize validator components", error=str(e))
             raise configuration_error(
-                f"Failed to initialize validator components: {e!s}", cause=e,
+                f"Failed to initialize validator components: {e!s}",
+                cause=e,
             )
 
     @log_operation("migration_validation_pipeline")
     async def validate_migration(
-            self, request: MigrationValidationRequest) -> ValidationSession:
+        self, request: MigrationValidationRequest
+    ) -> ValidationSession:
         """Execute complete migration validation pipeline.
 
         Args:
@@ -125,11 +130,13 @@ class MigrationValidator(LoggerMixin):
             # Stage 1: Feature Extraction
             session.add_log("Stage 1: Extracting features from source system")
             source_analyzer = self._get_analyzer(
-                request.source_technology, request.source_input.type,
+                request.source_technology,
+                request.source_input.type,
             )
 
             session.source_representation = await source_analyzer.analyze(
-                request.source_input, request.validation_scope,
+                request.source_input,
+                request.validation_scope,
             )
             session.add_log(
                 f"Source analysis complete: {len(session.source_representation.ui_elements)} UI elements, "
@@ -139,11 +146,13 @@ class MigrationValidator(LoggerMixin):
 
             session.add_log("Stage 1: Extracting features from target system")
             target_analyzer = self._get_analyzer(
-                request.target_technology, request.target_input.type,
+                request.target_technology,
+                request.target_input.type,
             )
 
             session.target_representation = await target_analyzer.analyze(
-                request.target_input, request.validation_scope,
+                request.target_input,
+                request.validation_scope,
             )
             session.add_log(
                 f"Target analysis complete: {len(session.target_representation.ui_elements)} UI elements, "
@@ -159,15 +168,18 @@ class MigrationValidator(LoggerMixin):
                 request.validation_scope,
             )
             session.add_log(
-                f"Comparison complete: {len(discrepancies)} discrepancies found")
+                f"Comparison complete: {len(discrepancies)} discrepancies found"
+            )
 
             # Stage 3: Result Analysis and Report Generation
             session.add_log(
-                "Stage 3: Analyzing results and generating validation outcome")
+                "Stage 3: Analyzing results and generating validation outcome"
+            )
             execution_time = time.time() - start_time
 
             session.result = self._analyze_validation_results(
-                discrepancies, execution_time)
+                discrepancies, execution_time
+            )
 
             session.add_log(
                 f"Validation complete: {session.result.overall_status} "
@@ -178,7 +190,8 @@ class MigrationValidator(LoggerMixin):
 
         except BaseValidationError as e:
             session.add_log(
-                f"Validation failed with structured error: {e.error_code} - {e!s}")
+                f"Validation failed with structured error: {e.error_code} - {e!s}"
+            )
 
             # Log structured error details
             self.logger.error(
@@ -234,7 +247,9 @@ class MigrationValidator(LoggerMixin):
             raise wrapped_error
 
     def _get_analyzer(
-        self, technology_context: TechnologyContext, input_type: InputType,
+        self,
+        technology_context: TechnologyContext,
+        input_type: InputType,
     ) -> BaseAnalyzer:
         """Get appropriate analyzer for technology and input type.
 
@@ -270,7 +285,9 @@ class MigrationValidator(LoggerMixin):
         return analyzer
 
     def _analyze_validation_results(
-        self, discrepancies, execution_time: float,
+        self,
+        discrepancies,
+        execution_time: float,
     ) -> ValidationResult:
         """Analyze validation discrepancies and generate final result.
 
@@ -284,9 +301,11 @@ class MigrationValidator(LoggerMixin):
         """
         # Count discrepancies by severity
         critical_count = sum(
-            1 for d in discrepancies if d.severity == SeverityLevel.CRITICAL)
+            1 for d in discrepancies if d.severity == SeverityLevel.CRITICAL
+        )
         warning_count = sum(
-            1 for d in discrepancies if d.severity == SeverityLevel.WARNING)
+            1 for d in discrepancies if d.severity == SeverityLevel.WARNING
+        )
         info_count = sum(1 for d in discrepancies if d.severity == SeverityLevel.INFO)
 
         # Determine overall status
@@ -295,15 +314,15 @@ class MigrationValidator(LoggerMixin):
             summary = f"Migration validation failed. Found {critical_count} critical issues that must be resolved."
         elif warning_count > 0:
             overall_status = "approved_with_warnings"
-            summary = (
-                f"Migration validation passed with {warning_count} warnings requiring review.")
+            summary = f"Migration validation passed with {warning_count} warnings requiring review."
         else:
             overall_status = "approved"
             summary = "Migration validation passed successfully with no critical issues found."
 
         # Calculate fidelity score
         fidelity_score = self._calculate_fidelity_score(
-            critical_count, warning_count, info_count)
+            critical_count, warning_count, info_count
+        )
 
         return ValidationResult(
             overall_status=overall_status,
@@ -315,7 +334,10 @@ class MigrationValidator(LoggerMixin):
         )
 
     def _calculate_fidelity_score(
-        self, critical_count: int, warning_count: int, info_count: int,
+        self,
+        critical_count: int,
+        warning_count: int,
+        info_count: int,
     ) -> float:
         """Calculate fidelity score based on discrepancy counts and severities.
 
@@ -344,8 +366,10 @@ class MigrationValidator(LoggerMixin):
         # Apply confidence weighting based on individual discrepancy scores
         if discrepancies:
             confidence_weights = [
-                d.confidence_score for d in discrepancies if hasattr(
-                    d, "confidence_score")]
+                d.confidence_score
+                for d in discrepancies
+                if hasattr(d, "confidence_score")
+            ]
             if confidence_weights:
                 avg_confidence = sum(confidence_weights) / len(confidence_weights)
                 score *= avg_confidence  # Weight by average confidence
@@ -355,9 +379,8 @@ class MigrationValidator(LoggerMixin):
 
     @log_operation("validation_report_generation")
     async def generate_report(
-            self,
-            session: ValidationSession,
-            format: str = "json") -> str:
+        self, session: ValidationSession, format: str = "json"
+    ) -> str:
         """Generate validation report in specified format.
 
         Args:
@@ -394,11 +417,12 @@ class MigrationValidator(LoggerMixin):
             )
         raise ValueError(f"Unsupported report format: {format}")
 
-    def get_supported_technologies(self) -> Dict[str, Any]:
+    def get_supported_technologies(self) -> dict[str, Any]:
         """Get information about supported technologies and validation scopes."""
         return {
             "technologies": [
-                tech.value for tech in TechnologyContext.__annotations__["type"].__args__
+                tech.value
+                for tech in TechnologyContext.__annotations__["type"].__args__
             ],
             "validation_scopes": [scope.value for scope in ValidationScope],
             "input_types": [input_type.value for input_type in InputType],
@@ -424,7 +448,8 @@ class MigrationValidator(LoggerMixin):
 
     @log_operation("request_validation")
     async def validate_request(
-            self, request: MigrationValidationRequest) -> Dict[str, Any]:
+        self, request: MigrationValidationRequest
+    ) -> dict[str, Any]:
         """Validate migration request parameters before processing.
 
         Args:
@@ -440,21 +465,25 @@ class MigrationValidator(LoggerMixin):
         # Check if technologies are supported
         try:
             source_analyzer = self._get_analyzer(
-                request.source_technology, request.source_input.type,
+                request.source_technology,
+                request.source_input.type,
             )
             if not source_analyzer.supports_scope(request.validation_scope):
                 issues.append(
-                    f"Source technology {request.source_technology.type.value} doesn't support validation scope {request.validation_scope.value}", )
+                    f"Source technology {request.source_technology.type.value} doesn't support validation scope {request.validation_scope.value}",
+                )
         except AnalyzerError as e:
             issues.append(f"Source technology not supported: {e!s}")
 
         try:
             target_analyzer = self._get_analyzer(
-                request.target_technology, request.target_input.type,
+                request.target_technology,
+                request.target_input.type,
             )
             if not target_analyzer.supports_scope(request.validation_scope):
                 issues.append(
-                    f"Target technology {request.target_technology.type.value} doesn't support validation scope {request.validation_scope.value}", )
+                    f"Target technology {request.target_technology.type.value} doesn't support validation scope {request.validation_scope.value}",
+                )
         except AnalyzerError as e:
             issues.append(f"Target technology not supported: {e!s}")
 
@@ -482,10 +511,12 @@ class MigrationValidator(LoggerMixin):
 
         if total_files > 50:
             warnings.append(
-                f"Large number of files ({total_files}) may impact processing time")
+                f"Large number of files ({total_files}) may impact processing time"
+            )
 
         if total_screenshots > 10:
             warnings.append(
-                f"Large number of screenshots ({total_screenshots}) may impact processing time", )
+                f"Large number of screenshots ({total_screenshots}) may impact processing time",
+            )
 
         return {"valid": len(issues) == 0, "issues": issues, "warnings": warnings}

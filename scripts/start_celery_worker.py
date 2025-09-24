@@ -8,7 +8,6 @@ import signal
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
 from typing import Optional
 
 from src.core.config import get_validation_config
@@ -24,14 +23,14 @@ class CeleryWorkerManager:
 
     def __init__(self):
         self.config = get_validation_config()
-        self.workers: List[subprocess.Popen] = []
+        self.workers: list[subprocess.Popen] = []
         self.running = False
 
     def start_workers(
         self,
         worker_count: Optional[int] = None,
         concurrency: Optional[int] = None,
-        queues: Optional[List[str]] = None,
+        queues: Optional[list[str]] = None,
     ) -> None:
         """Start Celery workers."""
         worker_count = worker_count or self._get_optimal_worker_count()
@@ -125,7 +124,7 @@ class CeleryWorkerManager:
         self.stop_workers()
         self.start_workers()
 
-    def get_worker_status(self) -> List[dict]:
+    def get_worker_status(self) -> list[dict]:
         """Get status of all workers."""
         status = []
 

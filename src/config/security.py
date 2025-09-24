@@ -1,10 +1,4 @@
-from typing import List
-from typing import Union
-
-from pydantic import Field
-from pydantic import field_validator
-from pydantic_settings import BaseSettings
-from pydantic_settings import SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class SecuritySettings(BaseSettings):
@@ -27,13 +21,13 @@ class SecuritySettings(BaseSettings):
     MAX_UPLOAD_FILES_PER_REQUEST: int = 5
 
     @property
-    def allowed_hosts_list(self) -> List[str]:
+    def allowed_hosts_list(self) -> list[str]:
         if self.ALLOWED_HOSTS == "*":
             return ["*"]
         return [host.strip() for host in self.ALLOWED_HOSTS.split(",") if host.strip()]
 
     @property
-    def cors_origins_list(self) -> List[str]:
+    def cors_origins_list(self) -> list[str]:
         if self.CORS_ORIGINS == "*":
             return ["*"]
         return [

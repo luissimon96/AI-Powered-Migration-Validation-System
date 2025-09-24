@@ -5,17 +5,16 @@ Comprehensive system and business metrics monitoring.
 import time
 from datetime import datetime
 from functools import wraps
-from typing import Any
-from typing import Dict
-from typing import Optional
+from typing import Any, Optional
 
-from prometheus_client import CollectorRegistry
-from prometheus_client import Counter
-from prometheus_client import Gauge
-from prometheus_client import Histogram
-from prometheus_client import Info
-from prometheus_client import generate_latest
-
+from prometheus_client import (
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    Info,
+    generate_latest,
+)
 from src.core.logging import logger
 
 
@@ -430,7 +429,7 @@ class MetricsCollector:
         except ImportError:
             logger.warning("psutil not available for system metrics")
 
-    def update_queue_metrics(self, queue_stats: Dict[str, Any]):
+    def update_queue_metrics(self, queue_stats: dict[str, Any]):
         """Update Celery queue metrics."""
         for queue_name, size in queue_stats.get("queue_sizes", {}).items():
             self.task_queue_size.labels(queue_name=queue_name).set(size)
@@ -438,7 +437,7 @@ class MetricsCollector:
         for worker_name, active_count in queue_stats.get("worker_tasks", {}).items():
             self.worker_active_tasks.labels(worker_name=worker_name).set(active_count)
 
-    def update_cache_metrics(self, cache_stats: Dict[str, Any]):
+    def update_cache_metrics(self, cache_stats: dict[str, Any]):
         """Update cache metrics."""
         self.cache_size.set(cache_stats.get("memory_used_bytes", 0))
 

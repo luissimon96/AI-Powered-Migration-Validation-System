@@ -1,11 +1,9 @@
-"""Integration tests for API endpoints.
-"""
+"""Integration tests for API endpoints."""
 
 import json
 
 import pytest
 from fastapi.testclient import TestClient
-
 from src.api.routes import app
 
 

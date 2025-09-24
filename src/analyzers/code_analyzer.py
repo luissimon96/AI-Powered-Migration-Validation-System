@@ -8,25 +8,25 @@ import ast
 import os
 import re
 from dataclasses import asdict
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Optional
 
-from ..core.models import AbstractRepresentation
-from ..core.models import BackendFunction
-from ..core.models import DataField
-from ..core.models import InputData
-from ..core.models import InputType
-from ..core.models import TechnologyContext
-from ..core.models import UIElement
-from ..core.models import ValidationScope
-from ..services.llm_service import LLMService
-from ..services.llm_service import create_llm_service
-from .base import BaseAnalyzer
-from .base import ExtractionError
-from .base import InvalidInputError
-from .base import UnsupportedScopeError
+from ..core.models import (
+    AbstractRepresentation,
+    BackendFunction,
+    DataField,
+    InputData,
+    InputType,
+    TechnologyContext,
+    UIElement,
+    ValidationScope,
+)
+from ..services.llm_service import LLMService, create_llm_service
+from .base import (
+    BaseAnalyzer,
+    ExtractionError,
+    InvalidInputError,
+    UnsupportedScopeError,
+)
 
 
 class CodeAnalyzer(BaseAnalyzer):
@@ -214,7 +214,7 @@ class CodeAnalyzer(BaseAnalyzer):
         except Exception:
             return None
 
-    def _extract_python_class_fields(self, node: ast.ClassDef) -> List[DataField]:
+    def _extract_python_class_fields(self, node: ast.ClassDef) -> list[DataField]:
         """Extract data fields from Python class."""
         fields = []
 
@@ -233,7 +233,7 @@ class CodeAnalyzer(BaseAnalyzer):
 
         return fields
 
-    def _extract_python_endpoints(self, content: str) -> List[Dict[str, Any]]:
+    def _extract_python_endpoints(self, content: str) -> list[dict[str, Any]]:
         """Extract API endpoints from Python web frameworks."""
         endpoints = []
 
@@ -293,7 +293,7 @@ class CodeAnalyzer(BaseAnalyzer):
         self,
         content: str,
         file_path: str,
-    ) -> List[UIElement]:
+    ) -> list[UIElement]:
         """Extract UI elements from React components using pattern matching and LLM enhancement."""
         elements = []
 
@@ -350,7 +350,7 @@ class CodeAnalyzer(BaseAnalyzer):
 
         return elements
 
-    def _extract_js_functions(self, content: str) -> List[BackendFunction]:
+    def _extract_js_functions(self, content: str) -> list[BackendFunction]:
         """Extract JavaScript functions."""
         functions = []
 
@@ -372,7 +372,7 @@ class CodeAnalyzer(BaseAnalyzer):
 
         return functions
 
-    def _extract_api_calls(self, content: str) -> List[Dict[str, Any]]:
+    def _extract_api_calls(self, content: str) -> list[dict[str, Any]]:
         """Extract API calls from JavaScript code."""
         api_calls = []
 
@@ -459,7 +459,7 @@ class CodeAnalyzer(BaseAnalyzer):
 
         return representation
 
-    def _extract_html_elements(self, content: str) -> List[UIElement]:
+    def _extract_html_elements(self, content: str) -> list[UIElement]:
         """Extract UI elements from HTML."""
         elements = []
 

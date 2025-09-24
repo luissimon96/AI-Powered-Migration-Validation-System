@@ -6,17 +6,12 @@ and data migration between different system versions.
 
 import logging
 from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-
-from sqlalchemy import MetaData
-from sqlalchemy import text
+from typing import Any, Optional
 
 from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
+from sqlalchemy import MetaData, text
 
 from .models import Base
 from .session import DatabaseManager
@@ -200,7 +195,7 @@ class MigrationManager:
             logger.error(f"Failed to create tables: {e}")
             return False
 
-    async def validate_schema(self) -> Dict[str, Any]:
+    async def validate_schema(self) -> dict[str, Any]:
         """Validate database schema against expected schema.
 
         Returns:
@@ -336,7 +331,7 @@ class DataMigrator:
                 ]
 
                 for component_type, discrepancy_types in mappings:
-                    type_conditions = " OR ".join(
+                    " OR ".join(
                         [f"discrepancy_type = '{dt}'" for dt in discrepancy_types],
                     )
                     await session.execute(
@@ -345,7 +340,10 @@ class DataMigrator:
                         SET component_type = :component_type
                         WHERE component_type IS NULL AND discrepancy_type = ANY(:discrepancy_types)
                         """),
-                        {"component_type": component_type, "discrepancy_types": discrepancy_types}
+                        {
+                            "component_type": component_type,
+                            "discrepancy_types": discrepancy_types,
+                        },
                     )
 
                 # Set default for any remaining records
@@ -368,7 +366,7 @@ class DataMigrator:
             logger.error(f"Failed to migrate discrepancies: {e}")
             return False
 
-    async def cleanup_orphaned_records(self) -> Dict[str, int]:
+    async def cleanup_orphaned_records(self) -> dict[str, int]:
         """Clean up orphaned records that might exist due to failed operations.
 
         Returns:
@@ -427,7 +425,7 @@ class DataMigrator:
             logger.error(f"Failed to cleanup orphaned records: {e}")
             return {"error": str(e)}
 
-    async def backup_data(self, backup_tables: Optional[List[str]] = None) -> bool:
+    async def backup_data(self, backup_tables: Optional[list[str]] = None) -> bool:
         """Create backup of important data before migrations.
 
         Args:
@@ -452,18 +450,26 @@ class DataMigrator:
             async with self.db_manager.get_session() as session:
                 for table_name in backup_tables:
                     # Validate table name for security
-                    if not table_name.replace('_', '').isalnum():
+                    if not table_name.replace("_", "").isalnum():
                         raise ValueError(f"Invalid table name: {table_name}")
 
                     backup_table_name = f"{table_name}_backup_{backup_timestamp}"
 
                     # Validate backup table name
-                    if not backup_table_name.replace('_', '').replace('-', '').isalnum():
-                        raise ValueError(f"Invalid backup table name: {backup_table_name}")
+                    if (
+                        not backup_table_name.replace("_", "")
+                        .replace("-", "")
+                        .isalnum()
+                    ):
+                        raise ValueError(
+                            f"Invalid backup table name: {backup_table_name}"
+                        )
 
                     # Create backup table (table names cannot be parameterized)
                     await session.execute(
-                        text(f"CREATE TABLE {backup_table_name} AS SELECT * FROM {table_name}")
+                        text(
+                            f"CREATE TABLE {backup_table_name} AS SELECT * FROM {table_name}"
+                        )
                     )
 
                     logger.info(f"Backed up table: {table_name} -> {backup_table_name}")

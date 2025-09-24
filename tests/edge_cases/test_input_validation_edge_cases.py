@@ -8,18 +8,11 @@ import os
 import tempfile
 
 import pytest
-from hypothesis import assume
-from hypothesis import example
-from hypothesis import given
+from hypothesis import assume, example, given
 from hypothesis import strategies as st
-from hypothesis.stateful import Bundle
-from hypothesis.stateful import RuleBasedStateMachine
-from hypothesis.stateful import invariant
-from hypothesis.stateful import rule
-
+from hypothesis.stateful import Bundle, RuleBasedStateMachine, invariant, rule
 from src.core.input_processor import InputProcessor
-from src.core.models import InputData
-from src.core.models import InputType
+from src.core.models import InputData, InputType
 
 
 @pytest.mark.unit
@@ -77,7 +70,7 @@ class TestInputValidationEdgeCases:
         """Test rejection of binary files."""
         with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".exe") as f:
             # Write binary content
-            f.write(b"\x00\x01\x02\x03\xFF\xFE\xFD")
+            f.write(b"\x00\x01\x02\x03\xff\xfe\xfd")
 
         try:
             input_data = InputData(type=InputType.CODE_FILES, files=[f.name])
@@ -104,7 +97,7 @@ class TestInputValidationEdgeCases:
             class IncompleteClass
             # Missing colon and body
 
-            # Invalid Unicode characters: \uFFFE\uFFFF
+            # Invalid Unicode characters: \ufffe\uffff
             invalid_unicode = "\\uFFFE\\uFFFF"
 
             # Extremely long line that might break parsers
@@ -238,7 +231,7 @@ class TestInputValidationEdgeCases:
         """Test handling of text with special characters."""
         special_text = """
         # Unicode test: 你好 🌍 ñáéíóú àèìòù
-        # Zero-width characters: \u200B\u200C\u200D\uFEFF
+        # Zero-width characters: \u200b\u200c\u200d\ufeff
         # Control characters: \x00\x01\x02\x03\x04\x05
         # Emoji sequences: 👨‍👩‍👧‍👦 🏴󠁧󠁢󠁳󠁣󠁴󠁿
         # Mathematical symbols: ∑∏∆∇∂∀∃∈∉⊂⊃⊆⊇
@@ -300,7 +293,7 @@ class TestInputValidationEdgeCases:
         temp_files = []
 
         try:
-            for i, path_part in enumerate(file_paths):
+            for i, _path_part in enumerate(file_paths):
                 with tempfile.NamedTemporaryFile(
                     mode="w", delete=False, suffix=f"_{i}.py"
                 ) as f:

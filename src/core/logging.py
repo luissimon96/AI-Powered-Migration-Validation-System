@@ -11,15 +11,10 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
+from typing import Any, Optional, Union
 
 import structlog
-from structlog.types import FilteringBoundLogger
-from structlog.types import WrappedLogger
+from structlog.types import FilteringBoundLogger, WrappedLogger
 
 # Security: Sensitive fields to filter from logs
 SENSITIVE_FIELDS = {
@@ -47,8 +42,8 @@ class SecurityFilter:
         self,
         logger: WrappedLogger,
         method_name: str,
-        event_dict: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event_dict: dict[str, Any],
+    ) -> dict[str, Any]:
         """Filter sensitive data from event dictionary."""
         return self._filter_sensitive_data(event_dict)
 
@@ -82,8 +77,8 @@ class PerformanceMonitor:
         self,
         logger: WrappedLogger,
         method_name: str,
-        event_dict: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event_dict: dict[str, Any],
+    ) -> dict[str, Any]:
         """Add performance context to log events."""
         if "duration" in event_dict or "execution_time" in event_dict:
             # Add performance category for analytics
@@ -104,14 +99,14 @@ class RequestTracker:
     """Track request context across async operations."""
 
     def __init__(self):
-        self._context: Dict[str, Any] = {}
+        self._context: dict[str, Any] = {}
 
     def __call__(
         self,
         logger: WrappedLogger,
         method_name: str,
-        event_dict: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event_dict: dict[str, Any],
+    ) -> dict[str, Any]:
         """Add request context to log events."""
         # Add request context if available
         try:
@@ -149,7 +144,7 @@ def configure_structlog(
         log_level = getattr(logging, log_level.upper())
 
     # Configure processors
-    processors: List[Any] = [
+    processors: list[Any] = [
         # Add timestamp
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
@@ -259,7 +254,7 @@ class OperationLogger:
         self,
         logger: FilteringBoundLogger,
         operation: str,
-        context: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
         log_args: bool = False,
         log_result: bool = False,
     ):
@@ -317,7 +312,7 @@ def get_logger(name: str) -> FilteringBoundLogger:
 
 def log_operation(
     operation: str,
-    context: Optional[Dict[str, Any]] = None,
+    context: Optional[dict[str, Any]] = None,
     log_args: bool = False,
     log_result: bool = False,
 ):
